@@ -1,6 +1,6 @@
 import "./globals.css";
 import Link from "next/link";
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 
 export const metadata: Metadata = {
   title: "Tarun Raja | Chatbot Resume",
@@ -13,7 +13,7 @@ const navItems = [
   { href: "/recruiter", label: "Recruiter" },
   { href: "/projects", label: "Projects" },
   { href: "/contact", label: "Contact" }
-];
+] satisfies ReadonlyArray<{ href: Route; label: string }>;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
