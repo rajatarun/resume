@@ -1,3 +1,4 @@
+// TODO(amplify-static-export): Migrate this API route to AWS Lambda + API Gateway because Next.js static export on Amplify S3 does not support app/api route handlers.
 import { NextRequest, NextResponse } from "next/server";
 import { getProvider } from "@/lib/providers";
 import { retrieveResumeContext } from "@/lib/rag/retrieval";
