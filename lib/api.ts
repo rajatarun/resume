@@ -26,6 +26,68 @@ class ApiError extends Error {
 
 const DEFAULT_TIMEOUT_MS = 60_000;
 
+const tryParseJsonObject = (raw: string): unknown => {
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    throw new Error("Empty response body");
+  }
+
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    // Some integrations append shell-like suffixes (for example, "~ $").
+    // Recover by parsing the first complete top-level JSON object.
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    let objectStart = -1;
+
+    for (let i = 0; i < trimmed.length; i += 1) {
+      const char = trimmed[i];
+
+      if (inString) {
+        if (escaped) {
+          escaped = false;
+          continue;
+        }
+
+        if (char === "\\") {
+          escaped = true;
+          continue;
+        }
+
+        if (char === '"') {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (char === '"') {
+        inString = true;
+        continue;
+      }
+
+      if (char === "{") {
+        if (depth === 0) {
+          objectStart = i;
+        }
+        depth += 1;
+      } else if (char === "}") {
+        depth -= 1;
+        if (depth === 0 && objectStart !== -1) {
+          return JSON.parse(trimmed.slice(objectStart, i + 1));
+        }
+      }
+    }
+
+    throw new Error("Unable to parse JSON object from response body");
+  }
+};
+
+const parseChatResponseFromText = (raw: string, status?: number): ChatResponse => {
+  return validateChatResponse(tryParseJsonObject(raw) as Partial<ChatResponse>, status);
+};
+
 const parseErrorMessage = async (response: Response): Promise<string> => {
   try {
     const payload = (await response.json()) as { message?: string; error?: string };
@@ -85,7 +147,7 @@ export const postChatQuestion = async (
       throw new ApiError(await parseErrorMessage(response), response.status);
     }
 
-    const data = validateChatResponse((await response.json()) as Partial<ChatResponse>, response.status);
+    const data = parseChatResponseFromText(await response.text(), response.status);
     const requestId = data.requestId ?? getRequestIdFromHeaders(response);
     logRequestId(requestId);
 
@@ -140,7 +202,7 @@ export const streamChatQuestion = async (
     const contentType = response.headers.get("content-type") ?? "";
 
     if (contentType.includes("application/json")) {
-      const data = validateChatResponse((await response.json()) as Partial<ChatResponse>, response.status);
+      const data = parseChatResponseFromText(await response.text(), response.status);
       const requestId = data.requestId ?? responseRequestId;
       onToken?.(data.answer);
       logRequestId(requestId);
