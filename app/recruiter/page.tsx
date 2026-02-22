@@ -1,13 +1,12 @@
-import { RecruiterConsole } from "@/components/recruiter-console";
+import { RecruiterPanel } from "@/components/RecruiterPanel";
+import { resume } from "@/lib/resume";
 
 export default function RecruiterPage() {
   return (
     <div className="space-y-4">
-      <section className="prose-card">
-        <h1 className="text-2xl font-bold">Recruiter Workspace</h1>
-        <p className="text-sm text-slate-600">Privacy notice: JD text is processed for this request and not stored by default.</p>
-      </section>
-      <RecruiterConsole />
+      <h1 className="text-3xl font-semibold">Recruiter</h1>
+      <p className="text-sm text-zinc-500">Frontend-only recruiter tools powered by resume.json.</p>
+      <RecruiterPanel data={resume} />
     </div>
   );
 }

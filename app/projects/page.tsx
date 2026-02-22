@@ -1,18 +1,13 @@
-import { resumeData } from "@/lib/data/resume";
+import { ProjectCard } from "@/components/ProjectCard";
+import { resume } from "@/lib/resume";
 
 export default function ProjectsPage() {
   return (
-    <section className="prose-card">
-      <h1 className="mb-4 text-2xl font-bold">Projects</h1>
-      <div className="space-y-4">
-        {resumeData.projects.map((project) => (
-          <article key={project.name}>
-            <h2 className="font-semibold">{project.name}</h2>
-            <p>{project.description}</p>
-            <p className="text-sm text-slate-500">{project.tech.join(" · ")}</p>
-          </article>
-        ))}
-      </div>
-    </section>
+    <div className="space-y-6">
+      <h1 className="text-3xl font-semibold">Projects</h1>
+      {resume.projects.map((project) => (
+        <ProjectCard key={project.name} project={project} />
+      ))}
+    </div>
   );
 }

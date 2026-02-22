@@ -1,0 +1,222 @@
+{
+  "header": {
+    "name": "TARUN RAJA",
+    "location": "Princeton, Texas, United States",
+    "phone": "6465892266",
+    "email": "rajatarun12@gmail.com",
+    "links": [
+      "LinkedIn"
+    ]
+  },
+  "profile": {
+    "summary": "Senior Lead Software Engineer with over 10+ years of experience in the fintech sector, specializing in high-scale application architecture, fault-tolerant systems, and cross-functional team leadership. Proven track record of orchestrating global engineering teams under Kanban methodologies to deliver next-generation banking solutions. Expert in driving DevOps modernization, AI enablement, and SRE best practices while ensuring strict regulatory governance for international payment systems."
+  },
+  "skills": {
+    "groups": [
+      {
+        "name": "Backend",
+        "items": [
+          "Spring Boot",
+          "Java"
+        ]
+      },
+      {
+        "name": "Frontend",
+        "items": [
+          "JavaScript",
+          "TypeScript",
+          "React",
+          "Angular"
+        ]
+      },
+      {
+        "name": "Runtime/Platform",
+        "items": [
+          "Node.js",
+          "Python"
+        ]
+      },
+      {
+        "name": "Cloud/DevOps",
+        "items": [
+          "AWS",
+          "Kubernetes (CKAD Certified)",
+          "Docker",
+          "Jenkins",
+          "CI/CD Pipelines",
+          "Terraform"
+        ]
+      },
+      {
+        "name": "AI/LLM",
+        "items": [
+          "LangChain",
+          "LangGraph",
+          "OpenAI API",
+          "Agentic Workflows",
+          "LLM Orchestration"
+        ]
+      },
+      {
+        "name": "Practices",
+        "items": [
+          "Agile/Kanban",
+          "Site Reliability Engineering (SRE)",
+          "Microservices",
+          "Regulatory Governance",
+          "Cross-functional Team Management"
+        ]
+      }
+    ]
+  },
+  "experience": [
+    {
+      "title": "Senior Lead Software Engineer",
+      "company": "JP MORGAN CHASE",
+      "startYear": "2023",
+      "endYearOrPresent": "Present",
+      "location": "Plano",
+      "highlights": [
+        {
+          "label": "Engineering Leadership",
+          "text": "Created and currently lead a cross-functional engineering division operating on a Kanban model, overseeing three critical workstreams: DevOps, Cross-Cutting Solutions (Libraries, AI Enablement, Architecture), and SRE."
+        },
+        {
+          "label": "Team Management",
+          "text": "Manage a hierarchy including three technical leads, developers, and a Program Manager. Enforced standardization across global time zones to accelerate delivery cycles and streamline development hygiene."
+        },
+        {
+          "label": "Product Delivery",
+          "text": "Spearheading the architectural design and feature rollout of a new Commercial Banking Portal for middle-market clients, enabling seamless cross-country payments and account reviews."
+        },
+        {
+          "label": "Governance & Compliance",
+          "text": "Direct the governance strategy for payment systems,ensuring strict adherence to international banking standards, data fitness, and regulatory information flows. Innovation: Leading \"Rapid Prototyping deployment pipelines \" and \"AI Enablement\" initiatives to integrate large language models (LLMs) and automation into banking workflows."
+        }
+      ]
+    },
+    {
+      "title": "Vice President / Software Engineering Lead",
+      "company": "JP MORGAN CHASE",
+      "startYear": "2022",
+      "endYearOrPresent": "2023",
+      "highlights": [
+        {
+          "label": "Modernization",
+          "text": "Led the modernization effort to migrate legacy systems to cloud-native architectures, ensuring systems remained current with the latest technology stacks."
+        },
+        {
+          "label": "Tooling Development",
+          "text": "Architected and developed the \"Jules\" library, a custom solution designed to facilitate \"shift-left\" testing patterns and streamline Kubernetes deployments."
+        },
+        {
+          "label": "CI/CD Optimization",
+          "text": "Developed and maintained robust CI/CD pipelines for multiple high-impact projects."
+        },
+        {
+          "label": "Mentorship",
+          "text": "Led a team of developers, fostering a culture of continuous learning and guiding junior staff."
+        },
+        {
+          "label": "Full Stack Delivery",
+          "text": "Delivered full-stack applications utilizing JavaScript and Java."
+        }
+      ]
+    },
+    {
+      "title": "Application Developer",
+      "company": "JP MORGAN CHASE",
+      "startYear": "2016",
+      "endYearOrPresent": "2022",
+      "location": "New York",
+      "highlights": [
+        {
+          "label": "Full Stack Development",
+          "text": "Developed customer-facing single-page applications (SPAs) using JavaScript and Java Spring Framework, integrating third-party APIs and handling high-volume data transactions."
+        },
+        {
+          "label": "Architecture & Risk",
+          "text": "Instrumental in establishing software architectures by researching existing systems, identifying complexities, and mitigating potential implementation risks."
+        },
+        {
+          "label": "Performance",
+          "text": "Provided Subject Matter Expertise (SME) for a major banking initiative, resulting in a 3% Year-over-Year increase in user growth."
+        },
+        {
+          "label": "Code Quality",
+          "text": "Managed code quality and unit test coverage, enforcing best coding practices and reducing technical debt."
+        },
+        {
+          "label": "Optimization",
+          "text": "Tracked and managed Cross Browser Compatibility issues and managed web optimization, including CSS Sprites and best practices."
+        }
+      ]
+    },
+    {
+      "title": "Front End Developer",
+      "company": "SONICSOFT INC",
+      "startYear": "2016",
+      "endYearOrPresent": "2016",
+      "highlights": [
+        {
+          "label": "Development",
+          "text": "Developed customer-based applications and architected solutions to handle high volumes of data."
+        },
+        {
+          "label": "System Design",
+          "text": "Delivered hands-on support in designing, estimating, planning, and implementing IT system-related business solutions."
+        }
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name": "TaskWeave",
+      "subtitle": "Agentic AI Framework",
+      "highlights": [
+        {
+          "label": "Framework Architecture",
+          "text": "Engineered TaskWeave, an agentic framework allowing users to define atomic tasks (LLM prompts, API calls, data analysis) via JSON configuration."
+        },
+        {
+          "label": "Dynamic Orchestration",
+          "text": "Leveraged LangGraph and LangChain to dynamically chain tools together, automating complex chains of reasoning."
+        },
+        {
+          "label": "AI Integration",
+          "text": "Integrated OpenAI APIs to generate contextual insights, enabling the system to expand easily into multi- agent or specialist workflows. Impact: Enabled rapid prototyping of agentic workflows with reusable logic, reducing the time required to deploy complex AI reasoning chains."
+        }
+      ]
+    }
+  ],
+  "education": [
+    {
+      "school": "State University of New York",
+      "year": "2015",
+      "degree": "Master of Science in Computer Engineering",
+      "details": "GPA: 3.5"
+    },
+    {
+      "school": "The London School of Economics and Political Science",
+      "year": "2018",
+      "degree": "MBA Essentials"
+    }
+  ],
+  "certifications": [
+    {
+      "year": "2019",
+      "name": "Project Management Foundations Communication & Managing Your Manager"
+    },
+    {
+      "year": "2021",
+      "name": "Certified Kubernetes Application Developer (CKAD)"
+    },
+    {
+      "year": "2023",
+      "name": "AWS Certified Solutions Architect - Associate"
+    }
+  ],
+  "additional": {
+    "linksText": "• Links: GitHub , LinkedIn"
+  }
+}

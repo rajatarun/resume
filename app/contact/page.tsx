@@ -1,16 +1,15 @@
-import { resumeData } from "@/lib/data/resume";
+import { resume } from "@/lib/resume";
 
 export default function ContactPage() {
   return (
-    <section className="prose-card">
-      <h1 className="text-2xl font-bold">Contact</h1>
-      <p className="mt-2">Email: {resumeData.profile.email}</p>
-      <p>Phone: {resumeData.profile.phone}</p>
-      <ul className="mt-4 list-disc pl-5">
-        {resumeData.profile.links.map((link) => (
-          <li key={link.url}><a href={link.url} className="text-brand-700 underline">{link.label}</a></li>
-        ))}
-      </ul>
+    <section className="rounded-2xl border border-zinc-200 p-6 dark:border-zinc-800">
+      <h1 className="text-3xl font-semibold">Contact</h1>
+      <div className="mt-4 space-y-2 text-sm">
+        <p><span className="font-medium">Location:</span> {resume.header.location}</p>
+        <p><span className="font-medium">Phone:</span> {resume.header.phone}</p>
+        <p><span className="font-medium">Email:</span> {resume.header.email}</p>
+        <p><span className="font-medium">Links:</span> {resume.header.links.join(", ")}</p>
+      </div>
     </section>
   );
 }

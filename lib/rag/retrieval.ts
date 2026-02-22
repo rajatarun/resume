@@ -1,7 +1,7 @@
-import { resumeData } from "@/lib/data/resume";
+import { resume } from "@/lib/resume";
 import { buildChunks, type ResumeChunk } from "./chunking";
 
-const chunks = buildChunks(resumeData);
+const chunks = buildChunks(resume);
 
 export function retrieveResumeContext(query: string, k = 5): ResumeChunk[] {
   const terms = query.toLowerCase().split(/\W+/).filter(Boolean);
