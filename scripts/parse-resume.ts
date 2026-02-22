@@ -17,8 +17,8 @@ async function main() {
     certifications: []
   };
 
-  fs.writeFileSync("lib/data/resume.json", JSON.stringify(normalized, null, 2));
-  console.log("Wrote normalized resume scaffold to lib/data/resume.json");
+  fs.writeFileSync("data/resume.json", JSON.stringify(normalized, null, 2));
+  console.log("Wrote normalized resume scaffold to data/resume.json");
 }
 
 main().catch((err) => {

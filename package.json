@@ -4,12 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npm run resume:build && next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "ingest": "tsx scripts/ingest.ts",
-    "parse:resume": "tsx scripts/parse-resume.ts"
+    "parse:resume": "tsx scripts/parse-resume.ts",
+    "resume:build": "tsx scripts/build_resume_json.ts"
   },
   "dependencies": {
     "clsx": "^2.1.1",
