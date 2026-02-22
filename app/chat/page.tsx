@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { postChatQuestion } from "@/lib/api";
+import { streamChatQuestion } from "@/lib/api";
 
 type ChatMessage = {
   id: string;
@@ -42,23 +42,50 @@ export default function ChatPage() {
       content: trimmedQuestion
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    const assistantMessageId = createId();
+    const assistantPlaceholder: ChatMessage = {
+      id: assistantMessageId,
+      role: "assistant",
+      content: ""
+    };
+
+    setMessages((prev) => [...prev, userMessage, assistantPlaceholder]);
     setIsSubmitting(true);
 
     try {
-      const response = await postChatQuestion({ question: trimmedQuestion });
-      setMessages((prev) => [
-        ...prev,
+      const response = await streamChatQuestion(
+        { question: trimmedQuestion },
         {
-          id: createId(),
-          role: "assistant",
-          content: response.answer,
-          citations: response.citations
+          onToken: (token) => {
+            setMessages((prev) =>
+              prev.map((message) =>
+                message.id === assistantMessageId
+                  ? {
+                      ...message,
+                      content: `${message.content}${token}`
+                    }
+                  : message
+              )
+            );
+          }
         }
-      ]);
+      );
+
+      setMessages((prev) =>
+        prev.map((message) =>
+          message.id === assistantMessageId
+            ? {
+                ...message,
+                content: message.content || response.answer,
+                citations: response.citations
+              }
+            : message
+        )
+      );
     } catch (err) {
       const message = err instanceof Error ? err.message : "Something went wrong while sending your message.";
       setError(message);
+      setMessages((prev) => prev.filter((chatMessage) => chatMessage.id !== assistantMessageId));
     } finally {
       setIsSubmitting(false);
     }
@@ -79,12 +106,15 @@ export default function ChatPage() {
             </div>
           ) : (
             messages.map((message) => (
-              <article key={message.id} className={`max-w-[90%] rounded-2xl p-4 text-sm shadow-sm sm:max-w-[80%] ${
-                message.role === "user"
-                  ? "ml-auto bg-blue-600 text-white"
-                  : "border border-zinc-200 bg-white text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
-              }`}>
-                <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+              <article
+                key={message.id}
+                className={`max-w-[90%] rounded-2xl p-4 text-sm shadow-sm sm:max-w-[80%] ${
+                  message.role === "user"
+                    ? "ml-auto bg-blue-600 text-white"
+                    : "border border-zinc-200 bg-white text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                }`}
+              >
+                <p className="whitespace-pre-wrap leading-relaxed">{message.content || " "}</p>
                 {message.role === "assistant" && message.citations && message.citations.length > 0 ? (
                   <details className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-xs text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
                     <summary className="cursor-pointer font-medium">Citations ({message.citations.length})</summary>
