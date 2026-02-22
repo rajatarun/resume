@@ -98,14 +98,19 @@ const parseErrorMessage = async (response: Response): Promise<string> => {
 };
 
 const validateChatResponse = (data: Partial<ChatResponse>, status?: number): ChatResponse => {
-  if (typeof data.answer !== "string" || !Array.isArray(data.citations) || typeof data.timingsMs !== "object" || data.timingsMs === null) {
+  if (typeof data.answer !== "string" || !Array.isArray(data.citations)) {
     throw new ApiError("Invalid response format from chat API.", status);
   }
+
+  const timingsMs =
+    data.timingsMs && typeof data.timingsMs === "object"
+      ? (data.timingsMs as Record<string, number>)
+      : {};
 
   return {
     answer: data.answer,
     citations: data.citations,
-    timingsMs: data.timingsMs as Record<string, number>,
+    timingsMs,
     requestId: typeof data.requestId === "string" ? data.requestId : undefined
   };
 };
