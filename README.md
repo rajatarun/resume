@@ -1,32 +1,17 @@
 # Tarun Raja — Personal Website
 
-Professional personal website built with **Next.js (App Router) + TypeScript + TailwindCSS**.
-
-## Routes
-
-- `/` Home (hero-only landing page)
-- `/resume`
-- `/projects`
-- `/recruiter`
-- `/contact`
-- `/store`
-- `/website`
-- `/portfolio`
-- `/blog`
-- `/blog/[slug]`
-- `/appointment`
-- `/newsletter`
+Professional personal website built with **Next.js App Router + TypeScript + TailwindCSS**.
 
 ## Features
 
-- Minimal top navigation with all routes in a fixed order
-- Reusable UI components: `Navbar`, `Footer`, `PageShell`, `Section`, `Card`, `Badge`, `Button`, `Input`
-- Blog index with search and tag filter + dynamic blog detail pages
-- Portfolio filters (All / Backend / Frontend / Cloud / GenAI)
-- Newsletter subscribe form with mock API (`/api/newsletter`) using in-memory storage
-- Appointment page powered by environment variables and calendar utilities (Google + ICS)
+- Deep-link pages:
+  - `/` home landing page with pill-style navigation cards
+  - `/store`, `/website`, `/portfolio`, `/blog`, `/blog/[slug]`, `/appointment`, `/newsletter`
+- Reusable design system components (`PageShell`, `Section`, `Card`, `PillLink`, `Badge`, `Button`, `Input`)
 - SEO metadata per page + OpenGraph
 - `sitemap.xml` and `robots.txt`
+- Newsletter mock API route with in-memory storage
+- Appointment page reads Zoom details from environment variables
 
 ## Setup
 
@@ -36,13 +21,13 @@ Professional personal website built with **Next.js (App Router) + TypeScript + T
 npm install
 ```
 
-2. Create local env file:
+2. Copy environment variables:
 
 ```bash
 cp .env.example .env.local
 ```
 
-3. Run development server:
+3. Run dev server:
 
 ```bash
 npm run dev
@@ -52,14 +37,14 @@ npm run dev
 
 ## Environment variables
 
-Add this to `.env.local`:
+Add the following to `.env.local`:
 
 ```env
 NEXT_PUBLIC_ZOOM_PERSONAL_LINK=https://zoom.us/j/your-meeting-id
 NEXT_PUBLIC_ZOOM_MEETING_ID=your-meeting-id
 ```
 
-## Build and run production
+## Build & production
 
 ```bash
 npm run build
@@ -69,19 +54,17 @@ npm run start
 ## Deployment notes
 
 ### Vercel
-
 - Import the repository in Vercel.
-- Set `NEXT_PUBLIC_ZOOM_PERSONAL_LINK` and `NEXT_PUBLIC_ZOOM_MEETING_ID` in project environment variables.
-- Deploy with default Next.js settings.
+- Configure `NEXT_PUBLIC_ZOOM_PERSONAL_LINK` and `NEXT_PUBLIC_ZOOM_MEETING_ID` in Project Settings → Environment Variables.
+- Deploy (auto-detected Next.js build settings).
 
 ### AWS Amplify
-
-- Connect the repository in Amplify Hosting.
-- Use `amplify.yml` (already included) or standard Next.js build settings.
-- Configure environment variables in Amplify Console.
-- Trigger build/deploy.
+- Connect repository in Amplify Hosting.
+- Use the existing `amplify.yml` (or default Next.js settings).
+- Set environment variables in Amplify Console.
+- Trigger build + deploy.
 
 ## Notes
 
-- Newsletter subscriptions are intentionally in-memory for demo purposes.
-- Product/blog/project content is placeholder-friendly and easy to replace from `/data`.
+- Newsletter subscription currently stores emails in memory via `/api/newsletter` and includes a TODO for provider integration (Mailchimp/ConvertKit).
+- Product, project, post, and newsletter issue content is placeholder data designed for easy replacement.

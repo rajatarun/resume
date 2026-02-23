@@ -2,19 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://tarunraja.dev";
-  const routes = [
-    "",
-    "/resume",
-    "/projects",
-    "/recruiter",
-    "/contact",
-    "/store",
-    "/website",
-    "/portfolio",
-    "/blog",
-    "/appointment",
-    "/newsletter"
-  ];
+  const routes = ["", "/store", "/website", "/portfolio", "/blog", "/appointment", "/newsletter"];
 
   return routes.map((route) => ({
     url: `${baseUrl}${route}`,
