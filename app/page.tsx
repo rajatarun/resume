@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { PillLink } from "@/components/PillLink";
 import { PageShell } from "@/components/PageShell";
 
@@ -31,9 +32,19 @@ const legacyLinks = [
 export default function HomePage() {
   return (
     <PageShell
-      title="Building production-grade software, cloud platforms, and GenAI experiences."
-      intro="I’m Tarun Raja, a full-stack engineering leader focused on reliable delivery, thoughtful product design, and mentoring teams that build with long-term impact."
+      title="AI Systems Architect & Social-Media Technologist"
+      intro="I’m Tarun Raja, focused on trust-aware AI systems, observability-driven platform delivery, and career mentoring for engineers growing into architecture and leadership roles."
     >
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold tracking-tight">AI Systems Lab</h2>
+        <Link
+          href="/lab"
+          className="focus-ring inline-flex items-center justify-center rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-sky-700"
+        >
+          Enter AI Systems Lab
+        </Link>
+      </section>
+
       <section className="space-y-4">
         <h2 className="text-xl font-semibold tracking-tight">Explore new deep-link sections</h2>
         <div className="grid gap-3 sm:grid-cols-2">

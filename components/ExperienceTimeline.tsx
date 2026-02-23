@@ -1,6 +1,12 @@
+import Link from "next/link";
 import type { ExperienceItem } from "@/lib/resume";
 
-export function ExperienceTimeline({ experience }: { experience: ExperienceItem[] }) {
+type ExperienceTimelineProps = {
+  experience: ExperienceItem[];
+  showProofLink?: boolean;
+};
+
+export function ExperienceTimeline({ experience, showProofLink = false }: ExperienceTimelineProps) {
   return (
     <div className="space-y-6">
       {experience.map((item) => (
@@ -9,6 +15,11 @@ export function ExperienceTimeline({ experience }: { experience: ExperienceItem[
             <h3 className="text-lg font-semibold">{item.title} · {item.company}</h3>
             <p className="text-sm text-zinc-500">{item.startYear} — {item.endYearOrPresent}</p>
           </div>
+          {showProofLink ? (
+            <Link href="/proof" className="mt-1 inline-flex text-xs text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300">
+              🔗 Verify on-chain (coming soon)
+            </Link>
+          ) : null}
           {item.location && <p className="mt-1 text-sm text-zinc-500">{item.location}</p>}
           <ul className="mt-3 space-y-2">
             {item.highlights.map((highlight) => (
