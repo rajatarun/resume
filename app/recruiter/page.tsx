@@ -1,7 +1,5 @@
 import { RecruiterGate } from "@/components/web3/RecruiterGate";
 
-export const dynamic = "force-dynamic";
-
 const isRecruiterGateEnabled = () => {
   const value = process.env.ENABLE_RECRUITER_GATE;
   return value?.trim().toLowerCase() === "true";
