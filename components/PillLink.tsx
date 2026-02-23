@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { LinkProps } from "next/link";
+import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils/cn";
 
 export function PillLink({
@@ -7,7 +7,7 @@ export function PillLink({
   label,
   highlight = false,
 }: {
-  href: LinkProps["href"];
+  href: ComponentProps<typeof Link>["href"];
   label: string;
   highlight?: boolean;
 }) {
