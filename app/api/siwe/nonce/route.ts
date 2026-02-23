@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { createNonce, setNonceCookie } from "@/lib/web3/siwe";
 
-export const dynamic = "force-dynamic";
-
 export async function GET() {
   try {
     const nonce = createNonce();
