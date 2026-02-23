@@ -22,9 +22,26 @@ export function SiweButton({ onSuccess }: SiweButtonProps) {
     setLoading(true);
 
     try {
-      const nonceResponse = await fetch("/api/siwe/nonce", { cache: "no-store" });
+      // Use the canonical nonce route and include cookies so nonce/session state is shared.
+      const nonceResponse = await fetch("/api/auth/nonce", {
+        cache: "no-store",
+        credentials: "include"
+      });
+
       if (!nonceResponse.ok) {
-        throw new Error("Could not fetch SIWE nonce.");
+        let nonceError = "Could not fetch SIWE nonce.";
+
+        try {
+          // Bubble up API-provided errors instead of masking everything with a generic message.
+          const body = (await nonceResponse.json()) as { error?: string };
+          if (body.error) {
+            nonceError = body.error;
+          }
+        } catch {
+          // Ignore non-JSON error responses and keep the default message.
+        }
+
+        throw new Error(`${nonceError} (status ${nonceResponse.status})`);
       }
 
       const { nonce } = (await nonceResponse.json()) as { nonce: string };
@@ -45,6 +62,7 @@ export function SiweButton({ onSuccess }: SiweButtonProps) {
       const verifyResponse = await fetch("/api/siwe/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ message: preparedMessage, signature })
       });
 

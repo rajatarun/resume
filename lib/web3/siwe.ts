@@ -23,6 +23,20 @@ function getSessionSecret() {
   return process.env.SIWE_SESSION_SECRET ?? "";
 }
 
+function shouldUseCrossSiteCookies() {
+  return Boolean(process.env.SIWE_CORS_ORIGIN);
+}
+
+function getCookieSecurityOptions() {
+  const crossSite = shouldUseCrossSiteCookies();
+
+  return {
+    // If nonce requests can come from another origin, cookies must be SameSite=None + Secure.
+    sameSite: crossSite ? ("none" as const) : ("strict" as const),
+    secure: crossSite || process.env.NODE_ENV === "production"
+  };
+}
+
 function signValue(value: string) {
   const secret = getSessionSecret();
   return createHmac("sha256", secret).update(value).digest("base64url");
@@ -33,10 +47,12 @@ export function createNonce() {
 }
 
 export function setNonceCookie(nonce: string) {
+  const cookieSecurity = getCookieSecurityOptions();
+
   cookies().set(NONCE_COOKIE, nonce, {
     httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
+    sameSite: cookieSecurity.sameSite,
+    secure: cookieSecurity.secure,
     path: "/",
     maxAge: 60 * 10
   });
@@ -53,10 +69,12 @@ export function clearNonceCookie() {
 export function setSessionCookie(payload: SessionPayload) {
   const encodedPayload = base64UrlEncode(JSON.stringify(payload));
   const signature = signValue(encodedPayload);
+  const cookieSecurity = getCookieSecurityOptions();
+
   cookies().set(SESSION_COOKIE, `${encodedPayload}.${signature}`, {
     httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
+    sameSite: cookieSecurity.sameSite,
+    secure: cookieSecurity.secure,
     path: "/",
     maxAge: 60 * 60 * 24
   });

@@ -1,13 +1,2 @@
-import { NextResponse } from "next/server";
-import { createNonce, setNonceCookie } from "@/lib/web3/siwe";
-
-export async function GET() {
-  try {
-    const nonce = createNonce();
-    setNonceCookie(nonce);
-
-    return NextResponse.json({ nonce });
-  } catch {
-    return NextResponse.json({ error: "Could not generate SIWE nonce." }, { status: 500 });
-  }
-}
+// Backwards-compatible alias: existing clients may still call /api/siwe/nonce.
+export { GET } from "@/app/api/auth/nonce/route";
