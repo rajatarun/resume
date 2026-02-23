@@ -1,7 +1,16 @@
 import Link from "next/link";
+import type { LinkProps } from "next/link";
 import { cn } from "@/lib/utils/cn";
 
-export function PillLink({ href, label, highlight = false }: { href: string; label: string; highlight?: boolean }) {
+export function PillLink({
+  href,
+  label,
+  highlight = false,
+}: {
+  href: LinkProps["href"];
+  label: string;
+  highlight?: boolean;
+}) {
   return (
     <Link
       href={href}
