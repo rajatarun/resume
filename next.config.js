@@ -1,6 +1,9 @@
 /** @type {import('next').NextConfig} */
+const isExportMode = process.env.NEXT_OUTPUT_MODE === "export";
+
 const nextConfig = {
-  output: "export",
+  ...(isExportMode ? { output: "export" } : {}),
+  distDir: "out",
   images: { unoptimized: true },
   experimental: {
     typedRoutes: true,
