@@ -1,29 +1,41 @@
+import type { Metadata } from "next";
 import "./globals.css";
-import type { Metadata, Route } from "next";
-import { resume } from "@/lib/resume";
-import { SiteHeader } from "@/components/SiteHeader";
+import { TopNav } from "@/components/TopNav";
+import { SiteFooter } from "@/components/SiteFooter";
 
-const summary = resume.profile.summary;
+const siteUrl = "https://tarunraja.dev";
 
 export const metadata: Metadata = {
-  title: `${resume.header.name} | Resume Website`,
-  description: summary
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "Tarun Raja | Full-Stack Lead Engineer",
+    template: "%s | Tarun Raja"
+  },
+  description:
+    "Professional personal website for Tarun Raja, full-stack lead engineer specializing in cloud architecture, GenAI products, and mentorship.",
+  openGraph: {
+    title: "Tarun Raja | Full-Stack Lead Engineer",
+    description:
+      "Explore Tarun Raja's website, portfolio, blog, store, and appointment links.",
+    url: siteUrl,
+    siteName: "Tarun Raja",
+    type: "website"
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tarun Raja | Full-Stack Lead Engineer",
+    description:
+      "Explore Tarun Raja's website, portfolio, blog, store, and appointment links."
+  }
 };
-
-const navItems = [
-  { href: "/", label: "Home" },
-  { href: "/resume", label: "Resume" },
-  { href: "/projects", label: "Projects" },
-  { href: "/recruiter", label: "Recruiter" },
-  { href: "/contact", label: "Contact" }
-] satisfies ReadonlyArray<{ href: Route; label: string }>;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="bg-white text-zinc-900 transition-colors dark:bg-zinc-950 dark:text-zinc-100">
-        <SiteHeader name={resume.header.name} navItems={navItems} />
-        <main className="mx-auto max-w-6xl px-4 py-10">{children}</main>
+    <html lang="en" suppressHydrationWarning>
+      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+        <TopNav />
+        <main className="mx-auto w-full max-w-6xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">{children}</main>
+        <SiteFooter />
       </body>
     </html>
   );
