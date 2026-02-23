@@ -1,8 +1,21 @@
 import { ExperienceTimeline } from "@/components/ExperienceTimeline";
 import { SkillBadges } from "@/components/SkillBadges";
+import { recordProof } from "@/lib/proof";
 import { resume } from "@/lib/resume";
 
-export default function ResumePage() {
+export default async function ResumePage() {
+  await Promise.all(
+    resume.experience.map((item) =>
+      recordProof({
+        id: `${item.company}-${item.title}-${item.startYear}`,
+        title: `${item.title} @ ${item.company}`,
+        summary: item.highlights.map((highlight) => `${highlight.label}: ${highlight.text}`).join(" | "),
+        url: "/resume",
+        contentHash: `sha256('${item.title}')`
+      })
+    )
+  );
+
   return (
     <div className="space-y-8">
       <section>
@@ -17,7 +30,7 @@ export default function ResumePage() {
 
       <section>
         <h2 className="mb-4 text-xl font-semibold">Experience</h2>
-        <ExperienceTimeline experience={resume.experience} />
+        <ExperienceTimeline experience={resume.experience} showProofLink />
       </section>
 
       <section className="grid gap-6 md:grid-cols-2">
