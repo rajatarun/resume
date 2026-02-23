@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Web3NavControls } from "@/components/web3/Web3NavControls";
 
 const navLinks = [
   ["/", "Home"],
@@ -18,8 +19,9 @@ export function TopNav() {
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/85 backdrop-blur dark:border-slate-800 dark:bg-slate-950/80">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-3 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <Link href="/" className="focus-ring text-lg font-semibold tracking-tight">Tarun Raja</Link>
+          <Web3NavControls />
         </div>
         <nav aria-label="Primary navigation" className="flex gap-1 overflow-x-auto pb-1">
           {navLinks.map(([href, label]) => (
