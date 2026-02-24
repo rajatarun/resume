@@ -1,4 +1,4 @@
-declare module 'siwe' {
+declare module "siwe" {
   export type SiweMessageParams = {
     domain: string;
     address: string;
