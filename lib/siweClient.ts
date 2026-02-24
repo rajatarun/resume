@@ -4,6 +4,14 @@ export type SiweNonceResponse = {
   ttlSeconds?: number;
 };
 
+type SiweNonceResponseRaw = JsonRecord & {
+  sessionId?: string;
+  sessionID?: string;
+  sid?: string;
+  nonce?: string;
+  ttlSeconds?: number;
+};
+
 export type SiweVerifyPayload = {
   sessionId: string;
   message: string;
@@ -48,10 +56,21 @@ export async function siweNonce() {
     cache: "no-store"
   });
 
-  return parseResponse<SiweNonceResponse>(response, "Could not fetch SIWE nonce.");
+  const data = await parseResponse<SiweNonceResponseRaw>(response, "Could not fetch SIWE nonce.");
+
+  const sessionId = data.sessionId ?? data.sessionID ?? data.sid;
+  if (!sessionId || !data.nonce) {
+    throw new Error("SIWE nonce response is missing sessionId or nonce.");
+  }
+
+  return { sessionId, nonce: data.nonce, ttlSeconds: data.ttlSeconds };
 }
 
 export async function siweVerify(payload: SiweVerifyPayload) {
+  if (!payload.sessionId || !payload.message || !payload.signature) {
+    throw new Error("SIWE verify payload must include sessionId, message, and signature.");
+  }
+
   const response = await fetch(`${getSiweApiBase()}/siwe/verify`, {
     method: "POST",
     headers: { "content-type": "application/json" },
