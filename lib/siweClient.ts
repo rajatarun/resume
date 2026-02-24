@@ -1,3 +1,5 @@
+import { SiweMessage } from "siwe";
+
 export type SiweNonceResponse = {
   sessionId: string;
   nonce: string;
@@ -71,18 +73,31 @@ export async function siweVerify(payload: SiweVerifyPayload) {
     throw new Error("SIWE verify payload must include sessionId, preparedMessage, and signature.");
   }
 
+  const normalizedMessage = payload.preparedMessage.replace(/\r\n/g, "\n");
+
   const body = {
     sessionId: payload.sessionId,
-    message: payload.preparedMessage,
+    message: normalizedMessage,
     signature: payload.signature
   };
 
-  const hasSignInPhrase = body.message.includes(
-    " wants you to sign in with your Ethereum account:"
-  );
-  const hasUriBlock = body.message.includes("\n\nURI:");
+  const hasSignInPhrase = / wants you to sign in with your Ethereum account:/.test(body.message);
+  const hasUriBlock = /^URI:\s+\S+/m.test(body.message);
 
-  if (!hasSignInPhrase || !hasUriBlock) {
+  let parsesAsSiwe = false;
+  try {
+    const parsed = new SiweMessage(body.message);
+    parsesAsSiwe =
+      Boolean(parsed.domain) &&
+      Boolean(parsed.address) &&
+      Boolean(parsed.uri) &&
+      Boolean(parsed.version) &&
+      Boolean(parsed.nonce);
+  } catch {
+    parsesAsSiwe = false;
+  }
+
+  if (!hasSignInPhrase || !hasUriBlock || !parsesAsSiwe) {
     console.error("[siweVerify] Invalid SIWE payload before verify request", body);
     throw new Error(
       "SIWE message must be the ABNF-prepared message string (missing sign-in phrase and/or URI block)."
@@ -94,6 +109,7 @@ export async function siweVerify(payload: SiweVerifyPayload) {
     console.debug("[siweVerify] body.message.slice(0, 80)", body.message.slice(0, 80));
     console.debug("[siweVerify] body.message includes sign-in phrase", hasSignInPhrase);
     console.debug("[siweVerify] body.message includes URI block", hasUriBlock);
+    console.debug("[siweVerify] body.message parses as SIWE", parsesAsSiwe);
   }
 
   const response = await fetch(`${getSiweApiBase()}/siwe/verify`, {
