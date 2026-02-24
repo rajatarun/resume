@@ -28,7 +28,7 @@ export function SiweButton({ onSuccess }: SiweButtonProps) {
     try {
       const { sessionId, nonce } = await siweNonce();
 
-      const message = new SiweMessage({
+      const siweMessage = new SiweMessage({
         domain: window.location.host,
         address,
         statement: "Sign in with Ethereum to access recruiter tools.",
@@ -38,7 +38,15 @@ export function SiweButton({ onSuccess }: SiweButtonProps) {
         nonce
       });
 
-      const preparedMessage = message.prepareMessage();
+      const preparedMessage = siweMessage.prepareMessage();
+
+      if (process.env.NODE_ENV === "development") {
+        console.debug("[siwe] prepared message", {
+          preview: preparedMessage.slice(0, 120),
+          newlineCount: (preparedMessage.match(/\n/g) ?? []).length
+        });
+      }
+
       const signature = await signMessageAsync({ message: preparedMessage });
 
       const verified = await siweVerify({ sessionId, message: preparedMessage, signature });
