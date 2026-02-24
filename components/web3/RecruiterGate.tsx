@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ChatPane, type RecruiterMode } from "@/components/ChatPane";
 import { ConnectWallet } from "@/components/web3/ConnectWallet";
 import { SiweButton } from "@/components/web3/SiweButton";
+import { onSiweSessionChange, restoreSiweSession } from "@/lib/web3/siweClientSession";
 
 const modes: RecruiterMode[] = ["Recruiter Mode", "CTO Mode", "Engineer Mode"];
 
@@ -18,17 +19,18 @@ export function RecruiterGate({ requireWalletGate }: RecruiterGateProps) {
   const [activeMode, setActiveMode] = useState<RecruiterMode>("Recruiter Mode");
 
   const refreshSession = useCallback(async () => {
-    const response = await fetch("/api/siwe/session", { cache: "no-store" });
-    if (!response.ok) return;
-    const body = (await response.json()) as { signedIn: boolean };
-    setSignedIn(body.signedIn);
-    if (body.signedIn) {
+    const session = await restoreSiweSession();
+    setSignedIn(session.authenticated);
+    if (session.authenticated) {
       router.refresh();
     }
   }, [router]);
 
   useEffect(() => {
     void refreshSession();
+    return onSiweSessionChange(() => {
+      void refreshSession();
+    });
   }, [refreshSession]);
 
   const showChat = !requireWalletGate || signedIn;

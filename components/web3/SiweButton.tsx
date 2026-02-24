@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { SiweMessage } from "siwe";
 import { useAccount, useChainId, useSignMessage } from "wagmi";
+import { siweNonce, siweVerify } from "@/lib/siweClient";
+import { setSiweSession } from "@/lib/web3/siweClientSession";
 
 type SiweButtonProps = {
   onSuccess?: () => void;
@@ -14,37 +16,17 @@ export function SiweButton({ onSuccess }: SiweButtonProps) {
   const { signMessageAsync, isPending } = useSignMessage();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [signedInAddress, setSignedInAddress] = useState<string | null>(null);
 
   const handleSignIn = async () => {
     if (!address) return;
 
     setError(null);
+    setSignedInAddress(null);
     setLoading(true);
 
     try {
-      // Use the canonical nonce route and include cookies so nonce/session state is shared.
-      const nonceResponse = await fetch("/api/auth/nonce", {
-        cache: "no-store",
-        credentials: "include"
-      });
-
-      if (!nonceResponse.ok) {
-        let nonceError = "Could not fetch SIWE nonce.";
-
-        try {
-          // Bubble up API-provided errors instead of masking everything with a generic message.
-          const body = (await nonceResponse.json()) as { error?: string };
-          if (body.error) {
-            nonceError = body.error;
-          }
-        } catch {
-          // Ignore non-JSON error responses and keep the default message.
-        }
-
-        throw new Error(`${nonceError} (status ${nonceResponse.status})`);
-      }
-
-      const { nonce } = (await nonceResponse.json()) as { nonce: string };
+      const { sessionId, nonce } = await siweNonce();
 
       const message = new SiweMessage({
         domain: window.location.host,
@@ -59,18 +41,14 @@ export function SiweButton({ onSuccess }: SiweButtonProps) {
       const preparedMessage = message.prepareMessage();
       const signature = await signMessageAsync({ message: preparedMessage });
 
-      const verifyResponse = await fetch("/api/siwe/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ message: preparedMessage, signature })
-      });
+      const verified = await siweVerify({ sessionId, message: preparedMessage, signature });
 
-      if (!verifyResponse.ok) {
-        const body = (await verifyResponse.json()) as { error?: string };
-        throw new Error(body.error ?? "SIWE verification failed.");
+      if (!verified.token) {
+        throw new Error("SIWE verification did not return a token.");
       }
 
+      setSiweSession(verified.token, verified.address ?? address);
+      setSignedInAddress(verified.address ?? address);
       onSuccess?.();
     } catch (siweError) {
       const message = siweError instanceof Error ? siweError.message : "SIWE sign-in failed.";
@@ -95,6 +73,11 @@ export function SiweButton({ onSuccess }: SiweButtonProps) {
         {loading || isPending ? "Signing in..." : "Sign in with Ethereum"}
       </button>
       {error && <p className="text-[11px] text-red-600 dark:text-red-400">{error}</p>}
+      {signedInAddress && (
+        <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
+          Signed in as {signedInAddress}
+        </p>
+      )}
     </div>
   );
 }

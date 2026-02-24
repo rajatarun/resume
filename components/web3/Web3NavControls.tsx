@@ -5,31 +5,30 @@ import { useCallback, useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { ConnectWallet } from "@/components/web3/ConnectWallet";
 import { SiweButton } from "@/components/web3/SiweButton";
-
-type SessionResponse = {
-  signedIn: boolean;
-  session?: {
-    issuedAt: string;
-  };
-};
+import {
+  clearSiweSession,
+  onSiweSessionChange,
+  restoreSiweSession
+} from "@/lib/web3/siweClientSession";
 
 export function Web3NavControls() {
   const { isConnected } = useAccount();
   const [signedIn, setSignedIn] = useState(false);
 
   const refreshSession = useCallback(async () => {
-    const response = await fetch("/api/siwe/session", { cache: "no-store" });
-    if (!response.ok) return;
-    const body = (await response.json()) as SessionResponse;
-    setSignedIn(body.signedIn);
+    const session = await restoreSiweSession();
+    setSignedIn(session.authenticated);
   }, []);
 
   useEffect(() => {
     void refreshSession();
+    return onSiweSessionChange(() => {
+      void refreshSession();
+    });
   }, [refreshSession]);
 
-  const logout = async () => {
-    await fetch("/api/siwe/logout", { method: "POST" });
+  const logout = () => {
+    clearSiweSession();
     setSignedIn(false);
   };
 

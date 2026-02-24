@@ -46,16 +46,27 @@ Add the following to `.env.local`:
 NEXT_PUBLIC_ZOOM_PERSONAL_LINK=https://zoom.us/j/your-meeting-id
 NEXT_PUBLIC_ZOOM_MEETING_ID=your-meeting-id
 
-SIWE_DOMAIN=localhost:3000
-SIWE_SESSION_SECRET=replace-with-a-long-random-secret
+NEXT_PUBLIC_SIWE_API_BASE=https://<api-id>.execute-api.<region>.amazonaws.com/<stage>
 WALLETCONNECT_PROJECT_ID=your-walletconnect-project-id
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your-walletconnect-project-id
 ```
 
-- `SIWE_DOMAIN` must match your app domain (for local development: `localhost:3000`).
-- `SIWE_SESSION_SECRET` should be a long, random secret.
+- `NEXT_PUBLIC_SIWE_API_BASE` is required and is called directly by the browser for SIWE nonce/verify/session/me.
+- Configure API Gateway CORS to allow your Amplify domain (and localhost during development), including `GET, POST` methods and `content-type, authorization` headers.
 - `WALLETCONNECT_PROJECT_ID` is required for WalletConnect v2.
 - `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` mirrors the same value for client-side WalletConnect/Web3Modal initialization.
+
+
+### Local SIWE test
+
+1. Set `NEXT_PUBLIC_SIWE_API_BASE` in `.env.local`.
+2. Start the app with `npm run dev`.
+3. Connect your wallet and click **Sign in with Ethereum**.
+4. In browser devtools, confirm these API Gateway calls succeed from the client:
+   - `POST {NEXT_PUBLIC_SIWE_API_BASE}/siwe/nonce`
+   - `POST {NEXT_PUBLIC_SIWE_API_BASE}/siwe/verify`
+   - `GET {NEXT_PUBLIC_SIWE_API_BASE}/siwe/session` with `Authorization: Bearer <token>`
+   - `GET {NEXT_PUBLIC_SIWE_API_BASE}/siwe/me` with `Authorization: Bearer <token>`
 
 ## Build & production
 
