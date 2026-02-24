@@ -43,6 +43,9 @@
       ],
       "siwe": [
         "./lib/shims/siwe"
+      ],
+      "ethers": [
+        "./lib/shims/ethers"
       ]
     }
   },

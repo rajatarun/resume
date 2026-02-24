@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getAddress } from "ethers";
 import { SiweMessage } from "siwe";
 import { useAccount, useChainId, useSignMessage } from "wagmi";
 import { siweNonce, siweVerify } from "@/lib/siweClient";
@@ -21,6 +22,8 @@ export function SiweButton({ onSuccess }: SiweButtonProps) {
   const handleSignIn = async () => {
     if (!address) return;
 
+    const checksumAddress = getAddress(address);
+
     setError(null);
     setSignedInAddress(null);
     setLoading(true);
@@ -30,13 +33,20 @@ export function SiweButton({ onSuccess }: SiweButtonProps) {
 
       const siweMessage = new SiweMessage({
         domain: window.location.host,
-        address,
+        address: checksumAddress,
         statement: "Sign in with Ethereum to access recruiter tools.",
         uri: window.location.origin,
         version: "1",
         chainId,
         nonce
       });
+
+      if (process.env.NODE_ENV === "development") {
+        console.debug("[siwe] checksum", {
+          original: address,
+          checksummed: checksumAddress
+        });
+      }
 
       const preparedMessage = siweMessage.prepareMessage();
 
@@ -55,8 +65,10 @@ export function SiweButton({ onSuccess }: SiweButtonProps) {
         throw new Error("SIWE verification did not return a token.");
       }
 
-      setSiweSession(verified.token, verified.address ?? address);
-      setSignedInAddress(verified.address ?? address);
+      const verifiedAddress = verified.address ? getAddress(verified.address) : checksumAddress;
+
+      setSiweSession(verified.token, verifiedAddress);
+      setSignedInAddress(verifiedAddress);
       onSuccess?.();
     } catch (siweError) {
       const message = siweError instanceof Error ? siweError.message : "SIWE sign-in failed.";
