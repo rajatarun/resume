@@ -71,10 +71,26 @@ export async function siweVerify(payload: SiweVerifyPayload) {
     throw new Error("SIWE verify payload must include sessionId, message, and signature.");
   }
 
+  const body = {
+    sessionId: payload.sessionId,
+    message: payload.message,
+    signature: payload.signature
+  };
+
+  if (process.env.NODE_ENV !== "production") {
+    console.debug("[siweVerify] typeof body.message", typeof body.message);
+    console.debug("[siweVerify] body.message.slice(0, 80)", body.message.slice(0, 80));
+    console.debug(
+      "[siweVerify] body.message includes sign-in phrase",
+      body.message.includes(" wants you to sign in with your Ethereum account:")
+    );
+    console.debug("[siweVerify] body.message includes URI block", body.message.includes("\n\nURI:"));
+  }
+
   const response = await fetch(`${getSiweApiBase()}/siwe/verify`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(body)
   });
 
   return parseResponse<SiweVerifyResponse>(response, "SIWE verification failed.");
