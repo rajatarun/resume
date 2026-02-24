@@ -59,7 +59,7 @@ export function SiweButton({ onSuccess }: SiweButtonProps) {
 
       const signature = await signMessageAsync({ message: preparedMessage });
 
-      const verified = await siweVerify({ sessionId, message: preparedMessage, signature });
+      const verified = await siweVerify({ sessionId, preparedMessage, signature });
 
       if (!verified.token) {
         throw new Error("SIWE verification did not return a token.");
