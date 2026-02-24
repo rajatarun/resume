@@ -28,6 +28,48 @@ export type SiweVerifyResponse = {
 
 type JsonRecord = Record<string, unknown>;
 
+type SiweVerifyBody = {
+  message?: unknown;
+};
+
+function normalizeSiweMessage(input: unknown): string {
+  return String(input ?? "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .trim();
+}
+
+export function assertValidSiweMessage(body: SiweVerifyBody) {
+  const message = normalizeSiweMessage(body.message);
+
+  if (!message) {
+    throw new Error("Missing SIWE message");
+  }
+
+  let parsed: SiweMessage;
+  try {
+    parsed = new SiweMessage(message);
+  } catch (e) {
+    console.error("[siweVerify] Failed to parse SIWE message", { message, body, e });
+    throw new Error("Invalid SIWE message (cannot be parsed).");
+  }
+
+  const ok =
+    Boolean(parsed.domain) &&
+    Boolean(parsed.address) &&
+    Boolean(parsed.uri) &&
+    Boolean(parsed.version) &&
+    Boolean(parsed.nonce) &&
+    Boolean(parsed.chainId);
+
+  if (!ok) {
+    console.error("[siweVerify] Parsed SIWE missing required fields", { parsed, body });
+    throw new Error("Invalid SIWE message (missing required fields).");
+  }
+
+  return { message, parsed };
+}
+
 function getSiweApiBase() {
   const base = process.env.NEXT_PUBLIC_SIWE_API_BASE;
   if (!base) {
@@ -73,44 +115,13 @@ export async function siweVerify(payload: SiweVerifyPayload) {
     throw new Error("SIWE verify payload must include sessionId, preparedMessage, and signature.");
   }
 
-  const normalizedMessage = payload.preparedMessage.replace(/\r\n/g, "\n");
+  const { message } = assertValidSiweMessage({ message: payload.preparedMessage });
 
   const body = {
     sessionId: payload.sessionId,
-    message: normalizedMessage,
+    message,
     signature: payload.signature
   };
-
-  const hasSignInPhrase = / wants you to sign in with your Ethereum account:/.test(body.message);
-  const hasUriBlock = /^URI:\s+\S+/m.test(body.message);
-
-  let parsesAsSiwe = false;
-  try {
-    const parsed = new SiweMessage(body.message);
-    parsesAsSiwe =
-      Boolean(parsed.domain) &&
-      Boolean(parsed.address) &&
-      Boolean(parsed.uri) &&
-      Boolean(parsed.version) &&
-      Boolean(parsed.nonce);
-  } catch {
-    parsesAsSiwe = false;
-  }
-
-  if (!hasSignInPhrase || !hasUriBlock || !parsesAsSiwe) {
-    console.error("[siweVerify] Invalid SIWE payload before verify request", body);
-    throw new Error(
-      "SIWE message must be the ABNF-prepared message string (missing sign-in phrase and/or URI block)."
-    );
-  }
-
-  if (process.env.NODE_ENV !== "production") {
-    console.debug("[siweVerify] typeof body.message", typeof body.message);
-    console.debug("[siweVerify] body.message.slice(0, 80)", body.message.slice(0, 80));
-    console.debug("[siweVerify] body.message includes sign-in phrase", hasSignInPhrase);
-    console.debug("[siweVerify] body.message includes URI block", hasUriBlock);
-    console.debug("[siweVerify] body.message parses as SIWE", parsesAsSiwe);
-  }
 
   const response = await fetch(`${getSiweApiBase()}/siwe/verify`, {
     method: "POST",
