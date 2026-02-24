@@ -41,9 +41,6 @@
       "@tanstack/react-query": [
         "./lib/shims/react-query"
       ],
-      "siwe": [
-        "./lib/shims/siwe"
-      ],
       "ethers": [
         "./lib/shims/ethers"
       ]
