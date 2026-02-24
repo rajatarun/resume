@@ -138,3 +138,47 @@ export function getAddress(address: string): `0x${string}` {
 
   return checksum as `0x${string}`;
 }
+
+export class JsonRpcProvider {
+  constructor(private readonly rpcUrl: string, public readonly chainId?: number) {}
+
+  async call(to: string, data: string): Promise<string> {
+    const response = await fetch(this.rpcUrl, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: 1,
+        jsonrpc: "2.0",
+        method: "eth_call",
+        params: [{ to, data }, "latest"]
+      }),
+      cache: "no-store"
+    });
+
+    if (!response.ok) {
+      throw new Error("RPC call failed");
+    }
+
+    const body = (await response.json()) as { result?: string; error?: { message?: string } };
+    if (body.error || !body.result) {
+      throw new Error(body.error?.message ?? "RPC error");
+    }
+
+    return body.result;
+  }
+}
+
+export class Contract {
+  constructor(
+    private readonly address: string,
+    private readonly _abi: string[],
+    private readonly provider: JsonRpcProvider
+  ) {}
+
+  async balanceOf(owner: string): Promise<bigint> {
+    const normalizedOwner = getAddress(owner).slice(2).toLowerCase();
+    const data = `0x70a08231${normalizedOwner.padStart(64, "0")}`;
+    const result = await this.provider.call(this.address, data);
+    return BigInt(result);
+  }
+}

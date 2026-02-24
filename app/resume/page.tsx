@@ -1,5 +1,6 @@
 import { ExperienceTimeline } from "@/components/ExperienceTimeline";
 import { SkillBadges } from "@/components/SkillBadges";
+import { experienceArtifactKeys } from "@/lib/artifacts";
 import { recordProof } from "@/lib/proof";
 import { resume } from "@/lib/resume";
 
@@ -16,6 +17,11 @@ export default async function ResumePage() {
     )
   );
 
+  const experienceWithArtifacts = resume.experience.map((item, index) => ({
+    ...item,
+    artifactKey: experienceArtifactKeys[index]
+  }));
+
   return (
     <div className="space-y-8">
       <section>
@@ -30,7 +36,7 @@ export default async function ResumePage() {
 
       <section>
         <h2 className="mb-4 text-xl font-semibold">Experience</h2>
-        <ExperienceTimeline experience={resume.experience} showProofLink />
+        <ExperienceTimeline experience={experienceWithArtifacts} showProofLink />
       </section>
 
       <section className="grid gap-6 md:grid-cols-2">

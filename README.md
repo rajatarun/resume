@@ -47,11 +47,15 @@ NEXT_PUBLIC_ZOOM_PERSONAL_LINK=https://zoom.us/j/your-meeting-id
 NEXT_PUBLIC_ZOOM_MEETING_ID=your-meeting-id
 
 NEXT_PUBLIC_SIWE_API_BASE=https://<api-id>.execute-api.<region>.amazonaws.com/<stage>
+NEXT_PUBLIC_RPC_URL=https://polygon-amoy.g.alchemy.com/v2/your-key
+NEXT_PUBLIC_CHAIN_ID=80002
+NEXT_PUBLIC_RECRUITER_PASS_CONTRACT_ADDRESS=0x0000000000000000000000000000000000000000
 WALLETCONNECT_PROJECT_ID=your-walletconnect-project-id
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your-walletconnect-project-id
 ```
 
 - `NEXT_PUBLIC_SIWE_API_BASE` is required and is called directly by the browser for SIWE nonce/verify/session/me.
+- `NEXT_PUBLIC_RPC_URL`, `NEXT_PUBLIC_CHAIN_ID=80002`, and `NEXT_PUBLIC_RECRUITER_PASS_CONTRACT_ADDRESS` are optional and enable client-side RecruiterPass holder checks for the Verified+ badge and resume proof metadata.
 - Configure API Gateway CORS to allow your Amplify domain (and localhost during development), including `GET, POST` methods and `content-type, authorization` headers.
 - `WALLETCONNECT_PROJECT_ID` is required for WalletConnect v2.
 - `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` mirrors the same value for client-side WalletConnect/Web3Modal initialization.

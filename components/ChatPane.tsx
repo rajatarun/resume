@@ -109,8 +109,8 @@ export function ChatPane({ mode }: { mode: RecruiterMode }) {
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white/70 p-5 dark:border-slate-800 dark:bg-slate-900/60">
-      <h2 className="text-lg font-semibold">{mode}</h2>
-      <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Mode-aware chat is active. Responses are scoped to the selected tab context.</p>
+      <h2 className="text-lg font-semibold">{config.label} Assistant</h2>
+      <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">Responses are tuned for recruiter conversations.</p>
 
       <div className="mt-4 max-h-[420px] space-y-3 overflow-y-auto pr-1">
         {messages.map((message) => (
@@ -144,7 +144,7 @@ export function ChatPane({ mode }: { mode: RecruiterMode }) {
 
       <form onSubmit={handleSubmit} className="mt-4 border-t border-slate-200 pt-4 dark:border-slate-800">
         <label htmlFor="recruiter-question" className="sr-only">
-          Ask a question in {mode}
+          Ask a recruiter-focused question
         </label>
         <div className="flex flex-col gap-3 sm:flex-row">
           <Textarea
