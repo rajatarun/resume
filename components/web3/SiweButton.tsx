@@ -50,7 +50,7 @@ export function SiweButton({ onSuccess }: SiweButtonProps) {
 
       const preparedMessage = siweMessage.prepareMessage();
 
-      if (/^\s*\{/.test(preparedMessage)) {
+      if (preparedMessage.trimStart().startsWith("{")) {
         throw new Error("SIWE prepareMessage() returned JSON instead of EIP-4361 plaintext. Check that the official siwe v2 package is installed and no local shim is overriding it.");
       }
 
