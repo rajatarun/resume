@@ -38,7 +38,7 @@ export default function HomePage() {
       <section className="space-y-4">
         <h2 className="text-xl font-semibold tracking-tight">AI Systems Lab</h2>
         <Link
-          href="/lab"
+          href="/labs"
           className="focus-ring inline-flex items-center justify-center rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-sky-700"
         >
           Enter AI Systems Lab
