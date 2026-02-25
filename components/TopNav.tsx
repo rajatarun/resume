@@ -9,6 +9,7 @@ const navLinks = [
   ["/contact", "Contact"],
   ["/store", "Store"],
   ["/website", "Website"],
+  ["/labs", "AI Lab"],
   ["/portfolio", "Portfolio"],
   ["/blog", "Blog"],
   ["/appointment", "Appointment"],
