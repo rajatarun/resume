@@ -12,6 +12,10 @@ export type ChatMessage = {
   debug?: {
     jobId: string;
     actualCost: number;
+    actualCostSol: number;
+    walletAddress: string;
+    balanceBeforeSol: number;
+    balanceAfterSol: number;
   };
 };
 
@@ -31,8 +35,13 @@ type ChatPanelProps = {
   draft: string;
   inputTokens: number;
   estimate: CostEstimateOutput;
+  estimatedCostSol: number;
+  remainingAfterRunSol: number;
+  agentBalanceSol: number;
+  hasAgentBalance: boolean;
   isSafe: boolean;
   hasBudgetRemaining: boolean;
+  hasPlatformPool: boolean;
   dailyRemainingUsd: number;
   messages: ChatMessage[];
   wallet: WalletState;
@@ -58,8 +67,13 @@ export function ChatPanel({
   draft,
   inputTokens,
   estimate,
+  estimatedCostSol,
+  remainingAfterRunSol,
+  agentBalanceSol,
+  hasAgentBalance,
   isSafe,
   hasBudgetRemaining,
+  hasPlatformPool,
   dailyRemainingUsd,
   messages,
   wallet,
@@ -73,7 +87,7 @@ export function ChatPanel({
   onClear,
   onCopyConversation
 }: ChatPanelProps) {
-  const canAsk = wallet.connected && isSafe && hasBudgetRemaining && draft.trim().length > 0 && !isRunning;
+  const canAsk = wallet.connected && isSafe && hasBudgetRemaining && hasAgentBalance && hasPlatformPool && draft.trim().length > 0 && !isRunning;
 
   return (
     <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
@@ -133,17 +147,28 @@ export function ChatPanel({
           <p>Output token cap: {maxOutputTokens}</p>
           <p>Estimated variable cost: {estimate.formatted.variableCost}</p>
           <p className="font-semibold text-slate-900 dark:text-white">Estimated total: {estimate.formatted.totalCost}</p>
+          <p className="mt-1 font-medium text-slate-900 dark:text-slate-100">Estimated deduction:</p>
+          <p>USD: {estimate.formatted.totalCost}</p>
+          <p>SOL: {estimatedCostSol.toFixed(6)} SOL</p>
+          <p>
+            Agent Remaining Balance After Run: <span className="font-medium">{Math.max(remainingAfterRunSol, 0).toFixed(6)} SOL</span>
+          </p>
           <p>
             Status:{" "}
-            {isSafe && hasBudgetRemaining ? (
-              <span className="font-medium text-emerald-600">Safe ✅</span>
+            {hasAgentBalance ? (
+              isSafe && hasBudgetRemaining && hasPlatformPool ? (
+                <span className="font-medium text-emerald-600">Safe ✅</span>
+              ) : (
+                <span className="font-medium text-amber-600">Over cap ⚠️ — reduce output cap, switch model, enable concise mode.</span>
+              )
             ) : (
-              <span className="font-medium text-amber-600">Over cap ⚠️ — reduce output cap, switch model, enable concise mode.</span>
+              <span className="font-medium text-rose-600">Insufficient Agent Balance ❌</span>
             )}
           </p>
-          {!hasBudgetRemaining ? (
-            <p className="text-amber-600">Daily budget remaining: ${dailyRemainingUsd.toFixed(4)}.</p>
-          ) : null}
+          {!hasAgentBalance ? <p className="text-rose-600">This agent does not have enough balance to process this request.</p> : null}
+          {!hasBudgetRemaining ? <p className="text-amber-600">Daily budget remaining: ${dailyRemainingUsd.toFixed(4)}.</p> : null}
+          {!hasPlatformPool ? <p className="text-rose-600">Platform pool has insufficient SOL for this run.</p> : null}
+          <p>Current agent balance: {agentBalanceSol.toFixed(6)} SOL</p>
         </div>
       </div>
 
@@ -167,7 +192,11 @@ export function ChatPanel({
                   <details className="mt-1 text-[11px] opacity-80">
                     <summary className="cursor-pointer">Debug</summary>
                     <p>jobId: {message.debug.jobId}</p>
-                    <p>actualCost: ${message.debug.actualCost.toFixed(4)}</p>
+                    <p>walletAddress: {message.debug.walletAddress}</p>
+                    <p>costUsd: ${message.debug.actualCost.toFixed(4)}</p>
+                    <p>costSol: {message.debug.actualCostSol.toFixed(6)} SOL</p>
+                    <p>balanceBefore: {message.debug.balanceBeforeSol.toFixed(6)} SOL</p>
+                    <p>balanceAfter: {message.debug.balanceAfterSol.toFixed(6)} SOL</p>
                   </details>
                 ) : null}
               </div>

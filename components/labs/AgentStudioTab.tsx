@@ -7,10 +7,14 @@ import { PromptModal } from "@/components/labs/PromptModal";
 import { agentsCatalog, type LabAgent, type LabModel } from "@/lib/agentsCatalog";
 import { estimateCost } from "@/lib/costEstimate";
 import { pricingByModel } from "@/lib/pricing";
+import { usdToSol } from "@/lib/solConversion";
 import { estimateTokens } from "@/lib/tokenEstimate";
 
 const PER_RUN_CAP = 0.02;
 const DAILY_CAP = 0.1;
+const BALANCES_STORAGE_KEY = "ai-lab-agent-balances";
+const PLATFORM_POOL_STORAGE_KEY = "ai-lab-platform-pool-sol";
+const INITIAL_PLATFORM_POOL_SOL = 100;
 
 type WalletState = {
   connected: boolean;
@@ -24,6 +28,11 @@ type Usage = {
   spentTodayUsd: number;
   runsToday: number;
 };
+
+const defaultBalances = agentsCatalog.reduce<Record<string, number>>((acc, agent) => {
+  acc[agent.id] = agent.balanceSol;
+  return acc;
+}, {});
 
 const usageKey = (address: string) => `ai-lab-usage:${address.toLowerCase()}`;
 
@@ -48,13 +57,42 @@ function writeUsage(address: string, usage: Usage) {
   localStorage.setItem(usageKey(address), JSON.stringify(usage));
 }
 
+function readStoredBalances(): Record<string, number> {
+  const stored = localStorage.getItem(BALANCES_STORAGE_KEY);
+  if (!stored) {
+    return defaultBalances;
+  }
+
+  const parsed = JSON.parse(stored) as Record<string, number>;
+  return agentsCatalog.reduce<Record<string, number>>((acc, agent) => {
+    const value = parsed[agent.id];
+    acc[agent.id] = typeof value === "number" ? value : agent.balanceSol;
+    return acc;
+  }, {});
+}
+
+function readStoredPlatformPool(): number {
+  const stored = localStorage.getItem(PLATFORM_POOL_STORAGE_KEY);
+  if (!stored) {
+    return INITIAL_PLATFORM_POOL_SOL;
+  }
+  const parsed = Number(stored);
+  return Number.isFinite(parsed) ? parsed : INITIAL_PLATFORM_POOL_SOL;
+}
+
 async function runAgent(input: {
   agent: LabAgent;
   question: string;
   concise: boolean;
   jsonOutput: boolean;
   estimatedTotal: number;
-}): Promise<{ text: string; jobId: string; actualCost: number }> {
+  estimatedSol: number;
+  balanceBeforeSol: number;
+}): Promise<{ text: string; jobId: string; actualCost: number; actualCostSol: number; balanceAfterSol: number }> {
+  if (input.estimatedSol > input.balanceBeforeSol) {
+    throw new Error("INSUFFICIENT_AGENT_BALANCE");
+  }
+
   await new Promise((resolve) => setTimeout(resolve, 550));
   const prefix = input.jsonOutput ? "{\"response\":\"" : "";
   const suffix = input.jsonOutput ? "\"}" : "";
@@ -65,15 +103,18 @@ async function runAgent(input: {
   return {
     text: `${prefix}${body}${suffix}`,
     jobId: `job_${Math.random().toString(36).slice(2, 10)}`,
-    actualCost: input.estimatedTotal
+    actualCost: input.estimatedTotal,
+    actualCostSol: input.estimatedSol,
+    balanceAfterSol: Math.max(input.balanceBeforeSol - input.estimatedSol, 0)
   };
 }
 
 type AgentStudioTabProps = {
   onPolygonStatusChange?: (connected: boolean) => void;
+  onPlatformPoolChange?: (poolSol: number) => void;
 };
 
-export function AgentStudioTab({ onPolygonStatusChange }: AgentStudioTabProps) {
+export function AgentStudioTab({ onPolygonStatusChange, onPlatformPoolChange }: AgentStudioTabProps) {
   const [wallet, setWallet] = useState<WalletState>({ connected: false, address: null, chainId: null, isPolygon: false });
   const [usage, setUsage] = useState<Usage>({ dateKey: todayKey(), spentTodayUsd: 0, runsToday: 0 });
   const [selectedAgentId, setSelectedAgentId] = useState(agentsCatalog[0].id);
@@ -86,22 +127,44 @@ export function AgentStudioTab({ onPolygonStatusChange }: AgentStudioTabProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isRunning, setIsRunning] = useState(false);
   const [promptModalAgent, setPromptModalAgent] = useState<LabAgent | null>(null);
+  const [agentBalances, setAgentBalances] = useState<Record<string, number>>(defaultBalances);
+  const [platformPoolSol, setPlatformPoolSol] = useState(INITIAL_PLATFORM_POOL_SOL);
+  const [balanceDeductions, setBalanceDeductions] = useState<Record<string, number | undefined>>({});
+
+  useEffect(() => {
+    setAgentBalances(readStoredBalances());
+    setPlatformPoolSol(readStoredPlatformPool());
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(BALANCES_STORAGE_KEY, JSON.stringify(agentBalances));
+  }, [agentBalances]);
+
+  useEffect(() => {
+    localStorage.setItem(PLATFORM_POOL_STORAGE_KEY, platformPoolSol.toString());
+    onPlatformPoolChange?.(platformPoolSol);
+  }, [platformPoolSol, onPlatformPoolChange]);
+
+  const effectiveAgents = useMemo(
+    () => agentsCatalog.map((agent) => ({ ...agent, balanceSol: agentBalances[agent.id] ?? agent.balanceSol })),
+    [agentBalances]
+  );
 
   const selectedAgent = useMemo(
-    () => agentsCatalog.find((agent) => agent.id === selectedAgentId) ?? agentsCatalog[0],
-    [selectedAgentId]
+    () => effectiveAgents.find((agent) => agent.id === selectedAgentId) ?? effectiveAgents[0],
+    [selectedAgentId, effectiveAgents]
   );
 
   const filteredAgents = useMemo(() => {
     const needle = search.trim().toLowerCase();
     if (!needle) {
-      return agentsCatalog;
+      return effectiveAgents;
     }
-    return agentsCatalog.filter((agent) => {
+    return effectiveAgents.filter((agent) => {
       const haystack = [agent.name, agent.title, agent.description, ...agent.tags].join(" ").toLowerCase();
       return haystack.includes(needle);
     });
-  }, [search]);
+  }, [search, effectiveAgents]);
 
   useEffect(() => {
     setModel(selectedAgent.defaultModel);
@@ -121,10 +184,13 @@ export function AgentStudioTab({ onPolygonStatusChange }: AgentStudioTabProps) {
     inputTokens,
     outputCapTokens: maxOutputTokens
   });
+  const estimatedCostSol = usdToSol(estimate.totalCost, selectedAgent.solUsdRate);
 
   const remainingToday = Math.max(0, DAILY_CAP - usage.spentTodayUsd);
   const isSafe = estimate.totalCost <= PER_RUN_CAP;
   const hasBudgetRemaining = remainingToday >= estimate.totalCost;
+  const hasAgentBalance = selectedAgent.balanceSol >= estimatedCostSol;
+  const hasPlatformPool = platformPoolSol >= estimatedCostSol;
 
   const connectWallet = () => {
     const address = `0x${Math.random().toString(16).slice(2, 6)}${Math.random().toString(16).slice(2, 6)}${Math.random().toString(16).slice(2, 6)}ABCD`;
@@ -141,7 +207,7 @@ export function AgentStudioTab({ onPolygonStatusChange }: AgentStudioTabProps) {
   };
 
   const askAgent = async () => {
-    if (!wallet.connected || !wallet.address || !isSafe || !hasBudgetRemaining || !draft.trim()) {
+    if (!wallet.connected || !wallet.address || !isSafe || !hasBudgetRemaining || !hasAgentBalance || !hasPlatformPool || !draft.trim()) {
       return;
     }
 
@@ -156,37 +222,75 @@ export function AgentStudioTab({ onPolygonStatusChange }: AgentStudioTabProps) {
     setDraft("");
     setIsRunning(true);
 
-    const response = await runAgent({
-      agent: selectedAgent,
-      question,
-      concise,
-      jsonOutput,
-      estimatedTotal: estimate.totalCost
-    });
+    const balanceBeforeSol = selectedAgent.balanceSol;
 
-    const assistantMessage: ChatMessage = {
-      id: `assistant_${Date.now()}`,
-      role: "assistant",
-      content: response.text,
-      createdAt: new Date().toISOString(),
-      debug: { jobId: response.jobId, actualCost: response.actualCost }
-    };
+    try {
+      const response = await runAgent({
+        agent: selectedAgent,
+        question,
+        concise,
+        jsonOutput,
+        estimatedTotal: estimate.totalCost,
+        estimatedSol: estimatedCostSol,
+        balanceBeforeSol
+      });
 
-    setMessages((prev) => [...prev, assistantMessage]);
+      setAgentBalances((prev) => ({
+        ...prev,
+        [selectedAgent.id]: response.balanceAfterSol
+      }));
+      setPlatformPoolSol((prev) => Math.max(prev - response.actualCostSol, 0));
+      setBalanceDeductions((prev) => ({ ...prev, [selectedAgent.id]: response.actualCostSol }));
+      window.setTimeout(() => {
+        setBalanceDeductions((prev) => ({ ...prev, [selectedAgent.id]: undefined }));
+      }, 1000);
 
-    const nextUsage: Usage = {
-      dateKey: todayKey(),
-      spentTodayUsd: usage.spentTodayUsd + response.actualCost,
-      runsToday: usage.runsToday + 1
-    };
-    setUsage(nextUsage);
-    writeUsage(wallet.address, nextUsage);
-    setIsRunning(false);
+      const assistantMessage: ChatMessage = {
+        id: `assistant_${Date.now()}`,
+        role: "assistant",
+        content: response.text,
+        createdAt: new Date().toISOString(),
+        debug: {
+          jobId: response.jobId,
+          actualCost: response.actualCost,
+          actualCostSol: response.actualCostSol,
+          walletAddress: selectedAgent.walletAddress,
+          balanceBeforeSol,
+          balanceAfterSol: response.balanceAfterSol
+        }
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      const nextUsage: Usage = {
+        dateKey: todayKey(),
+        spentTodayUsd: usage.spentTodayUsd + response.actualCost,
+        runsToday: usage.runsToday + 1
+      };
+      setUsage(nextUsage);
+      writeUsage(wallet.address, nextUsage);
+    } catch {
+      const failedMessage: ChatMessage = {
+        id: `assistant_${Date.now()}`,
+        role: "assistant",
+        content: "This agent does not have enough balance to process this request.",
+        createdAt: new Date().toISOString()
+      };
+      setMessages((prev) => [...prev, failedMessage]);
+    } finally {
+      setIsRunning(false);
+    }
   };
 
   const copyConversation = async () => {
     const text = messages.map((message) => `${message.role.toUpperCase()}: ${message.content}`).join("\n\n");
     await navigator.clipboard.writeText(text);
+  };
+
+  const resetBalances = () => {
+    setAgentBalances(defaultBalances);
+    setPlatformPoolSol(INITIAL_PLATFORM_POOL_SOL);
+    setBalanceDeductions({});
   };
 
   return (
@@ -213,10 +317,11 @@ export function AgentStudioTab({ onPolygonStatusChange }: AgentStudioTabProps) {
             </button>
           )}
         </div>
-        <div className="mt-3 grid gap-2 text-xs text-slate-600 dark:text-slate-300 sm:grid-cols-3">
+        <div className="mt-3 grid gap-2 text-xs text-slate-600 dark:text-slate-300 sm:grid-cols-4">
           <p>Spent Today: ${usage.spentTodayUsd.toFixed(4)}</p>
           <p>Runs Today: {usage.runsToday}</p>
           <p>Remaining Today: ${Math.max(0, DAILY_CAP - usage.spentTodayUsd).toFixed(4)}</p>
+          <p>Platform Pool: {platformPoolSol.toFixed(6)} SOL</p>
         </div>
         <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
           <div className="h-full bg-slate-900 dark:bg-slate-100" style={{ width: `${Math.min(100, (usage.spentTodayUsd / DAILY_CAP) * 100)}%` }} />
@@ -228,6 +333,8 @@ export function AgentStudioTab({ onPolygonStatusChange }: AgentStudioTabProps) {
           agents={filteredAgents}
           selectedAgentId={selectedAgentId}
           search={search}
+          agentBalances={agentBalances}
+          balanceDeductions={balanceDeductions}
           onSearchChange={setSearch}
           onSelectAgent={setSelectedAgentId}
           onViewPrompt={setPromptModalAgent}
@@ -242,8 +349,13 @@ export function AgentStudioTab({ onPolygonStatusChange }: AgentStudioTabProps) {
           draft={draft}
           inputTokens={inputTokens}
           estimate={estimate}
+          estimatedCostSol={estimatedCostSol}
+          remainingAfterRunSol={selectedAgent.balanceSol - estimatedCostSol}
+          agentBalanceSol={selectedAgent.balanceSol}
+          hasAgentBalance={hasAgentBalance}
           isSafe={isSafe}
           hasBudgetRemaining={hasBudgetRemaining}
+          hasPlatformPool={hasPlatformPool}
           dailyRemainingUsd={remainingToday}
           messages={messages}
           wallet={wallet}
@@ -257,6 +369,12 @@ export function AgentStudioTab({ onPolygonStatusChange }: AgentStudioTabProps) {
           onClear={() => setMessages([])}
           onCopyConversation={copyConversation}
         />
+      </div>
+
+      <div className="text-right">
+        <button onClick={resetBalances} className="text-xs text-slate-500 underline hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+          Reset Balances
+        </button>
       </div>
 
       <PromptModal

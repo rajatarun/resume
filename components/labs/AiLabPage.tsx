@@ -11,6 +11,7 @@ export function AiLabPage() {
   const [activeTab, setActiveTab] = useState<LabTabKey>("agent-studio");
   const [isHowItWorksOpen, setHowItWorksOpen] = useState(false);
   const [isPolygonConnected, setPolygonConnected] = useState(false);
+  const [platformPoolSol, setPlatformPoolSol] = useState(100);
 
   return (
     <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
@@ -21,6 +22,7 @@ export function AiLabPage() {
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
               Explore specialized agents. See approximate cost before you run.
             </p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Platform pool: {platformPoolSol.toFixed(6)} SOL</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span
@@ -54,11 +56,7 @@ export function AiLabPage() {
 
       <Tabs activeTab={activeTab} onChange={setActiveTab} />
 
-      {activeTab === "agent-studio" ? (
-        <AgentStudioTab onPolygonStatusChange={setPolygonConnected} />
-      ) : (
-        <AboutTab />
-      )}
+      {activeTab === "agent-studio" ? <AgentStudioTab onPolygonStatusChange={setPolygonConnected} onPlatformPoolChange={setPlatformPoolSol} /> : <AboutTab />}
 
       <HowItWorksModal open={isHowItWorksOpen} onClose={() => setHowItWorksOpen(false)} />
     </main>
