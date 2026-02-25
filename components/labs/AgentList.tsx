@@ -7,6 +7,8 @@ type AgentListProps = {
   agents: LabAgent[];
   selectedAgentId: string;
   search: string;
+  agentBalances: Record<string, number>;
+  balanceDeductions: Record<string, number | undefined>;
   onSearchChange: (value: string) => void;
   onSelectAgent: (id: string) => void;
   onViewPrompt: (agent: LabAgent) => void;
@@ -16,6 +18,8 @@ export function AgentList({
   agents,
   selectedAgentId,
   search,
+  agentBalances,
+  balanceDeductions,
   onSearchChange,
   onSelectAgent,
   onViewPrompt
@@ -37,6 +41,8 @@ export function AgentList({
           <AgentRow
             key={agent.id}
             agent={agent}
+            balanceSol={agentBalances[agent.id] ?? agent.balanceSol}
+            deductionFlashSol={balanceDeductions[agent.id]}
             selected={selectedAgentId === agent.id}
             onSelect={() => onSelectAgent(agent.id)}
             onViewPrompt={() => onViewPrompt(agent)}

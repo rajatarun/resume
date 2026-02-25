@@ -9,9 +9,18 @@ type AgentRowProps = {
   selected: boolean;
   onSelect: () => void;
   onViewPrompt: () => void;
+  balanceSol: number;
+  deductionFlashSol?: number;
 };
 
-export function AgentRow({ agent, selected, onSelect, onViewPrompt }: AgentRowProps) {
+function truncateWallet(address: string) {
+  return `${address.slice(0, 8)}…${address.slice(-6)}`;
+}
+
+export function AgentRow({ agent, selected, onSelect, onViewPrompt, balanceSol, deductionFlashSol }: AgentRowProps) {
+  const balanceUsd = balanceSol * agent.solUsdRate;
+  const isLowBalance = balanceSol < 0.01;
+
   return (
     <div
       role="button"
@@ -34,6 +43,7 @@ export function AgentRow({ agent, selected, onSelect, onViewPrompt }: AgentRowPr
         <div>
           <p className="font-semibold text-slate-900 dark:text-white">{agent.name}</p>
           <p className="text-xs text-slate-500 dark:text-slate-400">{agent.title}</p>
+          <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">Wallet {truncateWallet(agent.walletAddress)}</p>
         </div>
         <div className="text-right text-xs text-slate-600 dark:text-slate-300">
           <p>Base {formatUsd(agent.baseCostUsd)}</p>
@@ -41,6 +51,14 @@ export function AgentRow({ agent, selected, onSelect, onViewPrompt }: AgentRowPr
             <p>
               Typical {formatUsd(agent.typicalCostRangeUsd[0])}–{formatUsd(agent.typicalCostRangeUsd[1])}
             </p>
+          ) : null}
+          <p className="mt-1 font-semibold text-slate-900 dark:text-white">Balance: {balanceSol.toFixed(4)} SOL</p>
+          <p>≈ ${balanceUsd.toFixed(2)}</p>
+          {deductionFlashSol ? <p className="text-emerald-600">-{deductionFlashSol.toFixed(6)} SOL</p> : null}
+          {isLowBalance ? (
+            <span className="mt-1 inline-flex rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:border-amber-700/60 dark:bg-amber-900/30 dark:text-amber-300">
+              Low balance
+            </span>
           ) : null}
         </div>
       </div>
