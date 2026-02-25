@@ -29,6 +29,10 @@ function broadcastSessionChange() {
   }
 }
 
+function sessionStateChanged(nextToken: string | null, nextAddress: string | null) {
+  return memoryToken !== nextToken || memoryAddress !== nextAddress;
+}
+
 export function getSiweSession() {
   hydrateFromStorage();
   return {
@@ -39,8 +43,13 @@ export function getSiweSession() {
 }
 
 export function setSiweSession(token: string, address?: string) {
+  const nextAddress = address ?? null;
+  if (!sessionStateChanged(token, nextAddress)) {
+    return;
+  }
+
   memoryToken = token;
-  memoryAddress = address ?? null;
+  memoryAddress = nextAddress;
 
   if (canUseStorage()) {
     window.localStorage.setItem(TOKEN_KEY, token);
@@ -55,6 +64,10 @@ export function setSiweSession(token: string, address?: string) {
 }
 
 export function clearSiweSession() {
+  if (!sessionStateChanged(null, null)) {
+    return;
+  }
+
   memoryToken = null;
   memoryAddress = null;
 
@@ -70,7 +83,6 @@ export async function restoreSiweSession() {
   const { token } = getSiweSession();
 
   if (!token) {
-    clearSiweSession();
     return { authenticated: false };
   }
 
@@ -107,11 +119,17 @@ export function onSiweSessionChange(callback: () => void) {
     return () => undefined;
   }
 
+  const onStorageChange = (event: StorageEvent) => {
+    if (!event.key || event.key === TOKEN_KEY || event.key === ADDRESS_KEY) {
+      callback();
+    }
+  };
+
   window.addEventListener(SESSION_EVENT, callback);
-  window.addEventListener("storage", callback);
+  window.addEventListener("storage", onStorageChange);
 
   return () => {
     window.removeEventListener(SESSION_EVENT, callback);
-    window.removeEventListener("storage", callback);
+    window.removeEventListener("storage", onStorageChange);
   };
 }

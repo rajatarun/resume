@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { ChatPane } from "@/components/ChatPane";
 import { ConnectWallet } from "@/components/web3/ConnectWallet";
 import { SiweButton } from "@/components/web3/SiweButton";
@@ -12,16 +11,12 @@ type RecruiterGateProps = {
 };
 
 export function RecruiterGate({ requireWalletGate }: RecruiterGateProps) {
-  const router = useRouter();
   const [signedIn, setSignedIn] = useState(false);
 
   const refreshSession = useCallback(async () => {
     const session = await restoreSiweSession();
     setSignedIn(session.authenticated);
-    if (session.authenticated) {
-      router.refresh();
-    }
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     void refreshSession();
