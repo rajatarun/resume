@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 type QueryKey = readonly unknown[];
 
@@ -70,13 +70,56 @@ export function useQuery<T>({ queryKey, queryFn, enabled = true, refetchInterval
 }
 
 export function useQueries({ queries }: { queries: Array<{ queryKey: QueryKey; queryFn: () => Promise<unknown>; enabled?: boolean }> }) {
-  return queries.map((q) => useQuery({ queryKey: q.queryKey, queryFn: q.queryFn as () => Promise<unknown>, enabled: q.enabled }));
+  const client = useQueryClient();
+  const [results, setResults] = useState<Array<{ data: unknown; isLoading: boolean; isError: boolean; error: unknown }>>(
+    () => queries.map((q) => ({ data: undefined, isLoading: q.enabled !== false, isError: false, error: undefined })),
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async (index: number) => {
+      const query = queries[index];
+      if (!query || query.enabled === false) return;
+
+      setResults((current) => current.map((item, idx) => (idx === index ? { ...item, isLoading: true, isError: false, error: undefined } : item)));
+
+      try {
+        const data = await query.queryFn();
+        if (!cancelled) {
+          setResults((current) => current.map((item, idx) => (idx === index ? { ...item, data, isLoading: false } : item)));
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setResults((current) => current.map((item, idx) => (idx === index ? { ...item, isError: true, error, isLoading: false } : item)));
+        }
+      }
+    };
+
+    setResults(queries.map((q) => ({ data: undefined, isLoading: q.enabled !== false, isError: false, error: undefined })));
+    queries.forEach((_, index) => {
+      void load(index);
+    });
+
+    const unsub = client.subscribe(() => {
+      queries.forEach((_, index) => {
+        void load(index);
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      unsub();
+    };
+  }, [client, JSON.stringify(queries.map((q) => [q.queryKey, q.enabled]))]);
+
+  return results;
 }
 
 export function useMutation<TData = unknown, TVars = unknown>({ mutationFn, onSuccess, onError }: { mutationFn: (vars: TVars | undefined) => Promise<TData>; onSuccess?: (data: TData) => void; onError?: (error: unknown) => void }) {
   const [isPending, setPending] = useState(false);
   const [data, setData] = useState<TData | undefined>();
-  const mutate = (vars?: TVars) => {
+  const mutate = useCallback((vars?: TVars) => {
     setPending(true);
     void mutationFn(vars)
       .then((result) => {
@@ -85,6 +128,7 @@ export function useMutation<TData = unknown, TVars = unknown>({ mutationFn, onSu
       })
       .catch((error) => onError?.(error))
       .finally(() => setPending(false));
-  };
-  return useMemo(() => ({ mutate, isPending, data }), [isPending, data]);
+  }, [mutationFn, onError, onSuccess]);
+
+  return useMemo(() => ({ mutate, isPending, data }), [mutate, isPending, data]);
 }
