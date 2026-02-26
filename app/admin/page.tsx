@@ -9,6 +9,8 @@ import { ARTICLE_STATUSES, Article } from "@/lib/admin/types";
 import { useAdminAccess } from "@/components/admin/AdminGate";
 
 export default function AdminDashboardPage() {
+  type ArticleListResponse = { items: Article[] };
+
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
   const toast = useToast();
@@ -19,13 +21,13 @@ export default function AdminDashboardPage() {
   const statusQueries = useQueries({
     queries: ARTICLE_STATUSES.map((status) => ({
       queryKey: ["articles", status],
-      queryFn: () => fetchJson<{ items: Article[] }>(`/admin/articles?status=${status}&limit=100`),
+      queryFn: () => fetchJson<ArticleListResponse>(`/admin/articles?status=${status}&limit=100`),
       enabled: isAllowed
     }))
   });
 
   const counts = useMemo(
-    () => ARTICLE_STATUSES.map((status, i) => ({ status, count: statusQueries[i]?.data?.items.length ?? 0 })),
+    () => ARTICLE_STATUSES.map((status, i) => ({ status, count: (statusQueries[i]?.data as ArticleListResponse | undefined)?.items.length ?? 0 })),
     [statusQueries]
   );
 
