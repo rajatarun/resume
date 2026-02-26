@@ -13,7 +13,8 @@ const navLinks = [
   ["/portfolio", "Portfolio"],
   ["/blog", "Blog"],
   ["/appointment", "Appointment"],
-  ["/newsletter", "Newsletter"]
+  ["/newsletter", "Newsletter"],
+  ["/admin", "Admin"]
 ] as const;
 
 export function TopNav() {

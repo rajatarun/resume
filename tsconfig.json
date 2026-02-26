@@ -38,11 +38,14 @@
       "@web3modal/wagmi/react": [
         "./lib/shims/web3modal-wagmi-react"
       ],
+      "ethers": [
+        "./lib/shims/ethers"
+      ],
       "@tanstack/react-query": [
         "./lib/shims/react-query"
       ],
-      "ethers": [
-        "./lib/shims/ethers"
+      "react-hook-form": [
+        "./lib/shims/react-hook-form"
       ]
     }
   },
