@@ -59,6 +59,7 @@ NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your-walletconnect-project-id
 - Configure API Gateway CORS to allow your Amplify domain (and localhost during development), including `GET, POST` methods and `content-type, authorization` headers.
 - `WALLETCONNECT_PROJECT_ID` is required for WalletConnect v2.
 - `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` mirrors the same value for client-side WalletConnect/Web3Modal initialization.
+- `NEXT_PUBLIC_ADMIN_API_BASE` is required for the client-side admin dashboard under `/admin`. It should point to your API Gateway REST API base URL (for example `https://{REST_API_ID}.execute-api.us-east-1.amazonaws.com/prod`).
 
 
 ### Local SIWE test
