@@ -10,6 +10,7 @@ import { ARTICLE_STATUSES, Article, ArticleStatus } from "@/lib/admin/types";
 import { useAdminAccess } from "@/components/admin/AdminGate";
 
 export default function ArticlesPage() {
+  type ActionMutationVariables = { id: string; action: string; body?: unknown };
   const [status, setStatus] = useState<ArticleStatus>("DRAFT");
   const [search, setSearch] = useState("");
   const [pollingId, setPollingId] = useState<string | null>(null);
@@ -47,8 +48,8 @@ export default function ArticlesPage() {
 
   const filtered = useMemo(() => (query.data?.items ?? []).filter((item) => item.title.toLowerCase().includes(search.toLowerCase())), [query.data?.items, search]);
 
-  const actionMutation = useMutation({
-    mutationFn: ({ id, action, body }: { id: string; action: string; body?: unknown }) => fetchJson(`/admin/articles/${id}/actions/${action}`, { method: "POST", body }),
+  const actionMutation = useMutation<unknown, Error, ActionMutationVariables>({
+    mutationFn: ({ id, action, body }) => fetchJson(`/admin/articles/${id}/actions/${action}`, { method: "POST", body }),
     onSuccess: () => {
       toast.success("Action completed.");
       void queryClient.invalidateQueries({ queryKey: ["articles"] });
