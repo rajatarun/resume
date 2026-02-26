@@ -10,6 +10,7 @@ import { useAdminAccess } from "@/components/admin/AdminGate";
 
 export default function AdminDashboardPage() {
   type ArticleListResponse = { items: Article[] };
+  type CreateDraftPayload = { title: string; sourceInputs?: string[]; tags?: string[]; status?: string };
 
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -31,8 +32,11 @@ export default function AdminDashboardPage() {
     [statusQueries]
   );
 
-  const createDraft = useMutation({
-    mutationFn: (payload: { title: string; sourceInputs?: string[]; tags?: string[]; status?: string }) => fetchJson<Article>("/admin/articles", { method: "POST", body: payload }),
+  const createDraft = useMutation<Article, CreateDraftPayload>({
+    mutationFn: (payload) => {
+      if (!payload) return Promise.reject(new Error("Missing draft payload."));
+      return fetchJson<Article>("/admin/articles", { method: "POST", body: payload });
+    },
     onSuccess: () => {
       toast.success("Draft created.");
       setOpen(false);
