@@ -48,8 +48,8 @@ export default function ArticlesPage() {
 
   const filtered = useMemo(() => (query.data?.items ?? []).filter((item) => item.title.toLowerCase().includes(search.toLowerCase())), [query.data?.items, search]);
 
-  const actionMutation = useMutation<unknown, Error, ActionMutationVariables>({
-    mutationFn: ({ id, action, body }) => fetchJson(`/admin/articles/${id}/actions/${action}`, { method: "POST", body }),
+  const actionMutation = useMutation<unknown, Error>({
+    mutationFn: ({ id, action, body }: ActionMutationVariables) => fetchJson(`/admin/articles/${id}/actions/${action}`, { method: "POST", body }),
     onSuccess: () => {
       toast.success("Action completed.");
       void queryClient.invalidateQueries({ queryKey: ["articles"] });
