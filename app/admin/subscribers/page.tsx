@@ -16,13 +16,19 @@ export default function SubscribersPage() {
   const subscribers = useQuery({ queryKey: ["subscribers"], queryFn: () => fetchJson<{ items: Subscriber[] }>("/admin/subscribers"), enabled: isAllowed });
 
   const addMutation = useMutation({
-    mutationFn: (email: string) => fetchJson("/admin/subscribers", { method: "POST", body: { email } }),
+    mutationFn: (email?: string) => {
+      if (!email) throw new Error("Missing email");
+      return fetchJson("/admin/subscribers", { method: "POST", body: { email } });
+    },
     onSuccess: () => { toast.success("Subscriber added"); reset(); void queryClient.invalidateQueries({ queryKey: ["subscribers"] }); },
     onError: (error) => toast.error(error instanceof Error ? error.message : "Add failed")
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (email: string) => fetchJson(`/admin/subscribers/${encodeURIComponent(email)}`, { method: "DELETE" }),
+    mutationFn: (email?: string) => {
+      if (!email) throw new Error("Missing email");
+      return fetchJson(`/admin/subscribers/${encodeURIComponent(email)}`, { method: "DELETE" });
+    },
     onSuccess: () => { toast.success("Subscriber removed"); void queryClient.invalidateQueries({ queryKey: ["subscribers"] }); },
     onError: (error) => toast.error(error instanceof Error ? error.message : "Delete failed")
   });
