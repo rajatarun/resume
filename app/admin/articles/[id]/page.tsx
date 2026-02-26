@@ -32,8 +32,8 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
     }
   });
 
-  const patchMutation = useMutation({
-    mutationFn: (body: Record<string, unknown>) => fetchJson<Article>(`/admin/articles/${id}`, { method: "PATCH", body }),
+  const patchMutation = useMutation<Article, Record<string, unknown>>({
+    mutationFn: (body) => fetchJson<Article>(`/admin/articles/${id}`, { method: "PATCH", body: body ?? {} }),
     onSuccess: () => {
       toast.success("Article updated");
       void queryClient.invalidateQueries({ queryKey: ["article", id] });
@@ -42,7 +42,10 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
   });
 
   const actionMutation = useMutation({
-    mutationFn: ({ action, body }: { action: string; body?: unknown }) => fetchJson(`/admin/articles/${id}/actions/${action}`, { method: "POST", body }),
+    mutationFn: (vars?: { action: string; body?: unknown }) => {
+      if (!vars) throw new Error("Missing mutation variables");
+      return fetchJson(`/admin/articles/${id}/actions/${vars.action}`, { method: "POST", body: vars.body });
+    },
     onSuccess: () => {
       toast.success("Action successful");
       void queryClient.invalidateQueries({ queryKey: ["article", id] });
