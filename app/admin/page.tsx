@@ -32,7 +32,7 @@ export default function AdminDashboardPage() {
     [statusQueries]
   );
 
-  const createDraft = useMutation<Article, Error, CreateDraftPayload>({
+  const createDraft = useMutation<Article, CreateDraftPayload>({
     mutationFn: (payload) => {
       if (!payload) return Promise.reject(new Error("Missing draft payload."));
       return fetchJson<Article>("/admin/articles", { method: "POST", body: payload });
