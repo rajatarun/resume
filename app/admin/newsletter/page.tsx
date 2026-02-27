@@ -36,8 +36,8 @@ export default function NewsletterPage() {
       </div>
       <p className="text-sm">Subscriber count: {subscribers.data?.items.length ?? 0}</p>
       <div className="flex gap-2">
-        <button className="rounded bg-slate-900 px-3 py-2 text-white" onClick={() => generate.mutate()} disabled={generate.isPending}>Generate Preview</button>
-        <button className="rounded border px-3 py-2" disabled={!generate.data?.preview} onClick={() => setOpen(true)}>Send</button>
+        <button type="button" className="rounded bg-slate-900 px-3 py-2 text-white" onClick={() => generate.mutate()} disabled={generate.isPending}>Generate Preview</button>
+        <button type="button" className="rounded border px-3 py-2" disabled={!generate.data?.preview} onClick={() => setOpen(true)}>Send</button>
       </div>
       {generate.data?.preview && (
         <div className="space-y-3 rounded border p-3">

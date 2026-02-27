@@ -32,7 +32,7 @@ export default function AdminDashboardPage() {
     [statusQueries]
   );
 
-  const createDraft = useMutation<Article, CreateDraftPayload>({
+  const createDraft = useMutation<Article, Error, CreateDraftPayload>({
     mutationFn: (payload) => {
       if (!payload) return Promise.reject(new Error("Missing draft payload."));
       return fetchJson<Article>("/admin/articles", { method: "POST", body: payload });
@@ -57,7 +57,7 @@ export default function AdminDashboardPage() {
           </div>
         ))}
       </div>
-      <button className="rounded bg-slate-900 px-3 py-2 text-white" onClick={() => setOpen(true)}>Create Draft</button>
+      <button type="button" className="rounded bg-slate-900 px-3 py-2 text-white" onClick={() => setOpen(true)}>Create Draft</button>
       <ArticleFormModal open={open} onClose={() => setOpen(false)} onSubmit={(v) => createDraft.mutate(v)} busy={createDraft.isPending} />
     </div>
   );
