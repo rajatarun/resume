@@ -21,7 +21,8 @@ export default function AdminDashboardPage() {
   const statusQueries = useQueries({
     queries: ARTICLE_STATUSES.map((status) => ({
       queryKey: ["articles", status],
-      queryFn: async () => normalizeArticleList(await fetchJson<unknown>(`/admin/articles?status=${status}&limit=100`)),
+      queryFn: async (): Promise<{ items: Article[] }> =>
+        normalizeArticleList(await fetchJson<unknown>(`/admin/articles?status=${status}&limit=100`)),
       enabled: isAllowed
     }))
   });
