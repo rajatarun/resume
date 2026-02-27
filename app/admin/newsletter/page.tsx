@@ -22,8 +22,10 @@ export default function NewsletterPage() {
     onError: (error) => toast.error(error instanceof Error ? error.message : "Generate failed")
   });
 
-  const send = useMutation<unknown, void>({
-    mutationFn: () => fetchJson("/admin/newsletter/actions/send", { method: "POST", body: generate.data?.preview }),
+  type NewsletterPreview = { subject: string; body_text: string; body_html: string };
+
+  const send = useMutation<unknown, NewsletterPreview>({
+    mutationFn: (preview) => fetchJson("/admin/newsletter/actions/send", { method: "POST", body: preview }),
     onSuccess: () => { toast.success("Newsletter sent."); setOpen(false); },
     onError: (error) => toast.error(error instanceof Error ? error.message : "Send failed")
   });
@@ -46,7 +48,14 @@ export default function NewsletterPage() {
           <TextareaWithCopy label="Body (HTML)" value={generate.data.preview.body_html} />
         </div>
       )}
-      <ConfirmModal open={open} onCancel={() => setOpen(false)} onConfirm={() => send.mutate()} title="Send newsletter?" confirmText="Send" busy={send.isPending}>
+      <ConfirmModal open={open} onCancel={() => setOpen(false)} onConfirm={() => {
+        const preview = generate.data?.preview;
+        if (!preview) {
+          toast.error("Missing generated newsletter preview");
+          return;
+        }
+        send.mutate(preview);
+      }} title="Send newsletter?" confirmText="Send" busy={send.isPending}>
         This will send the generated newsletter to active subscribers.
       </ConfirmModal>
     </div>
