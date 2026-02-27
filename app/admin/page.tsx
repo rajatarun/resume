@@ -28,7 +28,11 @@ export default function AdminDashboardPage() {
   });
 
   const counts = useMemo(
-    () => ARTICLE_STATUSES.map((status, i) => ({ status, count: (statusQueries[i]?.data as ArticleListResponse | undefined)?.items.length ?? 0 })),
+    () =>
+      ARTICLE_STATUSES.map((status, i) => {
+        const data = statusQueries[i]?.data as ArticleListResponse | undefined;
+        return { status, count: data?.items?.length ?? 0 };
+      }),
     [statusQueries]
   );
 
