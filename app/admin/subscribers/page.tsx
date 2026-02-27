@@ -67,27 +67,39 @@ export default function SubscribersPage() {
       </form>
 
       <ul className="space-y-2">
-        {(subscribers.data?.items ?? []).map((item) => (
-          <li
-            key={item.email}
-            className="flex items-center justify-between rounded border p-2 text-sm"
-          >
-            <div>
-              <p>{item.email}</p>
-              <p className="text-xs text-slate-500">
-                {item.status} · {item.createdAt}
-              </p>
-            </div>
-            <button
-              type="button"
-              className="rounded border px-2 py-1"
-              onClick={() => deleteMutation.mutate(item.email)}
-              disabled={deleteMutation.isPending}
-            >
-              Delete
-            </button>
-          </li>
-        ))}
+        {(subscribers.data?.items ?? [])
+          .filter((item): item is Subscriber => Boolean(item.email))
+          .map((item) => {
+            const email = item.email;
+
+            return (
+              <li
+                key={email}
+                className="flex items-center justify-between rounded border p-2 text-sm"
+              >
+                <div>
+                  <p>{email}</p>
+                  <p className="text-xs text-slate-500">
+                    {item.status} · {item.createdAt}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="rounded border px-2 py-1"
+                  onClick={() => {
+                    if (!email) {
+                      toast.error("Missing subscriber email");
+                      return;
+                    }
+                    deleteMutation.mutate(email);
+                  }}
+                  disabled={deleteMutation.isPending}
+                >
+                  Delete
+                </button>
+              </li>
+            );
+          })}
       </ul>
     </div>
   );

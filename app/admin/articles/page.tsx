@@ -27,7 +27,10 @@ export default function ArticlesPage() {
 
   const pollArticle = useQuery({
     queryKey: ["article", pollingId],
-    queryFn: () => fetchJson<Article>(`/admin/articles/${pollingId}`),
+    queryFn: () => {
+      if (!pollingId) throw new Error("Missing polling article id");
+      return fetchJson<Article>(`/admin/articles/${pollingId}`);
+    },
     enabled: Boolean(pollingId && isAllowed),
     refetchInterval: 7000
   });
