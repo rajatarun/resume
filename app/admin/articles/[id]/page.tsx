@@ -1,5 +1,11 @@
 "use client";
 
+export const dynamicParams = false;
+
+export async function generateStaticParams() {
+  return [];
+}
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
