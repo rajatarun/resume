@@ -24,7 +24,7 @@ export function ArticleFormModal({ open, busy, onClose, onSubmit }: { open: bool
         })}
       >
         <h3 className="text-lg font-semibold">Create Draft</h3>
-        <input className="w-full rounded border p-2" placeholder="Title" {...register("title", { required: true })} />
+        <input className="w-full rounded border p-2" placeholder="Title" required {...register("title")} />
         <textarea className="min-h-20 w-full rounded border p-2" placeholder="Source inputs (one per line)" {...register("sourceInputs")} />
         <input className="w-full rounded border p-2" placeholder="Tags (comma separated)" {...register("tags")} />
         <select className="w-full rounded border p-2" {...register("status")}>

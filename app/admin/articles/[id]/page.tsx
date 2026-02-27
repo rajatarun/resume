@@ -32,7 +32,7 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
     }
   });
 
-  const patchMutation = useMutation<Article, Record<string, unknown>>({
+  const patchMutation = useMutation<Article, Error, Record<string, unknown>>({
     mutationFn: (body) => fetchJson<Article>(`/admin/articles/${id}`, { method: "PATCH", body: body ?? {} }),
     onSuccess: () => {
       toast.success("Article updated");
@@ -71,11 +71,11 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
           <button className="rounded bg-slate-900 px-3 py-2 text-white" type="submit" disabled={patchMutation.isPending}>Save Fields</button>
         </form>
         <div className="flex flex-wrap gap-2">
-          <button className="rounded border px-2 py-1" onClick={() => actionMutation.mutate({ action: "generate" })}>Generate Draft</button>
-          <button className="rounded border px-2 py-1" onClick={() => actionMutation.mutate({ action: "approve" })}>Approve</button>
-          <button className="rounded border px-2 py-1" onClick={() => { const revisionNote = prompt("Revision note") ?? ""; if (revisionNote) actionMutation.mutate({ action: "request-edits", body: { revisionNote } }); }}>Request Edits</button>
-          <button className="rounded border px-2 py-1" onClick={() => { const reason = prompt("Rejection reason") ?? ""; if (reason) actionMutation.mutate({ action: "reject", body: { reason } }); }}>Reject</button>
-          <button className="rounded border px-2 py-1" onClick={() => setPublishModalOpen(true)}>Mark Published</button>
+          <button type="button" className="rounded border px-2 py-1" onClick={() => actionMutation.mutate({ action: "generate" })}>Generate Draft</button>
+          <button type="button" className="rounded border px-2 py-1" onClick={() => actionMutation.mutate({ action: "approve" })}>Approve</button>
+          <button type="button" className="rounded border px-2 py-1" onClick={() => { const revisionNote = prompt("Revision note") ?? ""; if (revisionNote) actionMutation.mutate({ action: "request-edits", body: { revisionNote } }); }}>Request Edits</button>
+          <button type="button" className="rounded border px-2 py-1" onClick={() => { const reason = prompt("Rejection reason") ?? ""; if (reason) actionMutation.mutate({ action: "reject", body: { reason } }); }}>Reject</button>
+          <button type="button" className="rounded border px-2 py-1" onClick={() => setPublishModalOpen(true)}>Mark Published</button>
         </div>
         <div>
           <h3 className="mb-2 font-semibold">Events</h3>
@@ -102,7 +102,7 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
         <div className="space-y-2">
           <p className="font-medium">Sources</p>
           <ul className="list-disc pl-6 text-sm">
-            {(article?.generated?.sources ?? []).map((source) => <li key={source}><a href={source} className="text-blue-600 underline" target="_blank">{source}</a></li>)}
+            {(article?.generated?.sources ?? []).map((source) => <li key={source}><a href={source} className="text-blue-600 underline" target="_blank" rel="noreferrer">{source}</a></li>)}
           </ul>
         </div>
       </div>

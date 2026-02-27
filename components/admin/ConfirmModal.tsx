@@ -11,8 +11,8 @@ export function ConfirmModal({ open, title, children, onCancel, onConfirm, confi
         <h3 className="text-lg font-semibold">{title}</h3>
         <div className="mt-2 text-sm text-slate-600 dark:text-slate-300">{children}</div>
         <div className="mt-4 flex justify-end gap-2">
-          <button className="rounded border px-3 py-2 text-sm" onClick={onCancel} disabled={busy}>Cancel</button>
-          <button className="rounded bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-50" onClick={onConfirm} disabled={busy}>{busy ? "Working..." : confirmText}</button>
+          <button type="button" className="rounded border px-3 py-2 text-sm" onClick={onCancel} disabled={busy}>Cancel</button>
+          <button type="button" className="rounded bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-50" onClick={onConfirm} disabled={busy}>{busy ? "Working..." : confirmText}</button>
         </div>
       </div>
     </div>
