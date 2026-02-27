@@ -48,7 +48,7 @@ export default function ArticlesPage() {
 
   const filtered = useMemo(() => (query.data?.items ?? []).filter((item) => item.title.toLowerCase().includes(search.toLowerCase())), [query.data?.items, search]);
 
-  const actionMutation = useMutation<unknown, Error, ActionMutationVariables>({
+  const actionMutation = useMutation<unknown, ActionMutationVariables>({
     mutationFn: (vars) => {
       if (!vars) throw new Error("Missing mutation variables");
       const { id, action, body } = vars;

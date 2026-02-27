@@ -32,8 +32,8 @@ export default function ArticleDetailPage({ params }: { params: { id: string } }
     }
   });
 
-  const patchMutation = useMutation<Article, Error, Record<string, unknown>>({
-    mutationFn: (body) => fetchJson<Article>(`/admin/articles/${id}`, { method: "PATCH", body: body ?? {} }),
+  const patchMutation = useMutation<Article, Record<string, unknown>>({
+    mutationFn: (body?: Record<string, unknown>) => fetchJson<Article>(`/admin/articles/${id}`, { method: "PATCH", body: body ?? {} }),
     onSuccess: () => {
       toast.success("Article updated");
       void queryClient.invalidateQueries({ queryKey: ["article", id] });
