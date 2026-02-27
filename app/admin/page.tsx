@@ -5,11 +5,11 @@ import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/rea
 import { ArticleFormModal } from "@/components/admin/ArticleFormModal";
 import { useToast } from "@/components/admin/ToastProvider";
 import { fetchJson } from "@/lib/admin/api";
-import { ARTICLE_STATUSES, Article } from "@/lib/admin/types";
+import { ARTICLE_STATUSES, Article, normalizeArticleListResponse } from "@/lib/admin/types";
 import { useAdminAccess } from "@/components/admin/AdminGate";
 
 export default function AdminDashboardPage() {
-  type ArticleListResponse = { items: Article[] };
+  type ArticleListResponse = ReturnType<typeof normalizeArticleListResponse>;
   type CreateDraftPayload = { title: string; sourceInputs?: string[]; tags?: string[]; status?: string };
 
   const [open, setOpen] = useState(false);
@@ -22,7 +22,7 @@ export default function AdminDashboardPage() {
   const statusQueries = useQueries({
     queries: ARTICLE_STATUSES.map((status) => ({
       queryKey: ["articles", status],
-      queryFn: () => fetchJson<ArticleListResponse>(`/admin/articles?status=${status}&limit=100`),
+      queryFn: async () => normalizeArticleListResponse(await fetchJson<unknown>(`/admin/articles?status=${status}&limit=100`)),
       enabled: isAllowed
     }))
   });

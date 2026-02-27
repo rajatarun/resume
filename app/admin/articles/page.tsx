@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { useToast } from "@/components/admin/ToastProvider";
 import { fetchJson } from "@/lib/admin/api";
-import { ARTICLE_STATUSES, Article, ArticleStatus } from "@/lib/admin/types";
+import { ARTICLE_STATUSES, Article, ArticleStatus, normalizeArticleListResponse } from "@/lib/admin/types";
 import { useAdminAccess } from "@/components/admin/AdminGate";
 
 export default function ArticlesPage() {
@@ -21,7 +21,7 @@ export default function ArticlesPage() {
 
   const query = useQuery({
     queryKey: ["articles", status],
-    queryFn: () => fetchJson<{ items: Article[] }>(`/admin/articles?status=${status}&limit=100`),
+    queryFn: async () => normalizeArticleListResponse(await fetchJson<unknown>(`/admin/articles?status=${status}&limit=100`)),
     enabled: isAllowed
   });
 
