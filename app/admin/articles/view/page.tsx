@@ -10,7 +10,7 @@ import { StatusBadge } from "@/components/admin/StatusBadge";
 import { TextareaWithCopy } from "@/components/admin/TextareaWithCopy";
 import { useToast } from "@/components/admin/ToastProvider";
 import { fetchJson } from "@/lib/admin/api";
-import { AdminEvent, Article } from "@/lib/admin/types";
+import { AdminEvent, Article, normalizeArticle } from "@/lib/admin/types";
 import { useAdminAccess } from "@/components/admin/AdminGate";
 
 export default function ArticleDetailViewPage() {
@@ -24,7 +24,7 @@ export default function ArticleDetailViewPage() {
 
   const articleQuery = useQuery({
     queryKey: ["article", id],
-    queryFn: () => fetchJson<Article>(`/admin/articles/${id}`),
+    queryFn: async () => normalizeArticle(await fetchJson<unknown>(`/admin/articles/${id}`)),
     enabled: Boolean(id && isAllowed)
   });
 
@@ -51,8 +51,8 @@ export default function ArticleDetailViewPage() {
   });
 
   const patchMutation = useMutation<Article, Record<string, unknown> | undefined>({
-    mutationFn: (body) =>
-      fetchJson<Article>(`/admin/articles/${id}`, { method: "PATCH", body: body ?? {} }),
+    mutationFn: async (body) =>
+      normalizeArticle(await fetchJson<unknown>(`/admin/articles/${id}`, { method: "PATCH", body: body ?? {} })),
     onSuccess: () => {
       toast.success("Article updated");
       void queryClient.invalidateQueries({ queryKey: ["article", id] });

@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { useToast } from "@/components/admin/ToastProvider";
 import { fetchJson } from "@/lib/admin/api";
-import { ARTICLE_STATUSES, Article, ArticleStatus } from "@/lib/admin/types";
+import { ARTICLE_STATUSES, Article, ArticleStatus, normalizeArticle, normalizeArticleList } from "@/lib/admin/types";
 import { useAdminAccess } from "@/components/admin/AdminGate";
 
 export default function ArticlesPage() {
@@ -21,15 +21,15 @@ export default function ArticlesPage() {
 
   const query = useQuery({
     queryKey: ["articles", status],
-    queryFn: () => fetchJson<{ items: Article[] }>(`/admin/articles?status=${status}&limit=100`),
+    queryFn: async () => normalizeArticleList(await fetchJson<unknown>(`/admin/articles?status=${status}&limit=100`)),
     enabled: isAllowed
   });
 
   const pollArticle = useQuery({
     queryKey: ["article", pollingId],
-    queryFn: () => {
+    queryFn: async () => {
       if (!pollingId) throw new Error("Missing polling article id");
-      return fetchJson<Article>(`/admin/articles/${pollingId}`);
+      return normalizeArticle(await fetchJson<unknown>(`/admin/articles/${pollingId}`));
     },
     enabled: Boolean(pollingId && isAllowed),
     refetchInterval: 7000
