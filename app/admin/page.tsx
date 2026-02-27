@@ -10,6 +10,7 @@ import { useAdminAccess } from "@/components/admin/AdminGate";
 
 export default function AdminDashboardPage() {
   type CreateDraftPayload = { title: string; sourceInputs?: string[]; tags?: string[]; status?: string };
+  type ArticleListResponse = { items: Article[] };
 
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -28,7 +29,12 @@ export default function AdminDashboardPage() {
   });
 
   const counts = useMemo(
-    () => ARTICLE_STATUSES.map((status, i) => ({ status, count: statusQueries[i]?.data?.items.length ?? 0 })),
+    () =>
+      ARTICLE_STATUSES.map((status, i) => {
+        const data = statusQueries[i]?.data as ArticleListResponse | undefined;
+
+        return { status, count: data?.items?.length ?? 0 };
+      }),
     [statusQueries]
   );
 
