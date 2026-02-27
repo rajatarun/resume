@@ -21,6 +21,7 @@ export default function SubscribersPage() {
 
   const addMutation = useMutation<unknown, string>({
     mutationFn: (email) => {
+      if (!email) throw new Error("Missing subscriber email");
       return fetchJson("/admin/subscribers", { method: "POST", body: { email } });
     },
     onSuccess: () => {
@@ -33,6 +34,7 @@ export default function SubscribersPage() {
 
   const deleteMutation = useMutation<unknown, string>({
     mutationFn: (email) => {
+      if (!email) throw new Error("Missing subscriber email");
       return fetchJson(`/admin/subscribers/${encodeURIComponent(email)}`, {
         method: "DELETE"
       });
@@ -48,7 +50,14 @@ export default function SubscribersPage() {
     <div className="space-y-4">
       <form
         className="flex gap-2"
-        onSubmit={handleSubmit((v) => addMutation.mutate(v.email))}
+        onSubmit={handleSubmit((v) => {
+          const email = v.email.trim();
+          if (!email) {
+            toast.error("Missing subscriber email");
+            return;
+          }
+          addMutation.mutate(email);
+        })}
       >
         <input
           className="w-full rounded border p-2"
