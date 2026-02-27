@@ -14,6 +14,7 @@ import { AdminEvent, Article } from "@/lib/admin/types";
 import { useAdminAccess } from "@/components/admin/AdminGate";
 
 export default function ArticleDetailViewPage() {
+  type ActionVars = { action: string; body?: unknown };
   const searchParams = useSearchParams();
   const id = searchParams.get("id") ?? "";
   const toast = useToast();
@@ -49,8 +50,8 @@ export default function ArticleDetailViewPage() {
     }
   });
 
-  const patchMutation = useMutation<Article, Error>({
-    mutationFn: (body?: Record<string, unknown>) =>
+  const patchMutation = useMutation<Article, Record<string, unknown> | undefined>({
+    mutationFn: (body) =>
       fetchJson<Article>(`/admin/articles/${id}`, { method: "PATCH", body: body ?? {} }),
     onSuccess: () => {
       toast.success("Article updated");
@@ -59,8 +60,8 @@ export default function ArticleDetailViewPage() {
     onError: (error) => toast.error(error instanceof Error ? error.message : "Update failed")
   });
 
-  const actionMutation = useMutation<unknown, Error>({
-    mutationFn: (vars?: { action: string; body?: unknown }) => {
+  const actionMutation = useMutation<unknown, ActionVars | undefined>({
+    mutationFn: (vars) => {
       if (!vars) throw new Error("Missing mutation variables");
       return fetchJson(`/admin/articles/${id}/actions/${vars.action}`, { method: "POST", body: vars.body });
     },

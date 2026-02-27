@@ -19,9 +19,8 @@ export default function SubscribersPage() {
     enabled: isAllowed
   });
 
-  const addMutation = useMutation({
-    mutationFn: (email?: string) => {
-      if (!email) throw new Error("Missing email");
+  const addMutation = useMutation<unknown, string>({
+    mutationFn: (email) => {
       return fetchJson("/admin/subscribers", { method: "POST", body: { email } });
     },
     onSuccess: () => {
@@ -32,9 +31,8 @@ export default function SubscribersPage() {
     onError: (error) => toast.error(error instanceof Error ? error.message : "Add failed")
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (email?: string) => {
-      if (!email) throw new Error("Missing email");
+  const deleteMutation = useMutation<unknown, string>({
+    mutationFn: (email) => {
       return fetchJson(`/admin/subscribers/${encodeURIComponent(email)}`, {
         method: "DELETE"
       });
