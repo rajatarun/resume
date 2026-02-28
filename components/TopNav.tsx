@@ -4,16 +4,15 @@ import { Web3NavControls } from "@/components/web3/Web3NavControls";
 const navLinks = [
   ["/", "Home"],
   ["/resume", "Resume"],
-  ["/projects", "Projects"],
+  ["/portfolio", "Portfolio"],
+  ["/website", "Website"],
+  ["/blog", "Blog"],
+  ["/labs", "AI Lab"],
   ["/recruiter", "Recruiter"],
   ["/contact", "Contact"],
-  ["/store", "Store"],
-  ["/website", "Website"],
-  ["/labs", "AI Lab"],
-  ["/portfolio", "Portfolio"],
-  ["/blog", "Blog"],
-  ["/appointment", "Appointment"],
   ["/newsletter", "Newsletter"],
+  ["/appointment", "Appointment"],
+  ["/store", "Store"],
   ["/admin", "Admin"]
 ] as const;
 
