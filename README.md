@@ -15,6 +15,7 @@ Professional personal website built with **Next.js App Router + TypeScript + Tai
 - Web3 wallet connection (Injected, WalletConnect, Coinbase Wallet) + SIWE session auth
 - Protected recruiter area (`/recruiter`) with SIWE gate
 - Onchain identity pages (`/proof`, `/onchain`)
+- Portfolio projects are generated at build time from GitHub GraphQL into `public/projects.json` (static-export safe).
 
 ## Setup
 
@@ -62,6 +63,10 @@ NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your-walletconnect-project-id
 - `NEXT_PUBLIC_ADMIN_API_BASE` is required for the client-side admin dashboard under `/admin`. It should point to your API Gateway REST API base URL (for example `https://{REST_API_ID}.execute-api.us-east-1.amazonaws.com/prod`).
 - `NEXT_PUBLIC_API_BASE_URL` is required for the blog page (`/blog`), which is statically exported and fetches list/detail data at runtime from `/site/posts` endpoints in the browser.
 
+- `GITHUB_TOKEN` is required at build time (Amplify env var) to read repositories via GitHub GraphQL.
+- `GITHUB_OWNER` is the GitHub user/org login to sync from.
+- `GITHUB_OWNER_TYPE` must be `user` or `org`.
+
 
 ### Local SIWE test
 
@@ -73,6 +78,47 @@ NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your-walletconnect-project-id
    - `POST {NEXT_PUBLIC_SIWE_API_BASE}/siwe/verify`
    - `GET {NEXT_PUBLIC_SIWE_API_BASE}/siwe/session` with `Authorization: Bearer <token>`
    - `GET {NEXT_PUBLIC_SIWE_API_BASE}/siwe/me` with `Authorization: Bearer <token>`
+
+## GitHub portfolio sync (static export)
+
+The portfolio page reads static data from `public/projects.json`. This file is generated during build by `scripts/sync-github-projects.mjs` and never calls GitHub from the browser.
+
+### Configure Amplify environment variables
+
+Set these in **Amplify Console → App settings → Environment variables**:
+
+```env
+GITHUB_TOKEN=<fine-grained PAT with read-only repo metadata access>
+GITHUB_OWNER=<github user or org login>
+GITHUB_OWNER_TYPE=user # or org
+```
+
+### Category mapping
+
+Category chips are derived from repository topics first (case-insensitive):
+
+- `genai` → `GenAI`
+- `backend` → `Backend`
+- `frontend` → `Frontend`
+- `cloud` → `Cloud`
+
+If no mapped topic exists, language fallback is used:
+
+- TypeScript/JavaScript → Frontend
+- Java/Go → Backend
+- Python → GenAI
+- HCL/Terraform → Cloud
+
+Forked and archived repositories are excluded.
+
+### Local workflow
+
+```bash
+npm run sync:projects
+npm run build
+```
+
+Security note: `GITHUB_TOKEN` is only used by the build script and is never shipped to client-side JavaScript.
 
 ## Build & production
 
