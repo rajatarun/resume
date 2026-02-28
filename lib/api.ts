@@ -328,3 +328,104 @@ export const streamChatQuestion = async (
     clearTimeout(timeoutId);
   }
 };
+
+
+export interface BlogCard {
+  id: string;
+  title: string;
+  excerpt: string;
+  publishedAt?: string;
+  url?: string;
+  tags: string[];
+  status?: string;
+}
+
+export interface Source {
+  title: string;
+  url: string;
+  notes?: string;
+}
+
+export interface Article {
+  id: string;
+  title: string;
+  tags: string[];
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  publishedAt?: string;
+  publishedUrl?: string;
+  generated: {
+    linkedin_post?: string;
+    sources?: Source[];
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+class BlogApiError extends Error {
+  readonly status?: number;
+
+  constructor(message: string, status?: number) {
+    super(message);
+    this.name = 'BlogApiError';
+    this.status = status;
+  }
+}
+
+const getBlogApiBaseUrl = (): string => {
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (!baseUrl) {
+    throw new Error('Missing NEXT_PUBLIC_API_BASE_URL configuration.');
+  }
+  return baseUrl.replace(/\/$/, '');
+};
+
+const fetchJson = async <T>(path: string): Promise<T> => {
+  const response = await fetch(`${getBlogApiBaseUrl()}${path}`, {
+    headers: {
+      Accept: 'application/json'
+    },
+    cache: 'no-store'
+  });
+
+  if (!response.ok) {
+    let message = `Request failed with status ${response.status}`;
+
+    try {
+      const payload = (await response.json()) as { message?: string; error?: string };
+      message = payload.message ?? payload.error ?? message;
+    } catch {
+      // no-op: keep fallback message for non-JSON responses
+    }
+
+    throw new BlogApiError(message, response.status);
+  }
+
+  return (await response.json()) as T;
+};
+
+export const getBlogCards = async ({
+  limit = 20,
+  status = 'APPROVED,PUBLISHED'
+}: {
+  limit?: number;
+  status?: string;
+} = {}): Promise<{ items: BlogCard[] }> => {
+  const searchParams = new URLSearchParams({
+    limit: String(limit),
+    status
+  });
+
+  const payload = await fetchJson<{ items?: BlogCard[] }>(`/site/posts?${searchParams.toString()}`);
+
+  return {
+    items: Array.isArray(payload.items) ? payload.items : []
+  };
+};
+
+export const getArticle = async (id: string): Promise<Article> => {
+  return fetchJson<Article>(`/site/posts/${encodeURIComponent(id)}`);
+};
+
+export { BlogApiError };
