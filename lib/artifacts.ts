@@ -14,7 +14,7 @@ export const resumeArtifacts: ResumeArtifact[] = [
   {
     key: "jpmc-senior-lead",
     title: "Senior Lead Software Engineer",
-    publicProofUrl: "/blog/ai-systems-architect-2026-02-01"
+    publicProofUrl: "/blog"
   },
   {
     key: "jpmc-vp-lead",

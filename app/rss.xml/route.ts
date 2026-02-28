@@ -7,7 +7,7 @@ export async function GET() {
       (post) => `
     <item>
       <title><![CDATA[${post.title}]]></title>
-      <link>${base}/blog/${post.slug}</link>
+      <link>${base}/blog</link>
       <pubDate>${new Date(post.date).toUTCString()}</pubDate>
       <description><![CDATA[${post.excerpt}]]></description>
     </item>`

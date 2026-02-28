@@ -6,7 +6,7 @@ Professional personal website built with **Next.js App Router + TypeScript + Tai
 
 - Deep-link pages:
   - `/` home landing page with pill-style navigation cards
-  - `/store`, `/website`, `/portfolio`, `/blog`, `/blog/[slug]`, `/appointment`, `/newsletter`
+  - `/store`, `/website`, `/portfolio`, `/blog`, `/appointment`, `/newsletter`
 - Reusable design system components (`PageShell`, `Section`, `Card`, `PillLink`, `Badge`, `Button`, `Input`)
 - SEO metadata per page + OpenGraph
 - `sitemap.xml` and `robots.txt`
@@ -60,7 +60,7 @@ NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your-walletconnect-project-id
 - `WALLETCONNECT_PROJECT_ID` is required for WalletConnect v2.
 - `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` mirrors the same value for client-side WalletConnect/Web3Modal initialization.
 - `NEXT_PUBLIC_ADMIN_API_BASE` is required for the client-side admin dashboard under `/admin`. It should point to your API Gateway REST API base URL (for example `https://{REST_API_ID}.execute-api.us-east-1.amazonaws.com/prod`).
-- `NEXT_PUBLIC_API_BASE_URL` is required for the blog list (`/blog`) and blog detail pages (`/blog/[id]`). It should point to your API Gateway REST API base URL that serves `/site/posts` endpoints.
+- `NEXT_PUBLIC_API_BASE_URL` is required for the blog page (`/blog`), which is statically exported and fetches list/detail data at runtime from `/site/posts` endpoints in the browser.
 
 
 ### Local SIWE test
@@ -96,6 +96,7 @@ npm run start
 
 ## Notes
 
+- Blog routing is static-export safe: there is no `/blog/[id]` page; selecting a post opens details on the same `/blog` page via client-side fetching.
 - Newsletter subscription currently stores emails in memory via `/api/newsletter` and includes a TODO for provider integration (Mailchimp/ConvertKit).
 - SIWE implementation is intentionally MVP-level and includes TODO comments for production hardening (nonce/session persistence, stronger replay defenses, session rotation/revocation).
 

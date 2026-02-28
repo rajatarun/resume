@@ -381,7 +381,14 @@ const getBlogApiBaseUrl = (): string => {
   return baseUrl.replace(/\/$/, '');
 };
 
+const assertBrowserRuntime = () => {
+  if (typeof window === 'undefined') {
+    throw new Error('Blog API helpers must be called from the browser runtime.');
+  }
+};
+
 const fetchJson = async <T>(path: string): Promise<T> => {
+  assertBrowserRuntime();
   const response = await fetch(`${getBlogApiBaseUrl()}${path}`, {
     headers: {
       Accept: 'application/json'
@@ -406,7 +413,7 @@ const fetchJson = async <T>(path: string): Promise<T> => {
 };
 
 export const getBlogCards = async ({
-  limit = 20,
+  limit = 50,
   status = 'APPROVED,PUBLISHED'
 }: {
   limit?: number;

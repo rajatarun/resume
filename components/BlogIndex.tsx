@@ -35,7 +35,7 @@ export function BlogIndex() {
           <Card key={post.slug}>
             <p className="text-xs text-slate-500">{post.date} · {post.readingTime}</p>
             <h3 className="mt-1 text-xl font-semibold tracking-tight">
-              <Link href={`/blog/${post.slug}`} className="focus-ring hover:text-sky-600">{post.title}</Link>
+              <Link href="/blog" className="focus-ring hover:text-sky-600">{post.title}</Link>
             </h3>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{post.excerpt}</p>
             <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
