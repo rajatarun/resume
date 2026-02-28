@@ -7,8 +7,7 @@ frontend:
     build:
       commands:
         - npm run sync:projects
-        - next build
-        - next export
+        - npm run build
   artifacts:
     baseDirectory: out
     files:
