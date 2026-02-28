@@ -3,7 +3,7 @@ import { Card } from "@/components/Card";
 import { NewsletterSubscribeForm } from "@/components/NewsletterSubscribeForm";
 import { PageShell } from "@/components/PageShell";
 import { Section } from "@/components/Section";
-import { newsletterIssues } from "@/data/newsletter-issues";
+import { NewsletterPastIssues } from "@/components/NewsletterPastIssues";
 
 export const metadata: Metadata = {
   title: "Newsletter",
@@ -28,15 +28,7 @@ export default function NewsletterPage() {
 
         <Card>
           <Section title="Past issues">
-            <ul className="space-y-3">
-              {newsletterIssues.map((issue) => (
-                <li key={issue.id} className="rounded-xl border border-slate-200 p-3 dark:border-slate-700">
-                  <p className="text-xs text-slate-500">{issue.date}</p>
-                  <h3 className="font-medium">{issue.title}</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-300">{issue.summary}</p>
-                </li>
-              ))}
-            </ul>
+            <NewsletterPastIssues />
           </Section>
         </Card>
       </div>
