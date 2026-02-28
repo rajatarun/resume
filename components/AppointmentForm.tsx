@@ -1,17 +1,51 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent } from "react";
 import { Button } from "@/components/Button";
 import { Input, Textarea } from "@/components/Input";
 
-export function AppointmentForm() {
-  const [saved, setSaved] = useState(false);
+type AppointmentRequest = {
+  name: string;
+  email: string;
+  agenda: string;
+  preferredTime: string;
+};
 
-  const onSubmit = (event: FormEvent<HTMLFormElement>) => {
+async function submitAppointment(formData: AppointmentRequest) {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/public/appointment`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: formData.name,
+        email: formData.email,
+        agenda: formData.agenda,
+        preferredTime: formData.preferredTime,
+      }),
+    }
+  );
+
+  const data = await res.json();
+
+  if (data.ok) {
+    alert("Request sent successfully!");
+  } else {
+    alert("Failed to send request");
+  }
+}
+
+export function AppointmentForm() {
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    localStorage.setItem("appointmentRequest", JSON.stringify(Object.fromEntries(formData.entries())));
-    setSaved(true);
+
+    await submitAppointment({
+      name: String(formData.get("name") ?? ""),
+      email: String(formData.get("email") ?? ""),
+      agenda: String(formData.get("agenda") ?? ""),
+      preferredTime: String(formData.get("preferredTime") ?? ""),
+    });
   };
 
   return (
@@ -22,9 +56,8 @@ export function AppointmentForm() {
       <Input required name="preferredTime" placeholder="Preferred time (timezone included)" aria-label="Preferred time" />
       <div className="flex items-center gap-3">
         <Button type="submit">Save request</Button>
-        <a className="focus-ring text-sm text-sky-600 underline" href="mailto:hello@tarunraja.dev?subject=Appointment%20Request">Use email fallback</a>
+        <a className="focus-ring text-sm text-sky-600 underline" href="mailto:rajatarun12@gmail.com?subject=Appointment%20Request">Use email fallback</a>
       </div>
-      {saved ? <p className="text-sm text-emerald-600">Saved locally in your browser. I will confirm timing by email.</p> : null}
     </form>
   );
 }
