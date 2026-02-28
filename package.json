@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "npm run next:dev",
-    "build": "npm run next:build",
+    "build": "npm run sync:projects && next build && next export",
     "start": "npm run next:start",
     "lint": "next lint",
     "next:dev": "next dev",
@@ -17,7 +17,8 @@
     "resume:build": "tsx scripts/build_resume_json.ts",
     "lint:fix": "next lint --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "sync:projects": "node scripts/sync-github-projects.mjs"
   },
   "dependencies": {
     "clsx": "^2.1.1",
