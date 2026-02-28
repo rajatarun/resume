@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { PillLink } from "@/components/PillLink";
 import { PageShell } from "@/components/PageShell";
@@ -35,6 +36,16 @@ export default function HomePage() {
       title="AI Systems Architect & Social-Media Technologist"
       intro="I’m Tarun Raja, focused on trust-aware AI systems, observability-driven platform delivery, and career mentoring for engineers growing into architecture and leadership roles."
     >
+      <section className="flex justify-center">
+        <Image
+          src="/profile-photo.svg"
+          alt="Tarun Raja profile photo"
+          width={220}
+          height={220}
+          className="rounded-2xl border border-zinc-200 object-cover shadow-sm dark:border-zinc-700"
+          priority
+        />
+      </section>
       <section className="space-y-4">
         <h2 className="text-xl font-semibold tracking-tight">AI Systems Lab</h2>
         <Link
