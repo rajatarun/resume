@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "npm run next:dev",
-    "build": "npm run sync:projects && next build && next export",
+    "build": "npm run next:build",
     "start": "npm run next:start",
     "lint": "next lint",
     "next:dev": "next dev",
