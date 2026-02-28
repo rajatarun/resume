@@ -10,15 +10,21 @@ export function NewsletterSubscribeForm() {
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    const email = formData.get("email");
+    const rawEmail = formData.get("email");
+    const email = typeof rawEmail === "string" ? rawEmail.trim() : "";
 
-    const response = await fetch("/api/newsletter", {
+    if (!email) {
+      setMessage("Please enter a valid email address.");
+      return;
+    }
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/public/subscribe`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email })
     });
-    const data = await response.json();
-    setMessage(data.message);
+    const data = (await response.json()) as { message?: string };
+    setMessage(data.message ?? (response.ok ? "Subscribed successfully." : "Unable to subscribe right now."));
   };
 
   return (
