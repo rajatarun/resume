@@ -38,7 +38,7 @@ export default function HomePage() {
     >
       <section className="flex justify-center">
         <Image
-          src="/profile-photo.svg"
+          src="/profile-photo.PNG"
           alt="Tarun Raja profile photo"
           width={220}
           height={220}
