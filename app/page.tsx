@@ -89,21 +89,21 @@ function HomeFooter() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-slate-600 dark:text-slate-300">© {new Date().getFullYear()} Tarun Raja. All rights reserved.</p>
         <div className="flex flex-wrap items-center gap-4">
-          <Link href={githubUrl} target="_blank" rel="noopener noreferrer" className="focus-ring text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
+          <a href={githubUrl} target="_blank" rel="noopener noreferrer" className="focus-ring text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
             GitHub – Tarun Raja
-          </Link>
-          <Link href={linkedInUrl} target="_blank" rel="noopener noreferrer" className="focus-ring text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
+          </a>
+          <a href={linkedInUrl} target="_blank" rel="noopener noreferrer" className="focus-ring text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
             LinkedIn – Tarun Raja
-          </Link>
+          </a>
           <Link href="/contact" className="focus-ring text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
             Contact
           </Link>
           <Link href="/newsletter" className="focus-ring text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
             Newsletter
           </Link>
-          <Link href="mailto:hello@tarunraja.dev" className="focus-ring rounded-lg bg-slate-900 px-3 py-2 font-medium text-white hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white">
+          <a href="mailto:hello@tarunraja.dev" className="focus-ring rounded-lg bg-slate-900 px-3 py-2 font-medium text-white hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white">
             Get in touch
-          </Link>
+          </a>
         </div>
       </div>
     </footer>
