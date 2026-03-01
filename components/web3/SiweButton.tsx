@@ -34,7 +34,7 @@ export function SiweButton({ onSuccess }: SiweButtonProps) {
       const siweMessage = new SiweMessage({
         domain: window.location.host,
         address: checksumAddress,
-        statement: "Sign in with Ethereum to access recruiter tools.",
+        statement: "Sign in with Ethereum to access the About Tarun Raja GenAI chat.",
         uri: window.location.origin,
         version: "1",
         chainId,

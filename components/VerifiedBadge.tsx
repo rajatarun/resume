@@ -31,7 +31,7 @@ export function VerifiedBadge() {
 
   if (!authenticated) {
     return (
-      <Link href="/recruiter" className="text-xs text-slate-500 underline-offset-4 hover:underline dark:text-slate-400">
+      <Link href="/about" className="text-xs text-slate-500 underline-offset-4 hover:underline dark:text-slate-400">
         Sign in to verify
       </Link>
     );
