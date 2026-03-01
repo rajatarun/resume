@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 Disallow: /admin
-Sitemap: https://main.d1082kyye5hmz4.amplifyapp.com/sitemap.xml
+Sitemap: https://tarunraja.info/sitemap.xml
