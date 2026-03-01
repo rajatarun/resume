@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { useState } from "react";
+import { useAccount } from "wagmi";
 import { Web3NavControls } from "@/components/web3/Web3NavControls";
 
 type InternalHref = Route;
@@ -99,6 +100,11 @@ function DesktopDropdown({ label, items }: NavGroup) {
 
 export function TopNav() {
   const [isOpen, setIsOpen] = useState(false);
+  const { isConnected } = useAccount();
+
+  const primaryNavItems = isConnected
+    ? [...primaryLinks, { href: "/admin" as Route, label: "Admin" }]
+    : primaryLinks;
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/85">
@@ -119,7 +125,7 @@ export function TopNav() {
           </button>
 
           <nav aria-label="Primary navigation" className="hidden items-center gap-1 md:flex">
-            {primaryLinks.map((item) => (
+            {primaryNavItems.map((item) => (
               <NavLink
                 key={`${item.label}-${item.href}`}
                 item={item}
@@ -141,7 +147,7 @@ export function TopNav() {
             className="mt-3 space-y-3 border-t border-slate-200 pt-3 md:hidden dark:border-slate-800"
           >
             <div className="grid gap-2">
-              {primaryLinks.map((item) => (
+              {primaryNavItems.map((item) => (
                 <NavLink
                   key={`${item.label}-${item.href}`}
                   item={item}
