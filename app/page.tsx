@@ -77,7 +77,7 @@ function FinalCTA() {
         href="/appointment"
         className="focus-ring mt-6 inline-flex items-center justify-center rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700"
       >
-        Book mentoring
+        Book session
       </Link>
     </section>
   );
@@ -121,7 +121,7 @@ export default function HomePage() {
               Mentorship · AI Architecture · Platform Reliability
             </p>
             <h1 className="mt-5 text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
-              Tarun Raja — AI Systems Architect & Social-Media Technologist
+              Tarun Raja — AI Systems Technologist & Platform Architect
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-200 lg:mx-0">
               I help engineers and teams build reliable AI systems, deliver resilient platforms, and grow into trusted technical leaders through practical mentorship and execution playbooks.
@@ -131,7 +131,7 @@ export default function HomePage() {
                 href="/appointment"
                 className="focus-ring inline-flex w-full items-center justify-center rounded-xl bg-sky-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-900/30 transition hover:bg-sky-400 sm:w-auto"
               >
-                Book mentoring
+                Book session
               </Link>
               <Link
                 href="/labs"
