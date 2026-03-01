@@ -12,7 +12,7 @@ export const baseUrl = "https://tarunraja.info";
 export const githubUrl = `https://github.com/${process.env.GITHUB_USER}`;
 export const linkedInUrl = `https://www.linkedin.com/in/${process.env.LINKEDIN_USER}`;
 
-export const seoRoutes = ["/", "/resume", "/portfolio", "/recruiter", "/labs", "/blog", "/contact"] as const;
+export const seoRoutes = ["/", "/resume", "/portfolio", "/about", "/labs", "/blog", "/contact"] as const;
 
 const sharedImages = [{ url: "/profile-photo.PNG", width: 1200, height: 630, alt: "Tarun Raja" }];
 
@@ -71,20 +71,20 @@ export const routeMetadata: Record<(typeof seoRoutes)[number], Metadata> = {
       images: ["/profile-photo.PNG"]
     }
   },
-  "/recruiter": {
-    title: "Recruiter & Visitor Chat — Tarun Raja",
-    description: "Chat-first overview for recruiters and visitors to quickly understand Tarun Raja's profile, experience, and impact.",
-    alternates: { canonical: "/recruiter" },
+  "/about": {
+    title: "About Tarun Raja — GenAI Chat",
+    description: "Explore Tarun Raja's background, experience, and impact through a conversational GenAI chat experience.",
+    alternates: { canonical: "/about" },
     openGraph: {
-      title: "Recruiter & Visitor Chat — Tarun Raja",
-      description: "A chat-based view for recruiters and visitors exploring Tarun Raja's experience and verification context.",
-      url: "/recruiter",
+      title: "About Tarun Raja — GenAI Chat",
+      description: "Use an AI chat assistant to learn about Tarun Raja's profile, projects, and career highlights.",
+      url: "/about",
       images: sharedImages
     },
     twitter: {
       card: "summary_large_image",
-      title: "Recruiter & Visitor Chat — Tarun Raja",
-      description: "A chat-based view for recruiters and visitors exploring Tarun Raja's experience and verification context.",
+      title: "About Tarun Raja — GenAI Chat",
+      description: "Use an AI chat assistant to learn about Tarun Raja's profile, projects, and career highlights.",
       images: ["/profile-photo.PNG"]
     }
   },

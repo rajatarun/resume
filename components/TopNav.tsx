@@ -42,7 +42,7 @@ const dropdownGroups: NavGroup[] = [
     label: "Contact",
     items: [
       { href: "/contact" as Route, label: "Contact" },
-      { href: "/recruiter" as Route, label: "Recruiter" },
+      { href: "/about" as Route, label: "About" },
       { href: "/appointment" as Route, label: "Appointment" }
     ]
   }
