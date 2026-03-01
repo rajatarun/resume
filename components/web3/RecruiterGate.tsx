@@ -30,11 +30,11 @@ export function RecruiterGate({ requireWalletGate }: RecruiterGateProps) {
   return (
     <div className="space-y-6 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
       <div>
-        <h1 className="text-2xl font-semibold">Recruiter Access Panel</h1>
+        <h1 className="text-2xl font-semibold">Recruiter & Visitor Access Panel</h1>
         <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
           {requireWalletGate
-            ? "Connect your wallet and complete Sign in with Ethereum to unlock recruiter insights."
-            : "Wallet gate is disabled. Chat is available without connecting a wallet."}
+            ? "Connect your wallet and complete Sign in with Ethereum to unlock recruiter-focused profile insights."
+            : "Wallet gate is disabled. This chatbot is open to recruiters and visitors who want to learn about Tarun Raja."}
         </p>
       </div>
 

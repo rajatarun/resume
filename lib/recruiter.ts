@@ -10,7 +10,7 @@ interface RecruiterModeConfig {
 const recruiterModeConfig: Record<RecruiterMode, RecruiterModeConfig> = {
   recruiter: {
     openingMessage:
-      "Recruiter mode activated. I can help summarize fit, impact, and role alignment. Ask about strengths, outcomes, and highlights relevant to hiring.",
+      "Recruiter chat mode activated. I can help recruiters, hiring managers, and visitors summarize fit, impact, and role alignment. Ask about strengths, outcomes, and career highlights.",
     questionPrefix:
       "You are in recruiter mode. Focus on candidate fit, role alignment, leadership, communication, and measurable impact.",
     placeholder: "Ask about role fit, achievements, and hiring-relevant highlights...",

@@ -14,7 +14,7 @@ export default function RecruiterPage() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-semibold">Recruiter Information — Tarun Raja</h1>
+        <h1 className="text-3xl font-semibold">Recruiter & Visitor Chat — Learn About Tarun Raja</h1>
         <VerifiedBadge />
       </div>
       <RecruiterGate requireWalletGate={isRecruiterGateEnabled()} />
