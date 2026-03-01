@@ -1,4 +1,8 @@
+import type { Metadata } from "next";
 import { resume } from "@/lib/resume";
+import { routeMetadata } from "@/src/seo/seo.config";
+
+export const metadata: Metadata = routeMetadata["/contact"];
 
 export default function ContactPage() {
   return (

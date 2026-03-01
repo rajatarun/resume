@@ -1,12 +1,12 @@
 import type { MetadataRoute } from "next";
+import { baseUrl } from "@/src/seo/seo.config";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = "https://tarunraja.dev";
-
   return {
     rules: {
       userAgent: "*",
-      allow: "/"
+      allow: "/",
+      disallow: ["/admin"]
     },
     sitemap: `${baseUrl}/sitemap.xml`
   };

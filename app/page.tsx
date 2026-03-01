@@ -1,18 +1,9 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { githubUrl, linkedInUrl, routeMetadata } from "@/src/seo/seo.config";
 
-export const metadata: Metadata = {
-  title: "Home",
-  description:
-    "Mentorship and architecture guidance from Tarun Raja for trust-aware AI systems, observability-driven platforms, and engineering leadership growth.",
-  openGraph: {
-    title: "Tarun Raja | Mentoring Engineers into Architecture Leaders",
-    description:
-      "Learn how Tarun Raja helps engineers build reliable AI systems, deliver resilient platforms, and grow into trusted leaders.",
-    url: "/"
-  }
-};
+export const metadata: Metadata = routeMetadata["/"];
 
 const expertise = [
   {
@@ -143,6 +134,12 @@ function HomeFooter() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-slate-600 dark:text-slate-300">© {new Date().getFullYear()} Tarun Raja. All rights reserved.</p>
         <div className="flex flex-wrap items-center gap-4">
+          <Link href={githubUrl} target="_blank" rel="noopener noreferrer" className="focus-ring text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
+            GitHub – Tarun Raja
+          </Link>
+          <Link href={linkedInUrl} target="_blank" rel="noopener noreferrer" className="focus-ring text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
+            LinkedIn – Tarun Raja
+          </Link>
           <Link href="/contact" className="focus-ring text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
             Contact
           </Link>
@@ -169,7 +166,7 @@ export default function HomePage() {
               Mentorship · AI Architecture · Platform Reliability
             </p>
             <h1 className="mt-5 text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
-              Mentoring engineers to become architecture leaders through trust-aware AI and observability-driven platforms.
+              Tarun Raja — AI Systems Architect & Social-Media Technologist
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-200 lg:mx-0">
               I help engineers and teams build reliable AI systems, deliver resilient platforms, and grow into trusted technical leaders through practical mentorship and execution playbooks.
