@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -34,21 +34,33 @@ export default function ArticleDetailViewPage() {
     enabled: Boolean(id && isAllowed)
   });
 
-  const { register, handleSubmit } = useForm<{
+  const { register, handleSubmit, reset } = useForm<{
     title: string;
     sourceInputs: string;
     tags: string;
     publishedAt: string;
     publishedUrl: string;
   }>({
-    values: {
-      title: articleQuery.data?.title ?? "",
-      sourceInputs: articleQuery.data?.sourceInputs?.join("\n") ?? "",
-      tags: articleQuery.data?.tags?.join(",") ?? "",
+    defaultValues: {
+      title: "",
+      sourceInputs: "",
+      tags: "",
       publishedAt: new Date().toISOString(),
-      publishedUrl: articleQuery.data?.publishedUrl ?? ""
+      publishedUrl: ""
     }
   });
+
+  useEffect(() => {
+    if (!articleQuery.data) return;
+
+    reset({
+      title: articleQuery.data.title,
+      sourceInputs: articleQuery.data.sourceInputs?.join("\n") ?? "",
+      tags: articleQuery.data.tags?.join(",") ?? "",
+      publishedAt: new Date().toISOString(),
+      publishedUrl: articleQuery.data.publishedUrl ?? ""
+    });
+  }, [articleQuery.data, reset]);
 
   const patchMutation = useMutation<Article, Record<string, unknown> | undefined>({
     mutationFn: async (body) =>
