@@ -72,19 +72,19 @@ export const routeMetadata: Record<(typeof seoRoutes)[number], Metadata> = {
     }
   },
   "/recruiter": {
-    title: "Recruiter Information — Tarun Raja",
-    description: "Recruiter-ready summary of Tarun Raja's profile, verified experience, and direct contact context.",
+    title: "Recruiter & Visitor Chat — Tarun Raja",
+    description: "Chat-first overview for recruiters and visitors to quickly understand Tarun Raja's profile, experience, and impact.",
     alternates: { canonical: "/recruiter" },
     openGraph: {
-      title: "Recruiter Information — Tarun Raja",
-      description: "A recruiter-focused view of Tarun Raja's experience and verification context.",
+      title: "Recruiter & Visitor Chat — Tarun Raja",
+      description: "A chat-based view for recruiters and visitors exploring Tarun Raja's experience and verification context.",
       url: "/recruiter",
       images: sharedImages
     },
     twitter: {
       card: "summary_large_image",
-      title: "Recruiter Information — Tarun Raja",
-      description: "A recruiter-focused view of Tarun Raja's experience and verification context.",
+      title: "Recruiter & Visitor Chat — Tarun Raja",
+      description: "A chat-based view for recruiters and visitors exploring Tarun Raja's experience and verification context.",
       images: ["/profile-photo.PNG"]
     }
   },
