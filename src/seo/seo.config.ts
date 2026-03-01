@@ -8,7 +8,7 @@ for (const key of requiredEnv) {
   }
 }
 
-export const baseUrl = "https://main.d1082kyye5hmz4.amplifyapp.com";
+export const baseUrl = "https://tarunraja.info";
 export const githubUrl = `https://github.com/${process.env.GITHUB_USER}`;
 export const linkedInUrl = `https://www.linkedin.com/in/${process.env.LINKEDIN_USER}`;
 
