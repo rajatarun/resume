@@ -20,31 +20,7 @@ const expertise = [
   }
 ] as const;
 
-const outcomes = [
-  { metric: "12+", label: "Years architecting cloud and AI products" },
-  { metric: "200+", label: "Engineers and leaders mentored" },
-  { metric: "30%", label: "Average delivery acceleration in guided teams" }
-] as const;
-
-const testimonials = [
-  {
-    quote:
-      "Tarun helped me shift from implementation mode to architecture thinking. I now lead technical strategy with far more clarity.",
-    name: "Priya N.",
-    role: "Senior Software Engineer"
-  },
-  {
-    quote:
-      "Our platform reliability transformed after applying Tarun's observability coaching. Incident response became proactive, not reactive.",
-    name: "Marcus L.",
-    role: "Platform Engineering Manager"
-  },
-  {
-    quote: "His mentoring gave me the confidence to drive AI roadmap decisions and align cross-functional teams around trust and outcomes.",
-    name: "Alisha R.",
-    role: "AI Product Lead"
-  }
-] as const;
+const outcomes = [{ metric: "10+", label: "Years of experience" }] as const;
 
 function ExpertiseSnapshot() {
   return (
@@ -78,33 +54,12 @@ function FeaturedOutcomes() {
           View full portfolio →
         </Link>
       </div>
-      <div className="mt-8 grid gap-6 md:grid-cols-3">
+      <div className="mt-8 grid gap-6 md:grid-cols-1">
         {outcomes.map((item) => (
           <article key={item.label} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <p className="text-3xl font-bold text-sky-700 dark:text-sky-300">{item.metric}</p>
             <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{item.label}</p>
           </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function Testimonials() {
-  return (
-    <section className="mx-auto mt-20 max-w-6xl" aria-labelledby="testimonials-heading">
-      <h2 id="testimonials-heading" className="text-2xl font-semibold tracking-tight sm:text-3xl">
-        Testimonials
-      </h2>
-      <div className="mt-8 grid gap-6 lg:grid-cols-3">
-        {testimonials.map((item) => (
-          <figure key={item.name} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <blockquote className="text-sm leading-6 text-slate-700 dark:text-slate-200">“{item.quote}”</blockquote>
-            <figcaption className="mt-4 text-sm font-medium">
-              <span className="block">{item.name}</span>
-              <span className="text-slate-500 dark:text-slate-400">{item.role}</span>
-            </figcaption>
-          </figure>
         ))}
       </div>
     </section>
@@ -201,7 +156,6 @@ export default function HomePage() {
 
       <ExpertiseSnapshot />
       <FeaturedOutcomes />
-      <Testimonials />
       <FinalCTA />
       <HomeFooter />
     </>
