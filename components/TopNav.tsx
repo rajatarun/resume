@@ -17,6 +17,7 @@ type NavGroup = { label: string; items: NavItem[] };
 
 const primaryLinks: NavItem[] = [
   { href: "/" as Route, label: "Home" },
+  { href: "/about" as Route, label: "About" },
   { href: "/labs" as Route, label: "AI Lab" },
   { href: "/store" as Route, label: "Store" }
 ];
@@ -42,7 +43,6 @@ const dropdownGroups: NavGroup[] = [
     label: "Contact",
     items: [
       { href: "/contact" as Route, label: "Contact" },
-      { href: "/about" as Route, label: "About" },
       { href: "/appointment" as Route, label: "Appointment" }
     ]
   }
