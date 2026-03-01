@@ -27,7 +27,7 @@
 - [x] `scripts/generate-seo-files.mjs` generates static `public/sitemap.xml`.
 - [x] `scripts/generate-seo-files.mjs` generates static `public/robots.txt`.
 - [x] `robots.txt` disallows `/admin` and links the sitemap URL.
-- [x] `/admin` includes `<meta name="robots" content="noindex, nofollow" />`.
+- [x] `/admin` does not include a `<meta name="robots" content="noindex">` tag.
 
 ## Discoverability UX
 - [x] Footer includes descriptive social links:
