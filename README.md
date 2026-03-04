@@ -61,6 +61,7 @@ NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your-walletconnect-project-id
 - `WALLETCONNECT_PROJECT_ID` is required for WalletConnect v2.
 - `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` mirrors the same value for client-side WalletConnect/Web3Modal initialization.
 - `NEXT_PUBLIC_ADMIN_API_BASE` is required for the client-side admin dashboard under `/admin`. It should point to your API Gateway REST API base URL (for example `https://{REST_API_ID}.execute-api.us-east-1.amazonaws.com/prod`).
+- `NEXT_PUBLIC_AGENT_MANAGEMENT_API_BASE` is required for the admin agent management UI under `/admin` and should point to the same API Gateway base URL used for agent management endpoints.
 - `NEXT_PUBLIC_API_BASE_URL` is required for the blog page (`/blog`), which is statically exported and fetches list/detail data at runtime from `/site/posts` endpoints in the browser.
 
 - `GITHUB_TOKEN` is required at build time (Amplify env var) to read repositories via GitHub GraphQL.
