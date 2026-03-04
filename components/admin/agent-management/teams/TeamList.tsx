@@ -22,13 +22,31 @@ type ProvisionTeamsResponse = {
 type TeamDetail = {
   team?: {
     team?: Record<string, unknown>;
-    agents?: Array<{ name?: string; role_id?: string; agentId?: string; aliasId?: string }>;
+    globals?: Record<string, unknown>;
+    agents?: Array<{
+      name?: string;
+      role_id?: string;
+      bedrock?: { agentId?: string; aliasId?: string };
+      agentId?: string;
+      aliasId?: string;
+    }>;
+    workflow?: Array<Record<string, unknown>>;
+    schemas?: Record<string, unknown>;
   };
   versions?: string[];
   result?: {
     team?: {
       team?: Record<string, unknown>;
-      agents?: Array<{ name?: string; role_id?: string; agentId?: string; aliasId?: string }>;
+      globals?: Record<string, unknown>;
+      agents?: Array<{
+        name?: string;
+        role_id?: string;
+        bedrock?: { agentId?: string; aliasId?: string };
+        agentId?: string;
+        aliasId?: string;
+      }>;
+      workflow?: Array<Record<string, unknown>>;
+      schemas?: Record<string, unknown>;
     };
     versions?: string[];
   };
@@ -55,7 +73,17 @@ export function TeamList({ onSuccess }: { onSuccess: (message: string) => void }
     data: ProvisionTeamsResponse,
   ): Record<string, unknown> | null => data.result?.results ?? data.results ?? null;
 
-  const normalizeTeamDetail = (data: TeamDetail): TeamDetail => data.result ?? data;
+  const normalizeTeamDetail = (data: TeamDetail): TeamDetail => {
+    const payload = data.result ?? data;
+    if (payload.team?.team) return payload;
+
+    return {
+      team: {
+        team: payload.team,
+      },
+      versions: payload.versions,
+    };
+  };
 
   const load = useCallback(async (): Promise<void> => {
     setLoading(true);
