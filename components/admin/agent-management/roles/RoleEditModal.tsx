@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import type { Json } from '@/components/admin/agent-management/shared/apiFetch';
 
 type Role = Record<string, unknown> & { role_id: string };
 
@@ -13,7 +14,7 @@ export function RoleEditModal({
   open: boolean;
   role: Role | null;
   onClose: () => void;
-  onSubmit: (payload: Record<string, unknown>) => void;
+  onSubmit: (payload: Record<string, Json>) => void;
 }) {
   const [form, setForm] = useState<Record<string, unknown>>({});
 
@@ -29,7 +30,7 @@ export function RoleEditModal({
     Object.entries(form).forEach(([key, value]) => {
       if (key !== 'role_id' && value !== role[key]) patch[key] = value;
     });
-    onSubmit(patch);
+    onSubmit(patch as Record<string, Json>);
   };
 
   return (
