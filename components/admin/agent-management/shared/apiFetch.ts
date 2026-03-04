@@ -44,7 +44,7 @@ export async function apiFetch<TResponse>(path: string, options: ApiOptions = {}
   const requestBody = options.body;
   let body: BodyInit | undefined;
 
-  if (requestBody != null && method !== 'GET' && method !== 'HEAD') {
+  if (requestBody !== null && requestBody !== undefined && method !== 'GET' && method !== 'HEAD') {
     if (
       typeof requestBody === 'string' ||
       requestBody instanceof FormData ||
