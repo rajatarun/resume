@@ -19,6 +19,15 @@ type Department = { department_id: string; name: string };
 type GetRolesResponse = { roles?: Role[]; result?: { roles?: Role[] } };
 type GetRoleResponse = { role?: Role; result?: Role | { role?: Role } };
 
+function isRole(value: unknown): value is Role {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'role_id' in value &&
+    typeof value.role_id === 'string'
+  );
+}
+
 function toErrorMessage(error: unknown): string {
   const status = (error as Error & { status?: number }).status;
   if (status && status >= 500) return 'Server error — check Lambda logs';
@@ -38,10 +47,10 @@ export function RoleList({ onSuccess }: { onSuccess: (message: string) => void }
 
   const normalizeRole = (data: GetRoleResponse): Role | null => {
     const payload = data.result ?? data;
-    if ('role_id' in payload && typeof payload.role_id === 'string') {
-      return payload as Role;
-    }
-    return payload.role ?? data.role ?? null;
+    if (isRole(payload)) return payload;
+    if (isRole(payload.role)) return payload.role;
+    if (isRole(data.role)) return data.role;
+    return null;
   };
 
   const load = useCallback(async (): Promise<void> => {
