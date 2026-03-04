@@ -3,7 +3,16 @@
 type TeamDetail = {
   team?: {
     team?: Record<string, unknown>;
-    agents?: Array<{ name?: string; role_id?: string; agentId?: string; aliasId?: string }>;
+    globals?: Record<string, unknown>;
+    agents?: Array<{
+      name?: string;
+      role_id?: string;
+      bedrock?: { agentId?: string; aliasId?: string };
+      agentId?: string;
+      aliasId?: string;
+    }>;
+    workflow?: Array<Record<string, unknown>>;
+    schemas?: Record<string, unknown>;
   };
   versions?: string[];
 };
@@ -31,11 +40,15 @@ export function TeamViewDrawer({
         <pre className="mt-3 overflow-auto rounded border bg-slate-50 p-3 text-xs">
           {JSON.stringify(data.team?.team ?? {}, null, 2)}
         </pre>
+        <h4 className="mt-4 font-medium">Globals</h4>
+        <pre className="mt-2 overflow-auto rounded border bg-slate-50 p-3 text-xs">
+          {JSON.stringify(data.team?.globals ?? {}, null, 2)}
+        </pre>
         <h4 className="mt-4 font-medium">Agents</h4>
         <ul className="mt-2 space-y-1 text-sm">
           {(data.team?.agents ?? []).map((agent) => (
-            <li key={`${agent.agentId ?? 'no-agent'}:${agent.aliasId ?? 'no-alias'}:${agent.role_id ?? 'no-role'}:${agent.name ?? 'no-name'}`} className="rounded border px-2 py-1">
-              {agent.name} · {agent.role_id} · {agent.agentId ?? '—'} · {agent.aliasId ?? '—'}
+            <li key={`${agent.bedrock?.agentId ?? agent.agentId ?? 'no-agent'}:${agent.bedrock?.aliasId ?? agent.aliasId ?? 'no-alias'}:${agent.role_id ?? 'no-role'}:${agent.name ?? 'no-name'}`} className="rounded border px-2 py-1">
+              {agent.name} · {agent.role_id} · {agent.bedrock?.agentId ?? agent.agentId ?? '—'} · {agent.bedrock?.aliasId ?? agent.aliasId ?? '—'}
             </li>
           ))}
         </ul>
