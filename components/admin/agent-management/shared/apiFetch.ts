@@ -1,4 +1,8 @@
-export const API = 'https://dsn3njn6ah.execute-api.us-east-1.amazonaws.com/prod';
+export const API = process.env.NEXT_PUBLIC_AGENT_MANAGEMENT_API_BASE;
+
+if (!API) {
+  throw new Error('NEXT_PUBLIC_AGENT_MANAGEMENT_API_BASE is not configured');
+}
 
 export type Json = string | number | boolean | null | Json[] | { [k: string]: Json };
 
