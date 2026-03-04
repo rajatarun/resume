@@ -1,31 +1,52 @@
-"use client";
+'use client';
 
-import { useMemo, useState } from "react";
-import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArticleFormModal } from "@/components/admin/ArticleFormModal";
-import { useToast } from "@/components/admin/ToastProvider";
-import { fetchJson } from "@/lib/admin/api";
-import { ARTICLE_STATUSES, Article, normalizeArticle, normalizeArticleList } from "@/lib/admin/types";
-import { useAdminAccess } from "@/components/admin/AdminGate";
+import { useMemo, useState } from 'react';
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ArticleFormModal } from '@/components/admin/ArticleFormModal';
+import { useToast } from '@/components/admin/ToastProvider';
+import { fetchJson } from '@/lib/admin/api';
+import {
+  ARTICLE_STATUSES,
+  Article,
+  normalizeArticle,
+  normalizeArticleList,
+} from '@/lib/admin/types';
+import { useAdminAccess } from '@/components/admin/AdminGate';
+import { AgentManagementTab } from '@/components/admin/agent-management/AgentManagementTab';
+
+const ADMIN_TABS = ['General', 'Agent Management'] as const;
+type AdminTab = (typeof ADMIN_TABS)[number];
 
 export default function AdminDashboardPage() {
-  type CreateDraftPayload = { title: string; sourceInputs?: string[]; tags?: string[]; status?: string };
+  type CreateDraftPayload = {
+    title: string;
+    sourceInputs?: string[];
+    tags?: string[];
+    status?: string;
+  };
   type ArticleListResponse = { items: Article[] };
 
   const [open, setOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<AdminTab>('General');
   const queryClient = useQueryClient();
   const toast = useToast();
   const { address, isAllowed } = useAdminAccess();
 
-  const health = useQuery({ queryKey: ["health"], queryFn: () => fetchJson<{ ok: boolean }>("/admin"), enabled: isAllowed });
+  const health = useQuery({
+    queryKey: ['health'],
+    queryFn: () => fetchJson<{ ok: boolean }>('/admin'),
+    enabled: isAllowed,
+  });
 
   const statusQueries = useQueries({
     queries: ARTICLE_STATUSES.map((status) => ({
-      queryKey: ["articles", status],
+      queryKey: ['articles', status],
       queryFn: async (): Promise<{ items: Article[] }> =>
-        normalizeArticleList(await fetchJson<unknown>(`/admin/articles?status=${status}&limit=100`)),
-      enabled: isAllowed
-    }))
+        normalizeArticleList(
+          await fetchJson<unknown>(`/admin/articles?status=${status}&limit=100`),
+        ),
+      enabled: isAllowed,
+    })),
   });
 
   const counts = useMemo(
@@ -35,36 +56,80 @@ export default function AdminDashboardPage() {
 
         return { status, count: data?.items?.length ?? 0 };
       }),
-    [statusQueries]
+    [statusQueries],
   );
 
   const createDraft = useMutation<Article, CreateDraftPayload>({
     mutationFn: async (payload) => {
-      if (!payload) return Promise.reject(new Error("Missing draft payload."));
-      return normalizeArticle(await fetchJson<unknown>("/admin/articles", { method: "POST", body: payload }));
+      if (!payload) return Promise.reject(new Error('Missing draft payload.'));
+      return normalizeArticle(
+        await fetchJson<unknown>('/admin/articles', { method: 'POST', body: payload }),
+      );
     },
     onSuccess: () => {
-      toast.success("Draft created.");
+      toast.success('Draft created.');
       setOpen(false);
-      void queryClient.invalidateQueries({ queryKey: ["articles"] });
+      void queryClient.invalidateQueries({ queryKey: ['articles'] });
     },
-    onError: (error) => toast.error(error instanceof Error ? error.message : "Failed to create draft.")
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : 'Failed to create draft.'),
   });
 
   return (
     <div className="space-y-4">
-      <p className="text-sm">Connected wallet: <span className="font-mono">{address}</span></p>
-      <div className="rounded border p-3">Health: {health.isLoading ? "Checking..." : health.isError ? "Error" : health.data?.ok ? "OK" : "Unknown"}</div>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-        {counts.map((item) => (
-          <div key={item.status} className="rounded border p-3">
-            <p className="text-xs text-slate-500">{item.status}</p>
-            <p className="text-2xl font-bold">{item.count}</p>
-          </div>
+      <div className="flex gap-2 border-b">
+        {ADMIN_TABS.map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            className={`-mb-px border-b-2 px-3 py-2 text-sm ${activeTab === tab ? 'border-slate-900 font-medium' : 'border-transparent text-slate-500'}`}
+            onClick={() => setActiveTab(tab)}
+          >
+            {tab}
+          </button>
         ))}
       </div>
-      <button type="button" className="rounded bg-slate-900 px-3 py-2 text-white" onClick={() => setOpen(true)}>Create Draft</button>
-      <ArticleFormModal open={open} onClose={() => setOpen(false)} onSubmit={(v) => createDraft.mutate(v)} busy={createDraft.isPending} />
+
+      {activeTab === 'General' && (
+        <div className="space-y-4">
+          <p className="text-sm">
+            Connected wallet: <span className="font-mono">{address}</span>
+          </p>
+          <div className="rounded border p-3">
+            Health:{' '}
+            {health.isLoading
+              ? 'Checking...'
+              : health.isError
+                ? 'Error'
+                : health.data?.ok
+                  ? 'OK'
+                  : 'Unknown'}
+          </div>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+            {counts.map((item) => (
+              <div key={item.status} className="rounded border p-3">
+                <p className="text-xs text-slate-500">{item.status}</p>
+                <p className="text-2xl font-bold">{item.count}</p>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="rounded bg-slate-900 px-3 py-2 text-white"
+            onClick={() => setOpen(true)}
+          >
+            Create Draft
+          </button>
+          <ArticleFormModal
+            open={open}
+            onClose={() => setOpen(false)}
+            onSubmit={(v) => createDraft.mutate(v)}
+            busy={createDraft.isPending}
+          />
+        </div>
+      )}
+
+      {activeTab === 'Agent Management' && <AgentManagementTab />}
     </div>
   );
 }
