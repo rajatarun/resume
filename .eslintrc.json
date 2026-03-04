@@ -4,9 +4,24 @@
   "plugins": ["@typescript-eslint"],
   "rules": {
     "no-console": ["warn", { "allow": ["error"] }],
-    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+    ],
     "prefer-const": "error",
     "eqeqeq": "error",
-    "no-var": "error"
+    "no-var": "error",
+    "react/no-array-index-key": "warn",
+    "react/jsx-no-useless-fragment": "warn",
+    "react/self-closing-comp": "warn",
+    "react-hooks/exhaustive-deps": "warn",
+    "react-hooks/rules-of-hooks": "error",
+    "@next/next/no-img-element": "error",
+    "@next/next/no-html-link-for-pages": "warn",
+    "import/no-unused-modules": "off",
+    "import/no-cycle": "warn",
+    "no-unused-vars": "off",
+    "jsx-a11y/alt-text": "warn",
+    "jsx-a11y/label-has-associated-control": "warn"
   }
 }
