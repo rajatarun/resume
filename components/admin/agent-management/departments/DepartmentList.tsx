@@ -11,11 +11,14 @@ type Department = {
   department_id: string;
   name?: string;
   slug?: string;
+  color?: string;
   description?: string;
   allowed_roles?: string[];
   allowed_schemas?: string[];
 };
 type Role = { role_id: string; title?: string };
+type GetDepartmentsResponse = { departments?: Department[]; result?: { departments?: Department[] } };
+type GetDepartmentResponse = { department?: Department; result?: Department | { department?: Department } };
 
 function toErrorMessage(error: unknown): string {
   const status = (error as Error & { status?: number }).status;
@@ -32,14 +35,25 @@ export function DepartmentList({ onSuccess }: { onSuccess: (message: string) => 
   const [editDepartment, setEditDepartment] = useState<Department | null>(null);
   const [showCreate, setShowCreate] = useState(false);
 
+  const normalizeDepartments = (data: GetDepartmentsResponse): Department[] =>
+    data.result?.departments ?? data.departments ?? [];
+
+  const normalizeDepartment = (data: GetDepartmentResponse): Department | null => {
+    const payload = data.result ?? data;
+    if ('department_id' in payload && typeof payload.department_id === 'string') {
+      return payload as Department;
+    }
+    return payload.department ?? data.department ?? null;
+  };
+
   const load = useCallback(async (): Promise<void> => {
     setLoading(true);
     try {
       const [departmentData, roleData] = await Promise.all([
-        apiFetch<{ departments: Department[] }>('/departments'),
+        apiFetch<GetDepartmentsResponse>('/departments'),
         apiFetch<{ roles: Role[] }>('/roles'),
       ]);
-      setDepartments(departmentData.departments ?? []);
+      setDepartments(normalizeDepartments(departmentData));
       setRoles(roleData.roles ?? []);
     } catch (err) {
       setError(toErrorMessage(err));
@@ -87,14 +101,36 @@ export function DepartmentList({ onSuccess }: { onSuccess: (message: string) => 
                     <button
                       type="button"
                       className="underline"
-                      onClick={() => setViewDepartment(department)}
+                      onClick={() => {
+                        void (async () => {
+                          try {
+                            const details = await apiFetch<GetDepartmentResponse>(
+                              `/departments/${encodeURIComponent(department.department_id)}`,
+                            );
+                            setViewDepartment(normalizeDepartment(details) ?? department);
+                          } catch (err) {
+                            setError(toErrorMessage(err));
+                          }
+                        })();
+                      }}
                     >
                       View
                     </button>
                     <button
                       type="button"
                       className="underline"
-                      onClick={() => setEditDepartment(department)}
+                      onClick={() => {
+                        void (async () => {
+                          try {
+                            const details = await apiFetch<GetDepartmentResponse>(
+                              `/departments/${encodeURIComponent(department.department_id)}`,
+                            );
+                            setEditDepartment(normalizeDepartment(details) ?? department);
+                          } catch (err) {
+                            setError(toErrorMessage(err));
+                          }
+                        })();
+                      }}
                     >
                       Edit
                     </button>
