@@ -9,6 +9,7 @@ import { apiFetch } from '@/components/admin/agent-management/shared/apiFetch';
 
 type Agent = { agentName: string; agentStatus?: string; foundationModel?: string };
 type GetAgentsResponse = { agents?: Agent[]; result?: { agents?: Agent[] } };
+type AgentAlias = { agentAliasName?: string };
 type AgentDetail = {
   agent: {
     agentName: string;
@@ -16,7 +17,7 @@ type AgentDetail = {
     description?: string;
     foundationModel?: string;
   };
-  aliases: string[];
+  aliases: AgentAlias[] | string[];
 };
 type Role = { role_id: string; title?: string };
 
@@ -36,6 +37,26 @@ export function AgentList({ onSuccess }: { onSuccess: (message: string) => void 
   const [createOpen, setCreateOpen] = useState(false);
   const [editAgent, setEditAgent] = useState<AgentDetail['agent'] | null>(null);
   const [confirmNames, setConfirmNames] = useState<string[] | null>(null);
+
+  const normalizeAgentDetail = (data: {
+    agent?: AgentDetail['agent'];
+    aliases?: AgentDetail['aliases'];
+    result?: {
+      agent?: AgentDetail['agent'];
+      aliases?: AgentDetail['aliases'];
+    };
+  }): AgentDetail => {
+    const payload = data.result ?? data;
+    return {
+      agent: payload.agent ?? { agentName: '' },
+      aliases: payload.aliases ?? [],
+    };
+  };
+
+  const aliasNames = (aliases: AgentDetail['aliases']): string[] =>
+    aliases
+      .map((alias) => (typeof alias === 'string' ? alias : alias.agentAliasName ?? ''))
+      .filter(Boolean);
 
   const load = useCallback(async (): Promise<void> => {
     setLoading(true);
@@ -76,8 +97,15 @@ export function AgentList({ onSuccess }: { onSuccess: (message: string) => void 
     }
 
     try {
-      const data = await apiFetch<AgentDetail>(`/agents/${encodeURIComponent(name)}`);
-      setExpanded((prev) => ({ ...prev, [name]: data }));
+      const data = await apiFetch<{
+        agent?: AgentDetail['agent'];
+        aliases?: AgentDetail['aliases'];
+        result?: {
+          agent?: AgentDetail['agent'];
+          aliases?: AgentDetail['aliases'];
+        };
+      }>(`/agents/${encodeURIComponent(name)}`);
+      setExpanded((prev) => ({ ...prev, [name]: normalizeAgentDetail(data) }));
     } catch (err) {
       setError(toErrorMessage(err));
     }
@@ -201,10 +229,17 @@ export function AgentList({ onSuccess }: { onSuccess: (message: string) => void 
                         onClick={() => {
                           void (async () => {
                             try {
-                              const details = await apiFetch<AgentDetail>(
+                              const details = await apiFetch<{
+                                agent?: AgentDetail['agent'];
+                                aliases?: AgentDetail['aliases'];
+                                result?: {
+                                  agent?: AgentDetail['agent'];
+                                  aliases?: AgentDetail['aliases'];
+                                };
+                              }>(
                                 `/agents/${encodeURIComponent(agent.agentName)}`,
                               );
-                              setEditAgent(details.agent);
+                              setEditAgent(normalizeAgentDetail(details).agent);
                             } catch (err) {
                               setError(toErrorMessage(err));
                             }
@@ -232,7 +267,7 @@ export function AgentList({ onSuccess }: { onSuccess: (message: string) => void 
                       </p>
                       <p>
                         <strong>Aliases:</strong>{' '}
-                        {expanded[agent.agentName].aliases?.join(', ') || 'None'}
+                        {aliasNames(expanded[agent.agentName].aliases).join(', ') || 'None'}
                       </p>
                     </td>
                   </tr>
