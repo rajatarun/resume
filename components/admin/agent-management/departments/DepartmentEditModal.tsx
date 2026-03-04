@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import type { Json } from '@/components/admin/agent-management/shared/apiFetch';
 
 type Department = {
   department_id: string;
@@ -23,7 +24,7 @@ export function DepartmentEditModal({
   department: Department | null;
   roles: Role[];
   onClose: () => void;
-  onSubmit: (payload: Record<string, unknown>) => void;
+  onSubmit: (payload: Record<string, Json>) => void;
 }) {
   const [form, setForm] = useState({
     name: '',
