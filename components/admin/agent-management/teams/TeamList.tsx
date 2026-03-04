@@ -14,12 +14,24 @@ type Team = {
   provisioned?: boolean;
   owner?: string;
 };
+type GetTeamsResponse = { teams?: Team[]; result?: { teams?: Team[] } };
+type ProvisionTeamsResponse = {
+  results?: Record<string, unknown>;
+  result?: { results?: Record<string, unknown> };
+};
 type TeamDetail = {
   team?: {
     team?: Record<string, unknown>;
     agents?: Array<{ name?: string; role_id?: string; agentId?: string; aliasId?: string }>;
   };
   versions?: string[];
+  result?: {
+    team?: {
+      team?: Record<string, unknown>;
+      agents?: Array<{ name?: string; role_id?: string; agentId?: string; aliasId?: string }>;
+    };
+    versions?: string[];
+  };
 };
 
 function toErrorMessage(error: unknown): string {
@@ -37,11 +49,19 @@ export function TeamList({ onSuccess }: { onSuccess: (message: string) => void }
   const [teamDetail, setTeamDetail] = useState<TeamDetail | null>(null);
   const [teamToDelete, setTeamToDelete] = useState<string | null>(null);
 
+  const normalizeTeams = (data: GetTeamsResponse): Team[] => data.result?.teams ?? data.teams ?? [];
+
+  const normalizeProvisionResults = (
+    data: ProvisionTeamsResponse,
+  ): Record<string, unknown> | null => data.result?.results ?? data.results ?? null;
+
+  const normalizeTeamDetail = (data: TeamDetail): TeamDetail => data.result ?? data;
+
   const load = useCallback(async (): Promise<void> => {
     setLoading(true);
     try {
-      const data = await apiFetch<{ teams: Team[] }>('/teams');
-      setTeams(data.teams ?? []);
+      const data = await apiFetch<GetTeamsResponse>('/teams');
+      setTeams(normalizeTeams(data));
     } catch (err) {
       setError(toErrorMessage(err));
     } finally {
@@ -63,11 +83,11 @@ export function TeamList({ onSuccess }: { onSuccess: (message: string) => void }
           onClick={() => {
             void (async () => {
               try {
-                const data = await apiFetch<{ results?: Record<string, unknown> }>('/teams', {
+                const data = await apiFetch<ProvisionTeamsResponse>('/teams', {
                   method: 'POST',
                   body: dryRun ? { dry_run: true } : {},
                 });
-                setResults(data.results ?? null);
+                setResults(normalizeProvisionResults(data));
                 onSuccess(dryRun ? 'Dry run finished' : 'Provision completed');
                 await load();
               } catch (err) {
@@ -125,7 +145,9 @@ export function TeamList({ onSuccess }: { onSuccess: (message: string) => void }
                         void (async () => {
                           try {
                             setTeamDetail(
-                              await apiFetch<TeamDetail>(`/teams/${encodeURIComponent(team.name)}`),
+                              normalizeTeamDetail(
+                                await apiFetch<TeamDetail>(`/teams/${encodeURIComponent(team.name)}`),
+                              ),
                             );
                           } catch (err) {
                             setError(toErrorMessage(err));
