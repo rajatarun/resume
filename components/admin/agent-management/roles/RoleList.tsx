@@ -16,6 +16,8 @@ type Role = {
   agent_config?: unknown;
 } & Record<string, unknown>;
 type Department = { department_id: string; name: string };
+type GetRolesResponse = { roles?: Role[]; result?: { roles?: Role[] } };
+type GetRoleResponse = { role?: Role; result?: Role | { role?: Role } };
 
 function toErrorMessage(error: unknown): string {
   const status = (error as Error & { status?: number }).status;
@@ -32,14 +34,24 @@ export function RoleList({ onSuccess }: { onSuccess: (message: string) => void }
   const [editRole, setEditRole] = useState<Role | null>(null);
   const [config, setConfig] = useState<unknown | null>(null);
 
+  const normalizeRoles = (data: GetRolesResponse): Role[] => data.result?.roles ?? data.roles ?? [];
+
+  const normalizeRole = (data: GetRoleResponse): Role | null => {
+    const payload = data.result ?? data;
+    if ('role_id' in payload && typeof payload.role_id === 'string') {
+      return payload as Role;
+    }
+    return payload.role ?? data.role ?? null;
+  };
+
   const load = useCallback(async (): Promise<void> => {
     setLoading(true);
     try {
       const [roleData, departmentData] = await Promise.all([
-        apiFetch<{ roles: Role[] }>('/roles'),
+        apiFetch<GetRolesResponse>('/roles'),
         apiFetch<{ departments: Department[] }>('/departments'),
       ]);
-      setRoles(roleData.roles ?? []);
+      setRoles(normalizeRoles(roleData));
       setDepartments(departmentData.departments ?? []);
     } catch (err) {
       setError(toErrorMessage(err));
@@ -86,7 +98,22 @@ export function RoleList({ onSuccess }: { onSuccess: (message: string) => void }
                 <td className="p-2">{role.schema_ref ?? '—'}</td>
                 <td className="p-2">
                   <div className="flex gap-2">
-                    <button type="button" className="underline" onClick={() => setEditRole(role)}>
+                    <button
+                      type="button"
+                      className="underline"
+                      onClick={() => {
+                        void (async () => {
+                          try {
+                            const details = await apiFetch<GetRoleResponse>(
+                              `/roles/${encodeURIComponent(role.role_id)}`,
+                            );
+                            setEditRole(normalizeRole(details) ?? role);
+                          } catch (err) {
+                            setError(toErrorMessage(err));
+                          }
+                        })();
+                      }}
+                    >
                       Edit
                     </button>
                     <button
