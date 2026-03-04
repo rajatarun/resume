@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useAccount, useBalance, useEnsAvatar, useEnsName } from "wagmi";
 
 function short(address?: string) {
@@ -36,7 +37,14 @@ export function OnchainIdentity() {
           <div className="flex items-center gap-2">
             <span>ENS avatar:</span>
             {ensAvatar ? (
-              <img src={ensAvatar} alt="ENS avatar" className="h-8 w-8 rounded-full border border-slate-300 object-cover dark:border-slate-700" />
+              <Image
+                src={ensAvatar}
+                alt="ENS avatar"
+                width={32}
+                height={32}
+                unoptimized
+                className="h-8 w-8 rounded-full border border-slate-300 object-cover dark:border-slate-700"
+              />
             ) : (
               <span className="text-slate-500">Not available</span>
             )}

@@ -33,8 +33,8 @@ export function TeamViewDrawer({
         </pre>
         <h4 className="mt-4 font-medium">Agents</h4>
         <ul className="mt-2 space-y-1 text-sm">
-          {(data.team?.agents ?? []).map((agent, idx) => (
-            <li key={`${agent.name}-${idx}`} className="rounded border px-2 py-1">
+          {(data.team?.agents ?? []).map((agent) => (
+            <li key={`${agent.agentId ?? 'no-agent'}:${agent.aliasId ?? 'no-alias'}:${agent.role_id ?? 'no-role'}:${agent.name ?? 'no-name'}`} className="rounded border px-2 py-1">
               {agent.name} · {agent.role_id} · {agent.agentId ?? '—'} · {agent.aliasId ?? '—'}
             </li>
           ))}
