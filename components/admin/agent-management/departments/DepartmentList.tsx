@@ -43,7 +43,10 @@ export function DepartmentList({ onSuccess }: { onSuccess: (message: string) => 
     if ('department_id' in payload && typeof payload.department_id === 'string') {
       return payload as Department;
     }
-    return payload.department ?? data.department ?? null;
+    if ('department' in payload) {
+      return payload.department ?? data.department ?? null;
+    }
+    return data.department ?? null;
   };
 
   const load = useCallback(async (): Promise<void> => {
