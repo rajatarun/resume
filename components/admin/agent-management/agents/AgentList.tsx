@@ -8,6 +8,7 @@ import { ErrorBanner } from '@/components/admin/agent-management/shared/ErrorBan
 import { apiFetch } from '@/components/admin/agent-management/shared/apiFetch';
 
 type Agent = { agentName: string; agentStatus?: string; foundationModel?: string };
+type GetAgentsResponse = { agents?: Agent[]; result?: { agents?: Agent[] } };
 type AgentDetail = {
   agent: {
     agentName: string;
@@ -41,10 +42,10 @@ export function AgentList({ onSuccess }: { onSuccess: (message: string) => void 
     setError('');
     try {
       const [agentData, roleData] = await Promise.all([
-        apiFetch<{ agents: Agent[] }>('/agents'),
+        apiFetch<GetAgentsResponse>('/agents'),
         apiFetch<{ roles: Role[] }>('/roles'),
       ]);
-      setAgents(agentData.agents ?? []);
+      setAgents(agentData.result?.agents ?? agentData.agents ?? []);
       setRoles(roleData.roles ?? []);
     } catch (err) {
       setError(toErrorMessage(err));
