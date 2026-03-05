@@ -77,6 +77,30 @@ export default function ArticlesPage() {
     onError: (error) => toast.error(error instanceof Error ? error.message : "Action failed")
   });
 
+  const runActionWithFallback = async ({
+    id,
+    attempts,
+    successMessage
+  }: {
+    id: string;
+    attempts: Array<{ action: string; body?: Record<string, string> }>;
+    successMessage: string;
+  }) => {
+    let lastError: unknown;
+    for (const attempt of attempts) {
+      try {
+        await fetchJson(`/admin/articles/${id}/actions/${attempt.action}`, { method: "POST", body: attempt.body });
+        toast.success(successMessage);
+        void queryClient.invalidateQueries({ queryKey: ["articles"] });
+        return;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    toast.error(lastError instanceof Error ? lastError.message : "Action failed");
+  };
+
   const getActions = (item: Article): ArticleAction[] => {
     const actions: ArticleAction[] = [{ label: "View", href: `/admin/articles/view?id=${item.id}` }];
 
@@ -109,14 +133,32 @@ export default function ArticlesPage() {
         label: "Revision Requested",
         onClick: () => {
           const revisionNote = prompt("Revision note") ?? "";
-          if (revisionNote) actionMutation.mutate({ id: item.id, action: "request-edits", body: { revisionNote } });
+          void runActionWithFallback({
+            id: item.id,
+            successMessage: "Revision request sent.",
+            attempts: [
+              { action: "request-edits", body: { revisionNote } },
+              { action: "request-edits", body: { note: revisionNote } },
+              { action: "request-revision", body: { revisionNote } },
+              { action: "request-revision", body: { note: revisionNote } },
+              { action: "revision-requested", body: { revisionNote } }
+            ]
+          });
         }
       });
       actions.push({
         label: "Reject",
         onClick: () => {
           const reason = prompt("Rejection reason") ?? "";
-          if (reason) actionMutation.mutate({ id: item.id, action: "reject", body: { reason } });
+          void runActionWithFallback({
+            id: item.id,
+            successMessage: "Article rejected.",
+            attempts: [
+              { action: "reject", body: { reason } },
+              { action: "reject", body: { rejectionReason: reason } },
+              { action: "reject", body: { note: reason } }
+            ]
+          });
         }
       });
     }
