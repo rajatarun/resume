@@ -80,8 +80,17 @@ export default function ArticlesPage() {
             {query.isLoading ? <tr><td className="p-3" colSpan={4}>Loading...</td></tr> : filtered.map((item) => (
               <tr key={item.id} className="border-t"><td className="p-2">{item.title}</td><td><StatusBadge status={item.status} /></td><td>{item.updatedAt ?? "-"}</td><td className="space-x-2 p-2">
                 <Link className="underline" href={`/admin/articles/view?id=${item.id}`}>View</Link>
-                {(["DRAFT", "REVISION_REQUESTED"] as string[]).includes(item.status) && <button type="button" disabled={actionMutation.isPending} onClick={() => { actionMutation.mutate({ id: item.id, action: "generate" }); setPollingId(item.id); setPollStartedAt(Date.now()); }} className="underline">Generate</button>}
-                {item.status === "AWAITING_APPROVAL" && <button type="button" disabled={actionMutation.isPending} className="underline" onClick={() => actionMutation.mutate({ id: item.id, action: "approve" })}>Approve</button>}
+                {item.status === "DRAFT" && <button type="button" disabled={actionMutation.isPending} onClick={() => { actionMutation.mutate({ id: item.id, action: "generate" }); setPollingId(item.id); setPollStartedAt(Date.now()); }} className="underline">Generate</button>}
+                {item.status === "REVISION_REQUESTED" && <>
+                  <Link className="underline" href={`/admin/articles/view?id=${item.id}`}>Edit</Link>
+                  <button type="button" disabled={actionMutation.isPending} onClick={() => { actionMutation.mutate({ id: item.id, action: "generate" }); setPollingId(item.id); setPollStartedAt(Date.now()); }} className="underline">Send for Approval</button>
+                </>}
+                {item.status === "AWAITING_APPROVAL" && <>
+                  <button type="button" disabled={actionMutation.isPending} className="underline" onClick={() => actionMutation.mutate({ id: item.id, action: "approve" })}>Approve</button>
+                  <button type="button" disabled={actionMutation.isPending} className="underline" onClick={() => { const revisionNote = prompt("Revision note") ?? ""; if (revisionNote) actionMutation.mutate({ id: item.id, action: "request-edits", body: { revisionNote } }); }}>Revision Requested</button>
+                  <button type="button" disabled={actionMutation.isPending} className="underline" onClick={() => { const reason = prompt("Rejection reason") ?? ""; if (reason) actionMutation.mutate({ id: item.id, action: "reject", body: { reason } }); }}>Reject</button>
+                </>}
+                {item.status === "FAILED" && <button type="button" disabled={actionMutation.isPending} className="underline" onClick={() => actionMutation.mutate({ id: item.id, action: "archive" })}>Archive</button>}
                 {item.status === "APPROVED" && <button type="button" disabled={actionMutation.isPending} className="underline" onClick={() => actionMutation.mutate({ id: item.id, action: "mark-published", body: { publishedAt: new Date().toISOString(), publishedUrl: "https://example.com" } })}>Mark Published</button>}
               </td></tr>
             ))}
