@@ -9,6 +9,19 @@ import { fetchJson } from "@/lib/admin/api";
 import { ARTICLE_STATUSES, Article, ArticleStatus, normalizeArticle, normalizeArticleList } from "@/lib/admin/types";
 import { useAdminAccess } from "@/components/admin/AdminGate";
 
+type ArticleAction = {
+  label: string;
+  onClick?: () => void;
+  href?: string;
+};
+
+function renderAction(action: ArticleAction, key: string) {
+  if (action.href) {
+    return <Link className="underline" href={action.href} key={key}>{action.label}</Link>;
+  }
+  return <button type="button" className="underline disabled:opacity-50" onClick={action.onClick} disabled={!action.onClick} key={key}>{action.label}</button>;
+}
+
 export default function ArticlesPage() {
   type ActionMutationVariables = { id: string; action: string; body?: unknown };
   const [status, setStatus] = useState<ArticleStatus>("DRAFT");
@@ -64,6 +77,64 @@ export default function ArticlesPage() {
     onError: (error) => toast.error(error instanceof Error ? error.message : "Action failed")
   });
 
+  const getActions = (item: Article): ArticleAction[] => {
+    const actions: ArticleAction[] = [{ label: "View", href: `/admin/articles/view?id=${item.id}` }];
+
+    if (item.status === "DRAFT") {
+      actions.push({
+        label: "Generate",
+        onClick: () => {
+          actionMutation.mutate({ id: item.id, action: "generate" });
+          setPollingId(item.id);
+          setPollStartedAt(Date.now());
+        }
+      });
+    }
+
+    if (item.status === "REVISION_REQUESTED") {
+      actions.push({ label: "Edit", href: `/admin/articles/view?id=${item.id}` });
+      actions.push({
+        label: "Send for Approval",
+        onClick: () => {
+          actionMutation.mutate({ id: item.id, action: "generate" });
+          setPollingId(item.id);
+          setPollStartedAt(Date.now());
+        }
+      });
+    }
+
+    if (item.status === "AWAITING_APPROVAL") {
+      actions.push({ label: "Approve", onClick: () => actionMutation.mutate({ id: item.id, action: "approve" }) });
+      actions.push({
+        label: "Revision Requested",
+        onClick: () => {
+          const revisionNote = prompt("Revision note") ?? "";
+          if (revisionNote) actionMutation.mutate({ id: item.id, action: "request-edits", body: { revisionNote } });
+        }
+      });
+      actions.push({
+        label: "Reject",
+        onClick: () => {
+          const reason = prompt("Rejection reason") ?? "";
+          if (reason) actionMutation.mutate({ id: item.id, action: "reject", body: { reason } });
+        }
+      });
+    }
+
+    if (item.status === "FAILED") {
+      actions.push({ label: "Archive", onClick: () => actionMutation.mutate({ id: item.id, action: "archive" }) });
+    }
+
+    if (item.status === "APPROVED") {
+      actions.push({
+        label: "Mark Published",
+        onClick: () => actionMutation.mutate({ id: item.id, action: "mark-published", body: { publishedAt: new Date().toISOString(), publishedUrl: "https://example.com" } })
+      });
+    }
+
+    return actions;
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
@@ -77,23 +148,30 @@ export default function ArticlesPage() {
         <table className="min-w-full text-sm">
           <thead className="bg-slate-100 text-left dark:bg-slate-800"><tr><th className="p-2">Title</th><th>Status</th><th>UpdatedAt</th><th>Actions</th></tr></thead>
           <tbody>
-            {query.isLoading ? <tr><td className="p-3" colSpan={4}>Loading...</td></tr> : filtered.map((item) => (
-              <tr key={item.id} className="border-t"><td className="p-2">{item.title}</td><td><StatusBadge status={item.status} /></td><td>{item.updatedAt ?? "-"}</td><td className="space-x-2 p-2">
-                <Link className="underline" href={`/admin/articles/view?id=${item.id}`}>View</Link>
-                {item.status === "DRAFT" && <button type="button" disabled={actionMutation.isPending} onClick={() => { actionMutation.mutate({ id: item.id, action: "generate" }); setPollingId(item.id); setPollStartedAt(Date.now()); }} className="underline">Generate</button>}
-                {item.status === "REVISION_REQUESTED" && <>
-                  <Link className="underline" href={`/admin/articles/view?id=${item.id}`}>Edit</Link>
-                  <button type="button" disabled={actionMutation.isPending} onClick={() => { actionMutation.mutate({ id: item.id, action: "generate" }); setPollingId(item.id); setPollStartedAt(Date.now()); }} className="underline">Send for Approval</button>
-                </>}
-                {item.status === "AWAITING_APPROVAL" && <>
-                  <button type="button" disabled={actionMutation.isPending} className="underline" onClick={() => actionMutation.mutate({ id: item.id, action: "approve" })}>Approve</button>
-                  <button type="button" disabled={actionMutation.isPending} className="underline" onClick={() => { const revisionNote = prompt("Revision note") ?? ""; if (revisionNote) actionMutation.mutate({ id: item.id, action: "request-edits", body: { revisionNote } }); }}>Revision Requested</button>
-                  <button type="button" disabled={actionMutation.isPending} className="underline" onClick={() => { const reason = prompt("Rejection reason") ?? ""; if (reason) actionMutation.mutate({ id: item.id, action: "reject", body: { reason } }); }}>Reject</button>
-                </>}
-                {item.status === "FAILED" && <button type="button" disabled={actionMutation.isPending} className="underline" onClick={() => actionMutation.mutate({ id: item.id, action: "archive" })}>Archive</button>}
-                {item.status === "APPROVED" && <button type="button" disabled={actionMutation.isPending} className="underline" onClick={() => actionMutation.mutate({ id: item.id, action: "mark-published", body: { publishedAt: new Date().toISOString(), publishedUrl: "https://example.com" } })}>Mark Published</button>}
-              </td></tr>
-            ))}
+            {query.isLoading ? <tr><td className="p-3" colSpan={4}>Loading...</td></tr> : filtered.map((item) => {
+              const actions = getActions(item);
+              const primaryMobileActions = actions.slice(0, 2);
+              const overflowMobileActions = actions.slice(2);
+
+              return (
+                <tr key={item.id} className="border-t"><td className="p-2">{item.title}</td><td><StatusBadge status={item.status} /></td><td>{item.updatedAt ?? "-"}</td><td className="p-2">
+                  <div className="hidden flex-wrap items-center gap-2 md:flex">
+                    {actions.map((action, index) => renderAction(action, `${item.id}-desktop-${index}`))}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 md:hidden">
+                    {primaryMobileActions.map((action, index) => renderAction(action, `${item.id}-mobile-primary-${index}`))}
+                    {overflowMobileActions.length > 0 && (
+                      <details className="relative">
+                        <summary className="cursor-pointer underline">More</summary>
+                        <div className="absolute right-0 z-10 mt-1 flex min-w-40 flex-col gap-2 rounded border bg-white p-2 shadow dark:bg-slate-900">
+                          {overflowMobileActions.map((action, index) => renderAction(action, `${item.id}-mobile-overflow-${index}`))}
+                        </div>
+                      </details>
+                    )}
+                  </div>
+                </td></tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
