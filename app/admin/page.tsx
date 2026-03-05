@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArticleFormModal } from '@/components/admin/ArticleFormModal';
@@ -14,7 +15,14 @@ import {
 import { useAdminAccess } from '@/components/admin/AdminGate';
 import { AgentManagementTab } from '@/components/admin/agent-management/AgentManagementTab';
 
-const ADMIN_TABS = ['General', 'Agent Management'] as const;
+const ADMIN_TABS = ['Content Manager', 'Agent Management'] as const;
+const ADMIN_LINKS = [
+  ['/admin', 'Dashboard'],
+  ['/admin/articles', 'Articles'],
+  ['/admin/newsletter', 'Newsletter'],
+  ['/admin/subscribers', 'Subscribers'],
+  ['/admin/settings', 'Settings'],
+] as const;
 type AdminTab = (typeof ADMIN_TABS)[number];
 
 export default function AdminDashboardPage() {
@@ -27,7 +35,7 @@ export default function AdminDashboardPage() {
   type ArticleListResponse = { items: Article[] };
 
   const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<AdminTab>('General');
+  const [activeTab, setActiveTab] = useState<AdminTab>('Content Manager');
   const queryClient = useQueryClient();
   const toast = useToast();
   const { address, isAllowed } = useAdminAccess();
@@ -90,8 +98,19 @@ export default function AdminDashboardPage() {
         ))}
       </div>
 
-      {activeTab === 'General' && (
+      {activeTab === 'Content Manager' && (
         <div className="space-y-4">
+          <nav className="flex gap-2 overflow-auto">
+            {ADMIN_LINKS.map(([href, label]) => (
+              <Link
+                key={href}
+                href={href}
+                className="rounded border px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
           <p className="text-sm">
             Connected wallet: <span className="font-mono">{address}</span>
           </p>
