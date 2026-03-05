@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { LinkProps } from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ComponentProps } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { useToast } from "@/components/admin/ToastProvider";
@@ -13,7 +12,7 @@ import { useAdminAccess } from "@/components/admin/AdminGate";
 type ArticleAction = {
   label: string;
   onClick?: () => void;
-  href?: LinkProps["href"];
+  href?: ComponentProps<typeof Link>["href"];
 };
 
 function renderAction(action: ArticleAction, key: string) {
