@@ -100,7 +100,7 @@ export default function AdminDashboardPage() {
 
       {activeTab === 'Content Manager' && (
         <div className="space-y-4">
-          <nav className="flex gap-2 overflow-auto">
+          <nav className="sticky top-0 z-10 -mx-2 flex gap-2 overflow-auto border-y bg-slate-50 px-2 py-2 backdrop-blur supports-[backdrop-filter]:bg-slate-50/90">
             {ADMIN_LINKS.map(([href, label]) => (
               <Link
                 key={href}

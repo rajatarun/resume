@@ -179,10 +179,22 @@ export default function ArticlesPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
-        {ARTICLE_STATUSES.map((item) => (
-          <button type="button" key={item} className={`rounded border px-3 py-1 text-sm ${item === status ? "bg-slate-900 text-white" : ""}`} onClick={() => setStatus(item)}>{item}</button>
-        ))}
+      <div className="space-y-1">
+        <label htmlFor="status-filter" className="text-sm font-medium text-slate-700">
+          Status
+        </label>
+        <select
+          id="status-filter"
+          className="w-full rounded border p-2"
+          value={status}
+          onChange={(event) => setStatus(event.target.value as ArticleStatus)}
+        >
+          {ARTICLE_STATUSES.map((item) => (
+            <option key={item} value={item}>
+              {item}
+            </option>
+          ))}
+        </select>
       </div>
       <input className="w-full rounded border p-2" placeholder="Search title" value={search} onChange={(e) => setSearch(e.target.value)} />
       {pollingId && <p className="text-sm text-blue-600">Polling generation for article {pollingId}...</p>}

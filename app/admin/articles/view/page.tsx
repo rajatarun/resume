@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -127,7 +128,12 @@ export default function ArticleDetailViewPage() {
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="space-y-4">
+      <Link href="/admin/articles" className="inline-flex items-center rounded border px-3 py-1 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">
+        ← Back to Articles
+      </Link>
+
+      <div className="grid gap-4 lg:grid-cols-2">
       <div className="space-y-4 rounded border p-4">
         <div className="space-y-1">
           <h2 className="text-xl font-semibold">{article?.title ?? "Loading..."}</h2>
@@ -313,6 +319,7 @@ export default function ArticleDetailViewPage() {
           <input className="w-full rounded border p-2" placeholder="Published URL" {...register("publishedUrl")} />
         </div>
       </ConfirmModal>
+      </div>
     </div>
   );
 }
