@@ -1,7 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArticleFormModal } from '@/components/admin/ArticleFormModal';
 import { useToast } from '@/components/admin/ToastProvider';
@@ -15,16 +15,6 @@ import {
 import { useAdminAccess } from '@/components/admin/AdminGate';
 import { AgentManagementTab } from '@/components/admin/agent-management/AgentManagementTab';
 
-const ADMIN_TABS = ['Content Manager', 'Agent Management'] as const;
-const ADMIN_LINKS = [
-  ['/admin', 'Dashboard'],
-  ['/admin/articles', 'Articles'],
-  ['/admin/newsletter', 'Newsletter'],
-  ['/admin/subscribers', 'Subscribers'],
-  ['/admin/settings', 'Settings'],
-] as const;
-type AdminTab = (typeof ADMIN_TABS)[number];
-
 export default function AdminDashboardPage() {
   type CreateDraftPayload = {
     title: string;
@@ -35,7 +25,8 @@ export default function AdminDashboardPage() {
   type ArticleListResponse = { items: Article[] };
 
   const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<AdminTab>('Content Manager');
+  const searchParams = useSearchParams();
+  const activeTab = searchParams.get('tab') === 'agent-management' ? 'Agent Management' : 'Content Manager';
   const queryClient = useQueryClient();
   const toast = useToast();
   const { address, isAllowed } = useAdminAccess();
@@ -85,32 +76,8 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2 border-b">
-        {ADMIN_TABS.map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            className={`-mb-px border-b-2 px-3 py-2 text-sm ${activeTab === tab ? 'border-slate-900 font-medium' : 'border-transparent text-slate-500'}`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
       {activeTab === 'Content Manager' && (
         <div className="space-y-4">
-          <nav className="sticky top-0 z-10 -mx-2 flex gap-2 overflow-auto border-y bg-slate-50 px-2 py-2 backdrop-blur supports-[backdrop-filter]:bg-slate-50/90">
-            {ADMIN_LINKS.map(([href, label]) => (
-              <Link
-                key={href}
-                href={href}
-                className="rounded border px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                {label}
-              </Link>
-            ))}
-          </nav>
           <p className="text-sm">
             Connected wallet: <span className="font-mono">{address}</span>
           </p>

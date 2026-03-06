@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ConfirmModal } from "@/components/admin/ConfirmModal";
@@ -17,6 +16,7 @@ import { useAdminAccess } from "@/components/admin/AdminGate";
 export default function ArticleDetailViewPage() {
   type ActionVars = { action: string; body?: unknown };
   const searchParams = useSearchParams();
+  const router = useRouter();
   const id = searchParams.get("id") ?? "";
   const toast = useToast();
   const queryClient = useQueryClient();
@@ -129,9 +129,20 @@ export default function ArticleDetailViewPage() {
 
   return (
     <div className="space-y-4">
-      <Link href="/admin/articles" className="inline-flex items-center rounded border px-3 py-1 text-sm hover:bg-slate-100 dark:hover:bg-slate-800">
+      <button
+        type="button"
+        className="inline-flex items-center rounded border px-3 py-1 text-sm hover:bg-slate-100 dark:hover:bg-slate-800"
+        onClick={() => {
+          if (window.history.length > 1) {
+            router.back();
+            return;
+          }
+
+          router.push("/admin/articles");
+        }}
+      >
         ← Back to Articles
-      </Link>
+      </button>
 
       <div className="grid gap-4 lg:grid-cols-2">
       <div className="space-y-4 rounded border p-4">
