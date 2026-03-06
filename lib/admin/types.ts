@@ -30,6 +30,16 @@ export type Article = {
     hashtags?: string[];
     sources?: string[];
   };
+  drafts?: Array<{
+    weekly_hook?: {
+      topic?: string;
+      why_now_2026?: string;
+      angle?: string;
+    };
+    linkedin_post?: string;
+    hashtags?: string[];
+    sources?: string[];
+  }>;
   publishedAt?: string;
   publishedUrl?: string;
   meta?: {
@@ -56,6 +66,23 @@ export function normalizeArticle(value: unknown): Article {
   const generated = isRecord(value.generated) ? value.generated : {};
   const weeklyHook = isRecord(generated.weekly_hook) ? generated.weekly_hook : {};
   const meta = isRecord(value.meta) ? value.meta : {};
+  const drafts = Array.isArray(value.drafts)
+    ? value.drafts
+        .filter(isRecord)
+        .map((draft) => {
+          const draftWeeklyHook = isRecord(draft.weekly_hook) ? draft.weekly_hook : {};
+          return {
+            weekly_hook: {
+              topic: typeof draftWeeklyHook.topic === "string" ? draftWeeklyHook.topic : undefined,
+              why_now_2026: typeof draftWeeklyHook.why_now_2026 === "string" ? draftWeeklyHook.why_now_2026 : undefined,
+              angle: typeof draftWeeklyHook.angle === "string" ? draftWeeklyHook.angle : undefined
+            },
+            linkedin_post: typeof draft.linkedin_post === "string" ? draft.linkedin_post : undefined,
+            hashtags: toStringArray(draft.hashtags),
+            sources: toStringArray(draft.sources)
+          };
+        })
+    : [];
 
   return {
     id: typeof value.id === "string" ? value.id : "",
@@ -83,6 +110,7 @@ export function normalizeArticle(value: unknown): Article {
       hashtags: toStringArray(generated.hashtags),
       sources: toStringArray(generated.sources)
     },
+    drafts,
     meta: {
       version: typeof meta.version === "number" ? meta.version : undefined,
       retryCount: typeof meta.retryCount === "number" ? meta.retryCount : undefined,

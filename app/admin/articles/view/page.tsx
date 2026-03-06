@@ -21,6 +21,7 @@ export default function ArticleDetailViewPage() {
   const queryClient = useQueryClient();
   const { isAllowed } = useAdminAccess();
   const [publishModalOpen, setPublishModalOpen] = useState(false);
+  const [selectedDraftIndex, setSelectedDraftIndex] = useState(0);
 
   const articleQuery = useQuery({
     queryKey: ["article", id],
@@ -61,6 +62,12 @@ export default function ArticleDetailViewPage() {
       publishedUrl: articleQuery.data.publishedUrl ?? ""
     });
   }, [articleQuery.data, reset]);
+
+  const article = articleQuery.data;
+
+  useEffect(() => {
+    setSelectedDraftIndex(0);
+  }, [article?.id, article?.drafts?.length]);
 
   const patchMutation = useMutation<Article, Record<string, unknown> | undefined>({
     mutationFn: async (body) =>
@@ -108,7 +115,8 @@ export default function ArticleDetailViewPage() {
     toast.error(lastError instanceof Error ? lastError.message : "Action failed");
   };
 
-  const article = articleQuery.data;
+  const selectedDraft = article?.drafts?.[selectedDraftIndex];
+  const preview = selectedDraft ?? article?.generated;
 
   if (!id) {
     return (
@@ -154,7 +162,26 @@ export default function ArticleDetailViewPage() {
           <button type="button" className="rounded border px-2 py-1" onClick={() => actionMutation.mutate({ action: "generate" })}>
             Generate Draft
           </button>
-          <button type="button" className="rounded border px-2 py-1" onClick={() => actionMutation.mutate({ action: "approve" })}>
+          <button
+            type="button"
+            className="rounded border px-2 py-1"
+            onClick={() => {
+              if (!selectedDraft || !article?.drafts?.length) {
+                actionMutation.mutate({ action: "approve" });
+                return;
+              }
+
+              void runActionWithFallback({
+                successMessage: "Draft approved.",
+                attempts: [
+                  { action: "approve", body: { draftIndex: String(selectedDraftIndex) } },
+                  { action: "approve", body: { index: String(selectedDraftIndex) } },
+                  { action: "approve", body: { draft: JSON.stringify(selectedDraft) } },
+                  { action: "approve" }
+                ]
+              });
+            }}
+          >
             Approve
           </button>
           <button
@@ -216,32 +243,52 @@ export default function ArticleDetailViewPage() {
       <div className="space-y-4 rounded border p-4">
         <h3 className="font-semibold">Generated Preview</h3>
 
+        {article?.drafts && article.drafts.length > 0 ? (
+          <div className="space-y-1">
+            <label className="text-sm font-medium" htmlFor="draft-selector">
+              Draft
+            </label>
+            <select
+              id="draft-selector"
+              className="w-full rounded border p-2"
+              value={selectedDraftIndex}
+              onChange={(event) => setSelectedDraftIndex(Number(event.target.value))}
+            >
+              {article.drafts.map((_, index) => (
+                <option key={`draft-${index}`} value={index}>
+                  {index + 1}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : null}
+
         <div className="space-y-2 rounded border p-2">
           <p>
-            <span className="font-medium">Topic:</span> {article?.generated?.weekly_hook?.topic ?? "-"}
+            <span className="font-medium">Topic:</span> {preview?.weekly_hook?.topic ?? "-"}
           </p>
           <p>
-            <span className="font-medium">Why now 2026:</span> {article?.generated?.weekly_hook?.why_now_2026 ?? "-"}
+            <span className="font-medium">Why now 2026:</span> {preview?.weekly_hook?.why_now_2026 ?? "-"}
           </p>
           <p>
-            <span className="font-medium">Angle:</span> {article?.generated?.weekly_hook?.angle ?? "-"}
+            <span className="font-medium">Angle:</span> {preview?.weekly_hook?.angle ?? "-"}
           </p>
         </div>
 
-        <TextareaWithCopy label="LinkedIn Post" value={article?.generated?.linkedin_post} />
+        <TextareaWithCopy label="LinkedIn Post" value={preview?.linkedin_post} />
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <p className="font-medium">Hashtags</p>
-            <CopyButton text={(article?.generated?.hashtags ?? []).join(" ")} />
+            <CopyButton text={(preview?.hashtags ?? []).join(" ")} />
           </div>
-          <p className="text-sm">{(article?.generated?.hashtags ?? []).join(" ") || "-"}</p>
+          <p className="text-sm">{(preview?.hashtags ?? []).join(" ") || "-"}</p>
         </div>
 
         <div className="space-y-2">
           <p className="font-medium">Sources</p>
           <ul className="list-disc pl-6 text-sm">
-            {(article?.generated?.sources ?? []).map((source) => (
+            {(preview?.sources ?? []).map((source) => (
               <li key={source}>
                 <a href={source} className="text-blue-600 underline" target="_blank" rel="noreferrer">
                   {source}
