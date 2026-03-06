@@ -66,8 +66,13 @@ export function normalizeArticle(value: unknown): Article {
   const generated = isRecord(value.generated) ? value.generated : {};
   const weeklyHook = isRecord(generated.weekly_hook) ? generated.weekly_hook : {};
   const meta = isRecord(value.meta) ? value.meta : {};
-  const drafts = Array.isArray(value.drafts)
+  const draftsSource = Array.isArray(value.drafts)
     ? value.drafts
+    : Array.isArray(generated.drafts)
+      ? generated.drafts
+      : [];
+  const drafts = Array.isArray(draftsSource)
+    ? draftsSource
         .filter(isRecord)
         .map((draft) => {
           const draftWeeklyHook = isRecord(draft.weekly_hook) ? draft.weekly_hook : {};
