@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components/Card';
 import { PageShell } from '@/components/PageShell';
-import { type Article, type BlogCard, getArticle, getBlogCards } from '@/lib/api';
+import { type Article, type BlogCard, getArticle, getBlogCards, updateArticleContent } from '@/lib/api';
+import { getSiweSession, onSiweSessionChange, restoreSiweSession } from '@/lib/web3/siweClientSession';
 
 const formatDate = (value?: string): string => {
   if (!value) {
@@ -64,6 +65,12 @@ export default function BlogPage() {
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [editorValue, setEditorValue] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
   const loadPosts = async () => {
     setListLoading(true);
@@ -119,6 +126,29 @@ export default function BlogPage() {
     };
   }, [selectedPostId]);
 
+  useEffect(() => {
+    const refreshSession = async () => {
+      const session = await restoreSiweSession();
+      setIsLoggedIn(session.authenticated);
+    };
+
+    void refreshSession();
+    return onSiweSessionChange(() => {
+      void refreshSession();
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!selectedArticle) {
+      return;
+    }
+
+    setEditorValue(selectedArticle.generated?.linkedin_post ?? '');
+    setIsEditing(false);
+    setSaveError(null);
+    setSaveSuccess(null);
+  }, [selectedArticle]);
+
   const selectedPost = useMemo(
     () => posts.find((post) => post.id === selectedPostId) ?? null,
     [posts, selectedPostId]
@@ -129,6 +159,42 @@ export default function BlogPage() {
     setSelectedArticle(null);
     setDetailError(null);
     setDetailLoading(false);
+    setIsEditing(false);
+    setEditorValue('');
+    setSaveError(null);
+    setSaveSuccess(null);
+  };
+
+  const saveArticle = async () => {
+    if (!selectedArticle) {
+      return;
+    }
+
+    const { token } = getSiweSession();
+    if (!token) {
+      setSaveError('You must be logged in to edit articles.');
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveError(null);
+    setSaveSuccess(null);
+
+    try {
+      const updated = await updateArticleContent({
+        id: selectedArticle.id,
+        content: editorValue,
+        token
+      });
+
+      setSelectedArticle(updated);
+      setSaveSuccess('Article content updated.');
+      setIsEditing(false);
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Unable to update article content.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const articleBodyBlocks = parsePostBody(selectedArticle?.generated?.linkedin_post ?? '');
@@ -232,24 +298,80 @@ export default function BlogPage() {
                 </div>
 
                 <article className="space-y-4">
-                  {articleBodyBlocks.map((block, index) => {
-                    if (block.type === 'bullets') {
-                      return (
-                        <ul key={`detail-bullets-${index}`} className="list-disc space-y-1 pl-5 text-slate-700 dark:text-slate-200">
-                          {block.items.map((item, itemIndex) => (
-                            <li key={`detail-bullet-${index}-${itemIndex}`}>{item}</li>
-                          ))}
-                        </ul>
-                      );
-                    }
+                  {isEditing ? (
+                    <div className="space-y-3">
+                      <textarea
+                        value={editorValue}
+                        onChange={(event) => {
+                          setEditorValue(event.target.value);
+                        }}
+                        className="min-h-[240px] w-full rounded-xl border border-slate-300 bg-white p-3 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-300 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+                      />
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void saveArticle();
+                          }}
+                          disabled={isSaving}
+                          className="focus-ring rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-100 dark:text-slate-900"
+                        >
+                          {isSaving ? 'Saving…' : 'Save changes'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditorValue(selectedArticle.generated?.linkedin_post ?? '');
+                            setIsEditing(false);
+                            setSaveError(null);
+                            setSaveSuccess(null);
+                          }}
+                          className="focus-ring rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    articleBodyBlocks.map((block, index) => {
+                      if (block.type === 'bullets') {
+                        return (
+                          <ul key={`detail-bullets-${index}`} className="list-disc space-y-1 pl-5 text-slate-700 dark:text-slate-200">
+                            {block.items.map((item, itemIndex) => (
+                              <li key={`detail-bullet-${index}-${itemIndex}`}>{item}</li>
+                            ))}
+                          </ul>
+                        );
+                      }
 
-                    return (
-                      <p key={`detail-paragraph-${index}`} className="text-slate-700 dark:text-slate-200">
-                        {block.text}
-                      </p>
-                    );
-                  })}
+                      return (
+                        <p key={`detail-paragraph-${index}`} className="text-slate-700 dark:text-slate-200">
+                          {block.text}
+                        </p>
+                      );
+                    })
+                  )}
                 </article>
+
+                {isLoggedIn ? (
+                  <div className="space-y-2">
+                    {!isEditing ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsEditing(true);
+                          setSaveError(null);
+                          setSaveSuccess(null);
+                        }}
+                        className="focus-ring rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+                      >
+                        Edit post
+                      </button>
+                    ) : null}
+                    {saveError ? <p className="text-sm text-rose-600 dark:text-rose-300">{saveError}</p> : null}
+                    {saveSuccess ? <p className="text-sm text-emerald-600 dark:text-emerald-300">{saveSuccess}</p> : null}
+                  </div>
+                ) : null}
 
                 {selectedArticle.generated?.sources && selectedArticle.generated.sources.length > 0 ? (
                   <section className="space-y-3">

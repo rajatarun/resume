@@ -435,4 +435,56 @@ export const getArticle = async (id: string): Promise<Article> => {
   return fetchJson<Article>(`/site/posts/${encodeURIComponent(id)}`);
 };
 
+export const updateArticleContent = async ({
+  id,
+  content,
+  token
+}: {
+  id: string;
+  content: string;
+  token: string;
+}): Promise<Article> => {
+  assertBrowserRuntime();
+
+  const adminBaseUrl = process.env.NEXT_PUBLIC_ADMIN_API_BASE;
+  if (!adminBaseUrl) {
+    throw new BlogApiError('Missing NEXT_PUBLIC_ADMIN_API_BASE configuration.');
+  }
+
+  const response = await fetch(`${adminBaseUrl.replace(/\/$/, '')}/admin/articles/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      generated: {
+        linkedin_post: content
+      }
+    })
+  });
+
+  let payload: unknown;
+  const text = await response.text();
+  if (text) {
+    try {
+      payload = JSON.parse(text);
+    } catch {
+      payload = text;
+    }
+  }
+
+  if (!response.ok) {
+    const fallback = `Request failed with status ${response.status}`;
+    const message =
+      typeof payload === 'object' && payload && 'message' in payload
+        ? String((payload as { message?: unknown }).message)
+        : fallback;
+    throw new BlogApiError(message, response.status);
+  }
+
+  return (payload ?? {}) as Article;
+};
+
 export { BlogApiError };
