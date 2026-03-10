@@ -77,6 +77,14 @@ export const buildAuthorizationToken = (payload?: AuthPayload): string | undefin
   const publicToken = getPublicAuthorizationToken();
 
   if (typeof window !== 'undefined') {
+    const feature = payload?.feature as string | undefined;
+    if (feature) {
+      const featureEnvKey = `NEXT_PUBLIC_AUTHORIZATION_TOKEN_${feature.toUpperCase()}`;
+      const featureToken = (process.env as Record<string, string | undefined>)[featureEnvKey];
+      if (featureToken && isValidJwtFormat(featureToken)) {
+        return featureToken;
+      }
+    }
     return publicToken && isValidJwtFormat(publicToken) ? publicToken : undefined;
   }
 

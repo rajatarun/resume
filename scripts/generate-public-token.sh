@@ -4,6 +4,10 @@
 # Usage:
 #   JWT_SECRET=<your-secret> bash scripts/generate-public-token.sh
 #
+# Optional: specify a feature scope (e.g. "admin", "site") to generate a
+# feature-scoped token for NEXT_PUBLIC_AUTHORIZATION_TOKEN_<FEATURE>:
+#   JWT_SECRET=<your-secret> FEATURE=admin bash scripts/generate-public-token.sh
+#
 # Optional: override expiry in days (default 365)
 #   JWT_SECRET=<your-secret> TOKEN_TTL_DAYS=730 bash scripts/generate-public-token.sh
 #
@@ -29,8 +33,16 @@ base64url() {
 NOW=$(date +%s)
 EXP=$(( NOW + TTL_DAYS * 86400 ))
 
+FEATURE="${FEATURE:-}"
+FEATURE_LOWER=$(echo "$FEATURE" | tr '[:upper:]' '[:lower:]')
+FEATURE_UPPER=$(echo "$FEATURE" | tr '[:lower:]' '[:upper:]')
+
 HEADER=$(printf '{"alg":"HS256","typ":"JWT"}' | base64url)
-PAYLOAD=$(printf '{"source":"resume-web-client","type":"public-static","iat":%d,"exp":%d}' "$NOW" "$EXP" | base64url)
+if [[ -n "$FEATURE_LOWER" ]]; then
+  PAYLOAD=$(printf '{"source":"resume-web-client","type":"public-static","feature":"%s","iat":%d,"exp":%d}' "$FEATURE_LOWER" "$NOW" "$EXP" | base64url)
+else
+  PAYLOAD=$(printf '{"source":"resume-web-client","type":"public-static","iat":%d,"exp":%d}' "$NOW" "$EXP" | base64url)
+fi
 
 SIGNING_INPUT="${HEADER}.${PAYLOAD}"
 
@@ -49,4 +61,8 @@ echo "$TOKEN"
 echo ""
 echo "Set this in your environment:"
 echo ""
-echo "NEXT_PUBLIC_AUTHORIZATION_TOKEN=${TOKEN}"
+if [[ -n "$FEATURE_UPPER" ]]; then
+  echo "NEXT_PUBLIC_AUTHORIZATION_TOKEN_${FEATURE_UPPER}=${TOKEN}"
+else
+  echo "NEXT_PUBLIC_AUTHORIZATION_TOKEN=${TOKEN}"
+fi
