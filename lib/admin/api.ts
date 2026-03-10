@@ -1,3 +1,5 @@
+import { buildAuthorizationHeader } from '@/lib/authToken';
+
 export class ApiError extends Error {
   status: number;
   details?: unknown;
@@ -17,7 +19,7 @@ export async function fetchJson<T>(path: string, init?: { method?: string; body?
 
   const response = await fetch(`${base}${path}`, {
     method: init?.method ?? "GET",
-    headers: { "Content-Type": "application/json", "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg" },
+    headers: { "Content-Type": "application/json", "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg", ...buildAuthorizationHeader() },
     body: init?.body ? JSON.stringify(init.body) : undefined
   });
 

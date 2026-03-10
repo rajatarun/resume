@@ -1,3 +1,4 @@
+import { buildAuthorizationHeader } from '@/lib/authToken';
 import { SiweMessage } from "siwe";
 
 export type SiweNonceResponse = {
@@ -96,7 +97,7 @@ async function parseResponse<T>(response: Response, fallbackMessage: string): Pr
 export async function siweNonce() {
   const response = await fetch(`${getSiweApiBase()}/siwe/nonce`, {
     method: "POST",
-    headers: { "content-type": "application/json", "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg" },
+    headers: { "content-type": "application/json", "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg", ...buildAuthorizationHeader() },
     cache: "no-store"
   });
 
@@ -125,7 +126,7 @@ export async function siweVerify(payload: SiweVerifyPayload) {
 
   const response = await fetch(`${getSiweApiBase()}/siwe/verify`, {
     method: "POST",
-    headers: { "content-type": "application/json", "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg" },
+    headers: { "content-type": "application/json", "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg", ...buildAuthorizationHeader() },
     body: JSON.stringify(body)
   });
 
@@ -135,7 +136,7 @@ export async function siweVerify(payload: SiweVerifyPayload) {
 export async function siweMe(token: string) {
   const response = await fetch(`${getSiweApiBase()}/siwe/me`, {
     method: "GET",
-    headers: { authorization: `Bearer ${token}`, "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg" },
+    headers: { authorization: `Bearer ${token}`, "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg", ...buildAuthorizationHeader() },
     cache: "no-store"
   });
 
@@ -148,7 +149,7 @@ export async function siweMe(token: string) {
 export async function siweSession(token: string) {
   const response = await fetch(`${getSiweApiBase()}/siwe/session`, {
     method: "GET",
-    headers: { authorization: `Bearer ${token}`, "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg" },
+    headers: { authorization: `Bearer ${token}`, "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg", ...buildAuthorizationHeader() },
     cache: "no-store"
   });
 
