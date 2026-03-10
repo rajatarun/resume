@@ -20,7 +20,7 @@ export function NewsletterSubscribeForm() {
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/public/subscribe`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-api-key": "4TTffLxI7p7Whkgikvjd64oktvZod8uz5ajvi0S1" },
       body: JSON.stringify({ email })
     });
     const data = (await response.json()) as { message?: string };

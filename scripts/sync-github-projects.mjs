@@ -156,7 +156,8 @@ async function fetchRepositories({ token, owner, ownerType }) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
+        "x-api-key": "4TTffLxI7p7Whkgikvjd64oktvZod8uz5ajvi0S1"
       },
       body: JSON.stringify({
         query,

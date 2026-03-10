@@ -16,7 +16,10 @@ async function submitAppointment(formData: AppointmentRequest) {
     `${process.env.NEXT_PUBLIC_API_BASE_URL}/public/appointment`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": "4TTffLxI7p7Whkgikvjd64oktvZod8uz5ajvi0S1",
+      },
       body: JSON.stringify({
         name: formData.name,
         email: formData.email,
