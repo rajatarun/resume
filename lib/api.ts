@@ -143,7 +143,7 @@ export const postChatQuestion = async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": "4TTffLxI7p7Whkgikvjd64oktvZod8uz5ajvi0S1"
+        "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg"
       },
       body: JSON.stringify(request),
       signal: controller.signal
@@ -195,7 +195,7 @@ export const streamChatQuestion = async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": "4TTffLxI7p7Whkgikvjd64oktvZod8uz5ajvi0S1"
+        "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg"
       },
       body: JSON.stringify(request),
       signal: controller.signal
@@ -394,7 +394,7 @@ const fetchJson = async <T>(path: string): Promise<T> => {
   const response = await fetch(`${getBlogApiBaseUrl()}${path}`, {
     headers: {
       Accept: 'application/json',
-      'x-api-key': '4TTffLxI7p7Whkgikvjd64oktvZod8uz5ajvi0S1'
+      'x-api-key': 'aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg'
     },
     cache: 'no-store'
   });
@@ -460,7 +460,7 @@ export const updateArticleContent = async ({
       Accept: 'application/json',
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
-      'x-api-key': '4TTffLxI7p7Whkgikvjd64oktvZod8uz5ajvi0S1'
+      'x-api-key': 'aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg'
     },
     body: JSON.stringify({
       generated: {

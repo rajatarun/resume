@@ -18,7 +18,7 @@ async function submitAppointment(formData: AppointmentRequest) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": "4TTffLxI7p7Whkgikvjd64oktvZod8uz5ajvi0S1",
+        "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg",
       },
       body: JSON.stringify({
         name: formData.name,
