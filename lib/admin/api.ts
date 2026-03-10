@@ -17,7 +17,7 @@ export async function fetchJson<T>(path: string, init?: { method?: string; body?
 
   const response = await fetch(`${base}${path}`, {
     method: init?.method ?? "GET",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "x-api-key": "4TTffLxI7p7Whkgikvjd64oktvZod8uz5ajvi0S1" },
     body: init?.body ? JSON.stringify(init.body) : undefined
   });
 

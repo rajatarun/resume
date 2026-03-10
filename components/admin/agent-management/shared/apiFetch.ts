@@ -45,6 +45,9 @@ function isPlainObject(value: unknown): value is Record<string, Json> {
 export async function apiFetch<TResponse>(path: string, options: ApiOptions = {}): Promise<TResponse> {
   const method = options.method?.toUpperCase() ?? 'GET';
   const headers = new Headers(options.headers ?? {});
+  if (!headers.has('x-api-key')) {
+    headers.set('x-api-key', '4TTffLxI7p7Whkgikvjd64oktvZod8uz5ajvi0S1');
+  }
   const requestBody = options.body;
   let body: BodyInit | undefined;
 
