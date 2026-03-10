@@ -42,6 +42,11 @@ const getPublicAuthorizationToken = (): string | undefined => {
   return process.env.NEXT_PUBLIC_AUTHORIZATION_TOKEN;
 };
 
+const isValidJwtFormat = (token: string): boolean => {
+  const parts = token.split('.');
+  return parts.length === 3 && parts.every(Boolean);
+};
+
 const createJwtToken = (payload: AuthPayload, secret: string): string => {
   const now = Math.floor(Date.now() / 1000);
   const header = {
@@ -72,15 +77,15 @@ export const buildAuthorizationToken = (payload?: AuthPayload): string | undefin
   const publicToken = getPublicAuthorizationToken();
 
   if (typeof window !== 'undefined') {
-    return publicToken;
+    return publicToken && isValidJwtFormat(publicToken) ? publicToken : undefined;
   }
 
   const secret = process.env.JWT_TOKEN;
   if (!secret) {
-    return publicToken;
+    return publicToken && isValidJwtFormat(publicToken) ? publicToken : undefined;
   }
 
-  return createJwtToken({ ...DEFAULT_PAYLOAD, ...(siweNonce ? { nounce: siweNonce } : {}), ...(payload ?? {}) }, secret);
+  return createJwtToken({ ...DEFAULT_PAYLOAD, ...(siweNonce ? { nonce: siweNonce } : {}), ...(payload ?? {}) }, secret);
 };
 
 export const buildAuthorizationHeader = (payload?: AuthPayload): Record<string, string> => {
