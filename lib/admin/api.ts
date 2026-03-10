@@ -1,4 +1,4 @@
-import { buildAuthorizationHeader } from '@/lib/authToken';
+import { buildAuthorizationHeaderForUri } from '@/lib/authToken';
 
 export class ApiError extends Error {
   status: number;
@@ -19,7 +19,7 @@ export async function fetchJson<T>(path: string, init?: { method?: string; body?
 
   const response = await fetch(`${base}${path}`, {
     method: init?.method ?? "GET",
-    headers: { "Content-Type": "application/json", "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg", ...buildAuthorizationHeader() },
+    headers: { "Content-Type": "application/json", "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg", ...buildAuthorizationHeaderForUri(path) },
     body: init?.body ? JSON.stringify(init.body) : undefined
   });
 

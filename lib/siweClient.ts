@@ -1,4 +1,4 @@
-import { buildAuthorizationHeader } from '@/lib/authToken';
+import { buildAuthorizationHeaderForUri } from '@/lib/authToken';
 import { setSiweSessionNonce } from '@/lib/web3/siweNonce';
 import { SiweMessage } from "siwe";
 
@@ -98,7 +98,7 @@ async function parseResponse<T>(response: Response, fallbackMessage: string): Pr
 export async function siweNonce() {
   const response = await fetch(`${getSiweApiBase()}/siwe/nonce`, {
     method: "POST",
-    headers: { "content-type": "application/json", "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg", ...buildAuthorizationHeader() },
+    headers: { "content-type": "application/json", "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg", ...buildAuthorizationHeaderForUri("/siwe/nonce") },
     cache: "no-store"
   });
 
@@ -130,7 +130,7 @@ export async function siweVerify(payload: SiweVerifyPayload) {
 
   const response = await fetch(`${getSiweApiBase()}/siwe/verify`, {
     method: "POST",
-    headers: { "content-type": "application/json", "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg", ...buildAuthorizationHeader() },
+    headers: { "content-type": "application/json", "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg", ...buildAuthorizationHeaderForUri("/siwe/verify") },
     body: JSON.stringify(body)
   });
 
@@ -140,7 +140,7 @@ export async function siweVerify(payload: SiweVerifyPayload) {
 export async function siweMe(token: string) {
   const response = await fetch(`${getSiweApiBase()}/siwe/me`, {
     method: "GET",
-    headers: { authorization: `Bearer ${token}`, "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg", ...buildAuthorizationHeader() },
+    headers: { authorization: `Bearer ${token}`, "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg", ...buildAuthorizationHeaderForUri("/siwe/me") },
     cache: "no-store"
   });
 
@@ -153,7 +153,7 @@ export async function siweMe(token: string) {
 export async function siweSession(token: string) {
   const response = await fetch(`${getSiweApiBase()}/siwe/session`, {
     method: "GET",
-    headers: { authorization: `Bearer ${token}`, "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg", ...buildAuthorizationHeader() },
+    headers: { authorization: `Bearer ${token}`, "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg", ...buildAuthorizationHeaderForUri("/siwe/session") },
     cache: "no-store"
   });
 

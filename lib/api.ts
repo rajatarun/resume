@@ -1,4 +1,4 @@
-import { buildAuthorizationHeader } from '@/lib/authToken';
+import { buildAuthorizationHeaderForUri } from '@/lib/authToken';
 export interface ChatRequest {
   question: string;
 }
@@ -145,7 +145,7 @@ export const postChatQuestion = async (
       headers: {
         "Content-Type": "application/json",
         "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg",
-        ...buildAuthorizationHeader()
+        ...buildAuthorizationHeaderForUri(endpoint)
       },
       body: JSON.stringify(request),
       signal: controller.signal
@@ -198,7 +198,7 @@ export const streamChatQuestion = async (
       headers: {
         "Content-Type": "application/json",
         "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg",
-        ...buildAuthorizationHeader()
+        ...buildAuthorizationHeaderForUri(endpoint)
       },
       body: JSON.stringify(request),
       signal: controller.signal
@@ -398,7 +398,7 @@ const fetchJson = async <T>(path: string): Promise<T> => {
     headers: {
       Accept: 'application/json',
       'x-api-key': 'aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg',
-      ...buildAuthorizationHeader()
+      ...buildAuthorizationHeaderForUri(path)
     },
     cache: 'no-store'
   });
@@ -465,7 +465,7 @@ export const updateArticleContent = async ({
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
       'x-api-key': 'aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg',
-      ...buildAuthorizationHeader()
+      ...buildAuthorizationHeaderForUri(`/admin/articles/${encodeURIComponent(id)}`)
     },
     body: JSON.stringify({
       generated: {

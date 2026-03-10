@@ -75,6 +75,56 @@ describe('SIWE verification behavior', () => {
     );
   });
 
+
+
+  it('adds feature=siwe to authorization token payload for SIWE verify requests', async () => {
+    process.env.JWT_TOKEN = 'test-jwt-secret';
+
+    const siwe = new SiweMessage({
+      domain: 'localhost',
+      address: '0x1234567890abcdef1234567890abcdef12345678',
+      statement: 'Sign in to the app.',
+      uri: 'http://localhost:3000',
+      version: '1',
+      chainId: 1,
+      nonce: 'feature12',
+      issuedAt: new Date('2026-01-01T00:00:00.000Z').toISOString()
+    });
+
+    const preparedMessage = siwe.prepareMessage();
+    const signature = mockSignMessage(preparedMessage);
+
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ ok: true, token: 'jwt-token-123' })
+    } as Response);
+
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    await siweVerify({
+      sessionId: 'session-feature',
+      preparedMessage,
+      signature
+    });
+
+    const requestInit = fetchMock.mock.calls[0][1] as RequestInit;
+    const headers = requestInit.headers as Record<string, string>;
+    const authHeader = headers.Authorization;
+
+    expect(typeof authHeader).toBe('string');
+    expect(authHeader.startsWith('Bearer ')).toBe(true);
+
+    const token = authHeader.slice('Bearer '.length);
+    const payloadSegment = token.split('.')[1];
+    const payloadJson = Buffer.from(
+      payloadSegment.replace(/-/g, '+').replace(/_/g, '/'),
+      'base64'
+    ).toString('utf8');
+    const payload = JSON.parse(payloadJson) as Record<string, unknown>;
+
+    expect(payload.feature).toBe('siwe');
+  });
   it('rejects JSON-shaped message', async () => {
     const invalidJsonMessage = JSON.stringify({ hello: 'world', not: 'siwe' });
     const signature = mockSignMessage(invalidJsonMessage);
