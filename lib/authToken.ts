@@ -9,6 +9,27 @@ const DEFAULT_PAYLOAD: AuthPayload = {
 
 const ONE_HOUR_SECONDS = 60 * 60;
 
+const resolveFeatureFromUri = (uri: string): string | undefined => {
+  const normalized = uri.trim();
+  if (!normalized) {
+    return undefined;
+  }
+
+  const pathname = (() => {
+    if (normalized.startsWith('/')) {
+      return normalized;
+    }
+
+    try {
+      return new URL(normalized).pathname;
+    } catch {
+      return normalized;
+    }
+  })();
+
+  return pathname.split('/').filter(Boolean)[0];
+};
+
 const toBase64Url = (input: string): string => {
   return Buffer.from(input)
     .toString('base64')
@@ -72,4 +93,9 @@ export const buildAuthorizationHeader = (payload?: AuthPayload): Record<string, 
   return {
     Authorization: `Bearer ${token}`
   };
+};
+
+export const buildAuthorizationHeaderForUri = (uri: string, payload?: AuthPayload): Record<string, string> => {
+  const feature = resolveFeatureFromUri(uri);
+  return buildAuthorizationHeader({ ...(payload ?? {}), ...(feature ? { feature } : {}) });
 };

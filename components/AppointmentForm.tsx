@@ -3,7 +3,7 @@
 import { FormEvent } from "react";
 import { Button } from "@/components/Button";
 import { Input, Textarea } from "@/components/Input";
-import { buildAuthorizationHeader } from "@/lib/authToken";
+import { buildAuthorizationHeaderForUri } from "@/lib/authToken";
 
 type AppointmentRequest = {
   name: string;
@@ -20,7 +20,7 @@ async function submitAppointment(formData: AppointmentRequest) {
       headers: {
         "Content-Type": "application/json",
         "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg",
-        ...buildAuthorizationHeader(),
+        ...buildAuthorizationHeaderForUri("/public/appointment"),
       },
       body: JSON.stringify({
         name: formData.name,
