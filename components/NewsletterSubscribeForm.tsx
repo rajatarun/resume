@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { Button } from "@/components/Button";
 import { Input } from "@/components/Input";
+import { buildAuthorizationHeader } from "@/lib/authToken";
 
 export function NewsletterSubscribeForm() {
   const [message, setMessage] = useState<string>("");
@@ -20,7 +21,7 @@ export function NewsletterSubscribeForm() {
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/public/subscribe`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg" },
+      headers: { "Content-Type": "application/json", "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg", ...buildAuthorizationHeader() },
       body: JSON.stringify({ email })
     });
     const data = (await response.json()) as { message?: string };

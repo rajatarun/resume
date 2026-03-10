@@ -1,3 +1,4 @@
+import { buildAuthorizationHeader } from '@/lib/authToken';
 const MASK_64 = (1n << 64n) - 1n;
 
 const ROTATION_OFFSETS = [
@@ -145,7 +146,7 @@ export class JsonRpcProvider {
   async call(to: string, data: string): Promise<string> {
     const response = await fetch(this.rpcUrl, {
       method: "POST",
-      headers: { "content-type": "application/json", "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg" },
+      headers: { "content-type": "application/json", "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg", ...buildAuthorizationHeader() },
       body: JSON.stringify({
         id: 1,
         jsonrpc: "2.0",
