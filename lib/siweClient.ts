@@ -1,4 +1,5 @@
 import { buildAuthorizationHeader } from '@/lib/authToken';
+import { setSiweSessionNonce } from '@/lib/web3/siweNonce';
 import { SiweMessage } from "siwe";
 
 export type SiweNonceResponse = {
@@ -108,6 +109,8 @@ export async function siweNonce() {
     throw new Error("SIWE nonce response is missing sessionId or nonce.");
   }
 
+  setSiweSessionNonce(data.nonce);
+
   return { sessionId, nonce: data.nonce, ttlSeconds: data.ttlSeconds };
 }
 
@@ -116,7 +119,8 @@ export async function siweVerify(payload: SiweVerifyPayload) {
     throw new Error("SIWE verify payload must include sessionId, preparedMessage, and signature.");
   }
 
-  const { message } = assertValidSiweMessage({ message: payload.preparedMessage });
+  const { message, parsed } = assertValidSiweMessage({ message: payload.preparedMessage });
+  setSiweSessionNonce(parsed.nonce);
 
   const body = {
     sessionId: payload.sessionId,

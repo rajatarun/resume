@@ -1,4 +1,5 @@
 import { createHmac } from 'crypto';
+import { getSiweSessionNonce } from '@/lib/web3/siweNonce';
 
 type AuthPayload = Record<string, unknown>;
 
@@ -45,7 +46,8 @@ const createJwtToken = (payload: AuthPayload, secret: string): string => {
   return `${encodedHeader}.${encodedPayload}.${signature}`;
 };
 
-export const buildAuthorizationToken = (payload: AuthPayload = DEFAULT_PAYLOAD): string | undefined => {
+export const buildAuthorizationToken = (payload?: AuthPayload): string | undefined => {
+  const siweNonce = getSiweSessionNonce();
   const publicToken = getPublicAuthorizationToken();
 
   if (typeof window !== 'undefined') {
@@ -57,7 +59,7 @@ export const buildAuthorizationToken = (payload: AuthPayload = DEFAULT_PAYLOAD):
     return publicToken;
   }
 
-  return createJwtToken(payload, secret);
+  return createJwtToken({ ...DEFAULT_PAYLOAD, ...(siweNonce ? { nounce: siweNonce } : {}), ...(payload ?? {}) }, secret);
 };
 
 export const buildAuthorizationHeader = (payload?: AuthPayload): Record<string, string> => {

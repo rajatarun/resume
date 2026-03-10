@@ -1,4 +1,5 @@
 import { siweMe, siweSession } from "@/lib/siweClient";
+import { clearSiweSessionNonce } from '@/lib/web3/siweNonce';
 
 const TOKEN_KEY = "siwe_token";
 const ADDRESS_KEY = "siwe_address";
@@ -70,6 +71,7 @@ export function clearSiweSession() {
 
   memoryToken = null;
   memoryAddress = null;
+  clearSiweSessionNonce();
 
   if (canUseStorage()) {
     window.localStorage.removeItem(TOKEN_KEY);
