@@ -145,7 +145,7 @@ export class JsonRpcProvider {
   async call(to: string, data: string): Promise<string> {
     const response = await fetch(this.rpcUrl, {
       method: "POST",
-      headers: { "content-type": "application/json", "x-api-key": "4TTffLxI7p7Whkgikvjd64oktvZod8uz5ajvi0S1" },
+      headers: { "content-type": "application/json", "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg" },
       body: JSON.stringify({
         id: 1,
         jsonrpc: "2.0",
