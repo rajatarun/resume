@@ -1,3 +1,5 @@
+import { buildAuthorizationHeader } from '@/lib/authToken';
+
 export const API = process.env.NEXT_PUBLIC_AGENT_MANAGEMENT_API_BASE;
 
 if (!API) {
@@ -44,7 +46,8 @@ function isPlainObject(value: unknown): value is Record<string, Json> {
 
 export async function apiFetch<TResponse>(path: string, options: ApiOptions = {}): Promise<TResponse> {
   const method = options.method?.toUpperCase() ?? 'GET';
-  const headers = new Headers(options.headers ?? {});
+  const authHeaders = buildAuthorizationHeader();
+  const headers = new Headers({ ...authHeaders, ...(options.headers ? Object.fromEntries(new Headers(options.headers).entries()) : {}) });
   if (!headers.has('x-api-key')) {
     headers.set('x-api-key', '4TTffLxI7p7Whkgikvjd64oktvZod8uz5ajvi0S1');
   }
