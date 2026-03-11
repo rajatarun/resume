@@ -7,6 +7,8 @@ const DEFAULT_PAYLOAD: AuthPayload = {
   source: 'resume-web-client'
 };
 
+const SIWE_TOKEN_KEY = 'siwe_token';
+
 const ONE_HOUR_SECONDS = 60 * 60;
 
 const resolveFeatureFromUri = (uri: string): string | undefined => {
@@ -77,6 +79,14 @@ export const buildAuthorizationToken = (payload?: AuthPayload): string | undefin
   const publicToken = getPublicAuthorizationToken();
 
   if (typeof window !== 'undefined') {
+    try {
+      const siweToken = window.localStorage.getItem(SIWE_TOKEN_KEY);
+      if (siweToken && isValidJwtFormat(siweToken)) {
+        return siweToken;
+      }
+    } catch {
+      // localStorage may be unavailable in some browser contexts
+    }
     return publicToken && isValidJwtFormat(publicToken) ? publicToken : undefined;
   }
 

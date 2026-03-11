@@ -463,9 +463,9 @@ export const updateArticleContent = async ({
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
       'x-api-key': 'aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg',
-      ...buildAuthorizationHeaderForUri(`/admin/articles/${encodeURIComponent(id)}`)
+      ...buildAuthorizationHeaderForUri(`/admin/articles/${encodeURIComponent(id)}`),
+      Authorization: `Bearer ${token}`
     },
     body: JSON.stringify({
       generated: {
