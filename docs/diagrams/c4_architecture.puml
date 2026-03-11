@@ -1,0 +1,104 @@
+@startuml c4_context
+' ─── Local C4 stdlib (no remote URLs) ─────────────────────────────────────
+!include c4lib/C4_Context.puml
+
+' ─────────────────────────────────────────────
+'  C4 — Context Diagram
+' ─────────────────────────────────────────────
+title C4 Context — chatbot-resume (Tarun Raja Personal Website)
+
+LAYOUT_WITH_LEGEND()
+
+Person(visitor, "Public Visitor", "Browses projects, resume, blog, and chat")
+Person(recruiter, "Recruiter", "Wallet-connected user checking the gated recruiter section")
+Person(admin, "Site Owner / Admin", "Wallet-connected admin managing content and agents")
+
+System(website, "chatbot-resume Website", "Personal professional website + AI chatbot + Agent Studio\n(Next.js 14 static export, AWS Amplify)")
+
+System_Ext(openai, "OpenAI API", "LLM chat completions (gpt-4o-mini)\nand text embeddings (text-embedding-3-small)")
+System_Ext(github, "GitHub GraphQL API", "Repository metadata fetched at build time\nfor the portfolio/projects pages")
+System_Ext(ethereum, "Ethereum / Polygon Amoy", "EVM-compatible chain for wallet auth (SIWE)\nand RecruiterPass ERC-721 NFT")
+System_Ext(walletconnect, "WalletConnect", "QR-code based wallet connection relay\n(for mobile wallets)")
+System_Ext(zoom, "Zoom", "External meeting booking link\nfor the /appointment page")
+
+Rel(visitor, website, "Browses pages, uses AI chat", "HTTPS")
+Rel(recruiter, website, "Connects wallet, signs SIWE, views recruiter content", "HTTPS + SIWE")
+Rel(admin, website, "Manages articles, agents, newsletter via admin dashboard", "HTTPS + SIWE")
+
+Rel(website, openai, "Sends chat completions and embedding requests", "HTTPS / REST")
+Rel(website, github, "Fetches repository data at build time", "HTTPS / GraphQL (CI only)")
+Rel(website, ethereum, "Verifies wallet signatures and ERC-721 NFT balances", "JSON-RPC / HTTPS")
+Rel(website, walletconnect, "Relays wallet connection for mobile users", "WSS")
+Rel_Back(visitor, zoom, "Books appointment via external Zoom link", "HTTPS")
+
+@enduml
+
+
+@startuml c4_containers
+' ─── Local C4 stdlib (no remote URLs) ─────────────────────────────────────
+!include c4lib/C4_Container.puml
+
+' ─────────────────────────────────────────────
+'  C4 — Container Diagram
+' ─────────────────────────────────────────────
+title C4 Container — chatbot-resume
+
+LAYOUT_WITH_LEGEND()
+
+Person(visitor, "Public Visitor")
+Person(recruiter_admin, "Recruiter / Admin", "Wallet-authenticated user")
+
+System_Boundary(aws_hosting, "AWS Amplify Hosting") {
+  Container(cloudfront, "Amazon CloudFront", "CDN", "Edge-caches and delivers static assets globally with HTTPS")
+  Container(s3, "Amazon S3", "Object Storage", "Hosts the compiled Next.js static export (out/ directory)")
+}
+
+System_Boundary(nextjs_app, "Next.js Application (Static Export)") {
+  Container(web_ui, "Next.js Frontend", "React 18 / TypeScript / TailwindCSS", "All public pages:\nhome, resume, portfolio, blog, chat, labs, admin, recruiter, onchain")
+  Container(newsletter_api, "Newsletter API Route", "Next.js API Route (Node.js)", "POST /api/newsletter\nIn-memory email storage (MVP, not persisted)")
+}
+
+System_Boundary(aws_backend, "AWS Serverless Backend") {
+  Container(api_gateway, "API Gateway", "AWS REST API", "Routes browser requests to Lambda functions\nEnforces throttling and API key authentication")
+  Container(lambda_chat, "Chat Lambda", "Node.js / Python", "RAG retrieval + OpenAI chat completions\nStreams SSE response back to the browser")
+  Container(lambda_siwe, "SIWE Lambda", "Node.js", "Handles wallet auth:\n/siwe/nonce /siwe/verify /siwe/session /siwe/me")
+  Container(lambda_admin, "Admin Lambda", "Node.js", "Article CRUD, agent management\nsubscriber APIs for admin dashboard")
+}
+
+System_Boundary(data_layer, "Data Layer (Terraform-managed VPC)") {
+  ContainerDb(rds, "Amazon RDS PostgreSQL 16", "PostgreSQL + pgvector extension", "Stores resume_chunks with\n1536-dimension vector embeddings\nfor semantic RAG retrieval (IVFFlat index)")
+}
+
+System_Ext(openai, "OpenAI API", "gpt-4o-mini (chat)\ntext-embedding-3-small (embeddings)")
+System_Ext(github_api, "GitHub GraphQL API", "Build-time project data source")
+System_Ext(ethereum_rpc, "Ethereum / Polygon Amoy RPC", "Wallet signature verification\nand ERC-721 NFT balance checks")
+
+' Visitor page flow
+Rel(visitor, cloudfront, "HTTPS requests", "HTTPS")
+Rel(cloudfront, s3, "Fetches static assets", "HTTPS (origin)")
+Rel(s3, web_ui, "Serves HTML / CSS / JS")
+Rel(visitor, web_ui, "Interacts with React SPA", "Browser")
+
+' Chat flow
+Rel(web_ui, api_gateway, "POST /chat (streaming SSE)", "HTTPS")
+Rel(api_gateway, lambda_chat, "Invokes chat handler", "AWS SDK")
+Rel(lambda_chat, rds, "Vector similarity search on resume_chunks", "SQL + pgvector")
+Rel(lambda_chat, openai, "Chat completions (gpt-4o-mini)", "HTTPS")
+
+' Auth flow
+Rel(recruiter_admin, web_ui, "Connects wallet + signs SIWE message", "Browser / wagmi")
+Rel(web_ui, api_gateway, "POST /siwe/* (nonce, verify, session)", "HTTPS")
+Rel(api_gateway, lambda_siwe, "Invokes SIWE handler", "AWS SDK")
+Rel(web_ui, ethereum_rpc, "Checks RecruiterPass ERC-721 balance", "JSON-RPC")
+
+' Admin flow
+Rel(web_ui, api_gateway, "Admin CRUD calls (Bearer JWT)", "HTTPS")
+Rel(api_gateway, lambda_admin, "Invokes admin handler", "AWS SDK")
+
+' Newsletter
+Rel(visitor, newsletter_api, "POST /api/newsletter", "HTTPS")
+
+' Build time
+Rel_Back(github_api, web_ui, "Build-time GraphQL fetch -> public/projects.json", "HTTPS (CI build only)")
+
+@enduml

@@ -2,6 +2,33 @@
 
 Professional personal website built with **Next.js App Router + TypeScript + TailwindCSS**.
 
+## Architecture Documentation
+
+| File | Description |
+|------|-------------|
+| [`CLAUDE.md`](./CLAUDE.md) | Claude Code quickstart — commands, env vars, gotchas |
+| [`docs/architecture.md`](./docs/architecture.md) | Full architecture reference — components, data flows, design decisions |
+| [`docs/diagrams/c4_architecture.puml`](./docs/diagrams/c4_architecture.puml) | C4 Context + Container diagrams (PlantUML source) |
+| [`docs/diagrams/c4_context.png`](./docs/diagrams/c4_context.png) | C4 Context diagram (rendered PNG) |
+| [`docs/diagrams/c4_containers.png`](./docs/diagrams/c4_containers.png) | C4 Container diagram (rendered PNG) |
+| [`docs/diagrams/aws_architecture.puml`](./docs/diagrams/aws_architecture.puml) | AWS service diagram with local icons (PlantUML source) |
+| [`docs/diagrams/aws_architecture.png`](./docs/diagrams/aws_architecture.png) | AWS architecture diagram (rendered PNG) |
+| [`docs/diagrams/c4lib/`](./docs/diagrams/c4lib/) | Locally downloaded C4-PlantUML stdlib (no remote URLs) |
+| [`docs/diagrams/awslib/`](./docs/diagrams/awslib/) | Locally cloned AWS icons for PlantUML (awslabs/aws-icons-for-plantuml) |
+
+### Re-rendering diagrams
+
+```bash
+# Install dependencies (first time only)
+sudo apt-get install -y default-jre graphviz
+wget -q https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar -O /usr/local/bin/plantuml.jar
+
+# Render all diagrams from docs/diagrams/
+cd docs/diagrams
+java -jar /usr/local/bin/plantuml.jar -tpng c4_architecture.puml -o ./
+java -jar /usr/local/bin/plantuml.jar -tpng aws_architecture.puml -o ./
+```
+
 ## Features
 
 - Deep-link pages:

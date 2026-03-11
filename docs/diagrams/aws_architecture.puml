@@ -1,0 +1,120 @@
+@startuml aws_architecture
+
+' ─── Local AWS icons (cloned from awslabs/aws-icons-for-plantuml) ───────────
+' All icon includes point to the locally cloned dist folder — no remote URLs.
+!define AWSLIB awslib/aws-icons-for-plantuml/dist
+!include AWSLIB/AWSCommon.puml
+!include AWSLIB/FrontEndWebMobile/Amplify.puml
+!include AWSLIB/NetworkingContentDelivery/CloudFront.puml
+!include AWSLIB/Storage/SimpleStorageService.puml
+!include AWSLIB/NetworkingContentDelivery/APIGateway.puml
+!include AWSLIB/Compute/Lambda.puml
+!include AWSLIB/Database/RDS.puml
+!include AWSLIB/NetworkingContentDelivery/VPCVirtualprivatecloudVPC.puml
+
+' ─── Layout ──────────────────────────────────────────────────────────────────
+title AWS Architecture — chatbot-resume (Tarun Raja Personal Website)
+left to right direction
+skinparam linetype ortho
+skinparam rectangleRoundCorner 10
+skinparam defaultFontName Arial
+skinparam ArrowColor #555555
+
+' ─── Actors ──────────────────────────────────────────────────────────────────
+actor "Public Visitor" as visitor #LightBlue
+actor "Recruiter / Admin\n(Wallet User)" as admin_user #LightGreen
+actor "CI/CD Build\n(Amplify)" as cicd #LightYellow
+
+' ─── External systems ────────────────────────────────────────────────────────
+cloud "OpenAI API\n(gpt-4o-mini / text-embedding-3-small)" as openai #LightGray
+cloud "GitHub\nGraphQL API" as github #LightGray
+cloud "Ethereum / Polygon Amoy\n(EVM JSON-RPC)" as ethereum #LightGray
+cloud "WalletConnect\nRelay" as wc #LightGray
+
+' ─── AWS Infrastructure ──────────────────────────────────────────────────────
+rectangle "AWS" {
+
+  ' ── Static Hosting ─────────────────────────────────────────────────────
+  rectangle "Static Hosting\n(Amplify + S3 + CloudFront)" #FFEFD5 {
+    Amplify(amplify, "AWS Amplify", "CI/CD pipeline\nnpm build -> out/")
+    SimpleStorageService(s3, "Amazon S3", "Static site bucket\n(Next.js out/ export)")
+    CloudFront(cf, "Amazon CloudFront", "CDN edge cache\nHTTPS termination")
+  }
+
+  ' ── Serverless APIs ────────────────────────────────────────────────────
+  rectangle "Serverless Backend\n(API Gateway + Lambda)" #E8F5E9 {
+    APIGateway(apigw, "API Gateway", "REST API\nThrottling + API key auth")
+    Lambda(lambda_chat, "Chat Lambda", "RAG retrieval +\nOpenAI streaming (SSE)")
+    Lambda(lambda_siwe, "SIWE Lambda", "/nonce /verify\n/session /me")
+    Lambda(lambda_admin, "Admin Lambda", "Articles, agents,\nsubscribers CRUD")
+  }
+
+  ' ── Data Layer (VPC) ───────────────────────────────────────────────────
+  rectangle "VPC  10.50.0.0/16\n(Private Subnets AZ-a / AZ-b)" #E3F2FD {
+    VPCVirtualprivatecloudVPC(vpc_box, "Private Subnets", "Security group: port 5432 only")
+    RDS(rds, "RDS PostgreSQL 16\n(db.t4g.micro, 20 GB)", "resume_chunks table\npgvector 1536-dim IVFFlat index")
+  }
+
+}
+
+' ─── Relationships ───────────────────────────────────────────────────────────
+
+' CI/CD build pipeline
+cicd --> amplify : "git push triggers build\n(sync:projects + next build)"
+amplify --> s3 : "Upload out/ artifacts"
+s3 --> cf : "S3 origin"
+
+' Visitor public page flow
+visitor --> cf : "HTTPS GET pages"
+visitor --> apigw : "POST /chat (streaming)"
+
+' Admin / recruiter flow
+admin_user --> cf : "HTTPS"
+admin_user --> apigw : "POST /siwe/* , /admin/*\n(Bearer JWT)"
+admin_user --> ethereum : "Wallet connect +\nSIWE sign + NFT check"
+admin_user --> wc : "WalletConnect relay\n(mobile wallets)"
+
+' API Gateway fan-out
+apigw --> lambda_chat : "Invoke (chat)"
+apigw --> lambda_siwe : "Invoke (SIWE auth)"
+apigw --> lambda_admin : "Invoke (admin CRUD)"
+
+' Lambda -> external
+lambda_chat --> rds : "pgvector similarity\nsearch (SQL)"
+lambda_chat --> openai : "Chat completions\n+ embeddings (HTTPS)"
+
+' RDS inside VPC
+lambda_chat --> vpc_box
+rds -[hidden]- vpc_box
+
+' Build-time GitHub sync (not runtime)
+cicd --> github : "GraphQL fetch\n(GITHUB_TOKEN, build-time only)"
+
+note bottom of rds
+  Terraform-managed:
+  aws_db_instance "postgres 16"
+  aws_vpc + private subnets
+  aws_security_group (port 5432)
+end note
+
+note bottom of lambda_chat
+  Configurable via env:
+  LLM_PROVIDER=openai|bedrock
+  VECTOR_STORE=memory|rds
+end note
+
+note right of s3
+  Amplify manages the S3 bucket.
+  CloudFront invalidation runs
+  on each successful deploy.
+end note
+
+note top of cicd
+  amplify.yml:
+  1. npm install
+  2. npm run sync:projects
+  3. npm run build
+  artifacts: out/**
+end note
+
+@enduml
