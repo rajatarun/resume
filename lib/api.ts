@@ -194,7 +194,6 @@ export const postChatQuestion = async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg",
         ...buildAuthorizationHeaderForUri(endpoint)
       },
       body: JSON.stringify(request),
@@ -241,7 +240,6 @@ export const postAboutChatQuestion = async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg",
         ...buildAuthorizationHeaderForUri(endpoint)
       },
       body: JSON.stringify({
@@ -298,7 +296,6 @@ export const streamChatQuestion = async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg",
         ...buildAuthorizationHeaderForUri(endpoint)
       },
       body: JSON.stringify(request),
@@ -498,7 +495,6 @@ const fetchJson = async <T>(path: string): Promise<T> => {
   const response = await fetch(`${getBlogApiBaseUrl()}${path}`, {
     headers: {
       Accept: 'application/json',
-      'x-api-key': 'aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg',
       ...buildAuthorizationHeaderForUri(path)
     },
     cache: 'no-store'
@@ -565,7 +561,6 @@ export const updateArticleContent = async ({
       Accept: 'application/json',
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
-      'x-api-key': 'aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg',
       ...buildAuthorizationHeaderForUri(`/admin/articles/${encodeURIComponent(id)}`)
     },
     body: JSON.stringify({
