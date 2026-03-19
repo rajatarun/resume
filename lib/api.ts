@@ -10,6 +10,28 @@ export interface ChatResponse {
   requestId?: string;
 }
 
+export interface AboutChatRequest {
+  question: string;
+  maxResults?: number;
+  includeGraphExpansion?: boolean;
+}
+
+export interface AboutChatSource {
+  file?: string;
+  excerpt?: string;
+  weight?: number;
+  [key: string]: unknown;
+}
+
+export interface AboutChatResponse {
+  answer: string;
+  confidence?: number;
+  questionType?: string;
+  routingDecision?: Record<string, unknown>;
+  sources: AboutChatSource[];
+  requestId?: string;
+}
+
 interface StreamChatOptions {
   timeoutMs?: number;
   onToken?: (token: string) => void;
@@ -126,6 +148,34 @@ const logRequestId = (requestId?: string) => {
   }
 };
 
+const validateAboutChatResponse = (data: Partial<AboutChatResponse>, status?: number): AboutChatResponse => {
+  if (typeof data.answer !== "string" || !Array.isArray(data.sources)) {
+    throw new ApiError("Invalid response format from about chat API.", status);
+  }
+
+  return {
+    answer: data.answer,
+    confidence: typeof data.confidence === "number" ? data.confidence : undefined,
+    questionType: typeof data.questionType === "string" ? data.questionType : undefined,
+    routingDecision:
+      data.routingDecision && typeof data.routingDecision === "object"
+        ? (data.routingDecision as Record<string, unknown>)
+        : undefined,
+    sources: data.sources as AboutChatSource[],
+    requestId: typeof data.requestId === "string" ? data.requestId : undefined
+  };
+};
+
+const getAboutChatEndpoint = (): string => {
+  const endpoint = process.env.NEXT_PUBLIC_ABOUT_CHAT_API ?? process.env.NEXT_PUBLIC_CHAT_API;
+
+  if (!endpoint) {
+    throw new ApiError("Missing NEXT_PUBLIC_ABOUT_CHAT_API configuration.");
+  }
+
+  return endpoint;
+};
+
 export const postChatQuestion = async (
   request: ChatRequest,
   timeoutMs: number = DEFAULT_TIMEOUT_MS
@@ -156,6 +206,57 @@ export const postChatQuestion = async (
     }
 
     const data = parseChatResponseFromText(await response.text(), response.status);
+    const requestId = data.requestId ?? getRequestIdFromHeaders(response);
+    logRequestId(requestId);
+
+    return {
+      ...data,
+      requestId
+    };
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new ApiError("Chat request timed out. Please try again.");
+    }
+
+    if (error instanceof ApiError) {
+      throw error;
+    }
+
+    throw new ApiError("Unable to reach chat service. Please try again.");
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
+
+export const postAboutChatQuestion = async (
+  request: AboutChatRequest,
+  timeoutMs: number = DEFAULT_TIMEOUT_MS
+): Promise<AboutChatResponse> => {
+  const endpoint = getAboutChatEndpoint();
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": "aUzjadBOca1GEWrlrM1cGIoGhpcEPZ6aEL2ZHavg",
+        ...buildAuthorizationHeaderForUri(endpoint)
+      },
+      body: JSON.stringify({
+        question: request.question,
+        maxResults: request.maxResults ?? 5,
+        includeGraphExpansion: request.includeGraphExpansion ?? true
+      }),
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      throw new ApiError(await parseErrorMessage(response), response.status);
+    }
+
+    const data = validateAboutChatResponse(tryParseJsonObject(await response.text()) as Partial<AboutChatResponse>, response.status);
     const requestId = data.requestId ?? getRequestIdFromHeaders(response);
     logRequestId(requestId);
 

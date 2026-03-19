@@ -1,8 +1,8 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { streamChatQuestion } from "@/lib/api";
-import { buildRecruiterModeQuestion, getRecruiterModeConfig, type RecruiterMode } from "@/lib/recruiter";
+import { postAboutChatQuestion, type AboutChatResponse } from "@/lib/api";
+import { getRecruiterModeConfig, type RecruiterMode } from "@/lib/recruiter";
 import { Button } from "@/components/Button";
 import { Textarea } from "@/components/Input";
 
@@ -10,7 +10,7 @@ type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
-  citations?: unknown[];
+  metadata?: AboutChatResponse;
 };
 
 const createId = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -69,31 +69,19 @@ export function ChatPane({ mode }: { mode: RecruiterMode }) {
     setIsSubmitting(true);
 
     try {
-      const response = await streamChatQuestion(
-        { question: buildRecruiterModeQuestion(mode, trimmedQuestion) },
-        {
-          onToken: (token) => {
-            setMessages((prev) =>
-              prev.map((message) =>
-                message.id === assistantMessageId
-                  ? {
-                      ...message,
-                      content: `${message.content}${token}`
-                    }
-                  : message
-              )
-            );
-          }
-        }
-      );
+      const response = await postAboutChatQuestion({
+        question: trimmedQuestion,
+        maxResults: 5,
+        includeGraphExpansion: true
+      });
 
       setMessages((prev) =>
         prev.map((message) =>
           message.id === assistantMessageId
             ? {
                 ...message,
-                content: message.content || response.answer,
-                citations: response.citations
+                content: response.answer,
+                metadata: response
               }
             : message
         )
@@ -123,10 +111,43 @@ export function ChatPane({ mode }: { mode: RecruiterMode }) {
             }`}
           >
             <p className="whitespace-pre-wrap leading-relaxed">{message.content || " "}</p>
-            {message.role === "assistant" && message.citations && message.citations.length > 0 ? (
+            {message.role === "assistant" && message.metadata ? (
               <details className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-2 text-xs text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                <summary className="cursor-pointer font-medium">Citations ({message.citations.length})</summary>
-                <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-words">{JSON.stringify(message.citations, null, 2)}</pre>
+                <summary className="cursor-pointer font-medium">Response details</summary>
+                <div className="mt-2 space-y-2">
+                  <dl className="grid gap-1 sm:grid-cols-2">
+                    {typeof message.metadata.confidence === "number" ? (
+                      <>
+                        <dt className="font-medium">Confidence</dt>
+                        <dd>{message.metadata.confidence}</dd>
+                      </>
+                    ) : null}
+                    {message.metadata.questionType ? (
+                      <>
+                        <dt className="font-medium">Question type</dt>
+                        <dd>{message.metadata.questionType}</dd>
+                      </>
+                    ) : null}
+                    {message.metadata.requestId ? (
+                      <>
+                        <dt className="font-medium">Request ID</dt>
+                        <dd className="break-all">{message.metadata.requestId}</dd>
+                      </>
+                    ) : null}
+                  </dl>
+                  {message.metadata.routingDecision ? (
+                    <div>
+                      <p className="font-medium">Routing decision</p>
+                      <pre className="mt-1 overflow-x-auto whitespace-pre-wrap break-words">{JSON.stringify(message.metadata.routingDecision, null, 2)}</pre>
+                    </div>
+                  ) : null}
+                  {message.metadata.sources.length > 0 ? (
+                    <div>
+                      <p className="font-medium">Sources ({message.metadata.sources.length})</p>
+                      <pre className="mt-1 overflow-x-auto whitespace-pre-wrap break-words">{JSON.stringify(message.metadata.sources, null, 2)}</pre>
+                    </div>
+                  ) : null}
+                </div>
               </details>
             ) : null}
           </article>
