@@ -7,20 +7,25 @@ export const metadata: Metadata = routeMetadata["/"];
 
 const expertise = [
   {
-    title: "Trust-Aware AI",
-    description: "Design practical AI systems with governance, safety, and performance built in from day one."
+    title: "Full-Stack Engineering",
+    description: "End-to-end delivery of customer-facing SPAs and high-throughput Java APIs powering global banking operations at JP Morgan Chase."
   },
   {
-    title: "Observability Platforms",
-    description: "Build production-ready platform foundations with measurable reliability and clear incident intelligence."
+    title: "Cloud & Platform Ops",
+    description: "AWS, Kubernetes (CKAD), Terraform, and CI/CD pipelines supporting multi-region fintech infrastructure at enterprise scale."
   },
   {
-    title: "Career Mentoring",
-    description: "Coach engineers to communicate architecture decisions, influence teams, and lead with confidence."
+    title: "AI Integration",
+    description: "Practical LLM orchestration and agentic workflows embedded in real fintech products — production-grade automation, not demos."
   }
 ] as const;
 
-const outcomes = [{ metric: "10+", label: "Years of experience" }] as const;
+const outcomes = [
+  { metric: "10+", label: "Years at JP Morgan Chase" },
+  { metric: "VP", label: "Engineering seniority level" },
+  { metric: "3", label: "Engineering teams led" },
+  { metric: "CKAD · AWS", label: "Cloud certifications" },
+] as const;
 
 function ExpertiseSnapshot() {
   return (
@@ -54,7 +59,7 @@ function FeaturedOutcomes() {
           View full portfolio →
         </Link>
       </div>
-      <div className="mt-8 grid gap-6 md:grid-cols-1">
+      <div className="mt-8 grid gap-6 sm:grid-cols-2 md:grid-cols-4">
         {outcomes.map((item) => (
           <article key={item.label} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <p className="text-3xl font-bold text-sky-700 dark:text-sky-300">{item.metric}</p>
@@ -118,13 +123,13 @@ export default function HomePage() {
         <div className="grid items-center gap-10 lg:grid-cols-[1.2fr_1fr]">
           <div className="text-center lg:text-left">
             <p className="inline-flex rounded-full border border-white/20 bg-white/5 px-4 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-sky-200">
-              Mentorship · AI Architecture · Platform Reliability
+              Fintech · Full-Stack Engineering · Cloud &amp; DevOps · AI
             </p>
             <h1 className="mt-5 text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
-              Tarun Raja — AI Systems Technologist & Platform Architect
+              Tarun Raja — Senior Software Engineering Leader
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-200 lg:mx-0">
-              I help engineers and teams build reliable AI systems, deliver resilient platforms, and grow into trusted technical leaders through practical mentorship and execution playbooks.
+              10+ years building high-scale fintech platforms at JP Morgan Chase. I architect full-stack systems, lead cloud-native infrastructure, and pragmatically integrate AI — driving cross-functional engineering teams from VP level to ship reliable systems at scale.
             </p>
             <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start">
               <Link
