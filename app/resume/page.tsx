@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ExperienceTimeline } from "@/components/ExperienceTimeline";
 import { SkillBadges } from "@/components/SkillBadges";
+import { SkillDepthChart } from "@/components/SkillDepthChart";
 import { experienceArtifactKeys } from "@/lib/artifacts";
 import { recordProof } from "@/lib/proof";
 import { resume } from "@/lib/resume";
@@ -35,7 +36,10 @@ export default async function ResumePage() {
 
       <section>
         <h2 className="mb-4 text-xl font-semibold">Skills</h2>
-        <SkillBadges groups={resume.skills.groups} />
+        <SkillDepthChart groups={resume.skills.groups} />
+        <div className="mt-6">
+          <SkillBadges groups={resume.skills.groups} />
+        </div>
       </section>
 
       <section>

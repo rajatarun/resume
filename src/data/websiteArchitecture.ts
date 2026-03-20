@@ -51,8 +51,16 @@ export const websiteArchitectureStack: StackData = {
   ],
   design_patterns: [
     { name: "Config-driven modules", status: "Implemented", notes: "Agents, pricing, and content metadata loaded from local typed catalogs." },
+    { name: "Data-driven TypeScript typing", status: "Implemented", notes: "Types inferred via typeof rawResume — adding a field to resume.json propagates to all consumers automatically." },
+    { name: "Provider abstraction (Strategy pattern)", status: "Implemented", notes: "LLM provider swapped via LLM_PROVIDER env var; getProvider() factory decouples call sites from implementations." },
     { name: "Serverless orchestration", status: "Implemented", notes: "Browser-to-API Gateway flow for non-SSR control planes." },
     { name: "Separation of concerns", status: "Implemented", notes: "Static UI rendering stays decoupled from remote workflow APIs." },
+    { name: "Progressive disclosure", status: "Implemented", notes: "SkillDepthChart gives visual breadth/depth overview; SkillBadges provides full detail — layered information hierarchy." },
+    { name: "Staggered Framer Motion animation", status: "Implemented", notes: "SkillDepthChart bars animate height 0 → target with per-index delay; performant entrance with no layout shift." },
+    { name: "Build-time cache-ahead (GitHub sync)", status: "Implemented", notes: "GitHub data fetched once at prebuild; client reads static JSON — no live API call at runtime." },
+    { name: "WAI-ARIA 1.1 tab navigation", status: "Implemented", notes: "Tabs (Labs) implements role=tablist/tab, aria-selected, tabIndex=-1 on inactive tabs, and arrow-key navigation per WAI-ARIA authoring practices." },
+    { name: "Focus trap pattern", status: "Implemented", notes: "useFocusTrap hook (zero-dependency) traps Tab/Shift-Tab within open modals and restores previously-focused element on close." },
+    { name: "ARIA live region for async content", status: "Implemented", notes: "Chat page uses aria-live=polite on message list, aria-busy on form, and always-rendered role=alert for error announcements." },
     { name: "Idempotent workflow steps", status: "Planned", notes: "State transition guards and retry-safe mutations for admin pipelines." },
     { name: "Policy-as-code guards", status: "Planned", notes: "Codified access and cost guardrails for admin and agent execution." }
   ],
@@ -207,11 +215,16 @@ export const websiteArchitectureSections: ArchitectureSection[] = [
     id: "patterns",
     title: "9) Design Patterns Used",
     body: [
-      "Config-driven modules: agent/team behavior is loaded from typed data catalogs instead of hard-coded conditionals.",
-      "Event-driven/serverless orchestration: workflows are modeled as API-triggered units that can evolve independently.",
-      "Separation of concerns: static UI and orchestration APIs are independently deployable.",
-      "Idempotent workflow steps: mutation boundaries are designed so retries do not duplicate side effects.",
-      "Policy-as-code guards: access/cost boundaries can be enforced centrally rather than per-component."
+      "Config-driven modules: agent/team behavior loaded from typed catalogs (lib/agentsCatalog.ts, lib/pricing.ts) — no per-component conditionals.",
+      "Data-driven TypeScript typing: types inferred via typeof rawResume; adding yearsExp to resume.json propagates to SkillGroup without manual type edits.",
+      "Provider abstraction (Strategy pattern): getProvider() factory in lib/providers/index.ts swaps LLM implementations via LLM_PROVIDER env var.",
+      "Progressive disclosure: SkillDepthChart gives at-a-glance breadth/depth overview; SkillBadges below provides full enumerated detail.",
+      "Staggered Framer Motion animation: SkillDepthChart bars animate height 0 → target with per-index 80ms delay for a performant, no-layout-shift entrance.",
+      "Serverless orchestration: all state-bearing operations delegated to API Gateway → Lambda; static site shell never touches server runtime.",
+      "Separation of concerns: static Next.js export and serverless APIs are independently deployable units.",
+      "Build-time cache-ahead: GitHub API called once at prebuild, result written to public/projects.json — zero runtime cost and no token exposure to clients.",
+      "Idempotent workflow steps (planned): mutation boundaries designed so retries do not duplicate side effects.",
+      "Policy-as-code guards (planned): access and cost boundaries enforced centrally for admin and agent execution."
     ],
     diagram: {
       title: "E) Agent Studio Execution + Cost Boundary",
@@ -226,8 +239,41 @@ export const websiteArchitectureSections: ArchitectureSection[] = [
     }
   },
   {
+    id: "accessibility",
+    title: "10) Accessibility (ADA) Patterns",
+    body: [
+      "The site follows WCAG 2.1 AA guidelines and WAI-ARIA 1.1 authoring practices. All patterns below are fully implemented.",
+      "Skip link (bypass navigation): SkipLink component renders a visually hidden 'Skip to main content' link above the sticky header. CSS translateY hides it until keyboard focus; z-[100] ensures it appears above navigation. Target: id=main-content on the <main> element.",
+      "Active navigation indication (aria-current): TopNav uses usePathname() to set aria-current='page' on the active link at render time — applied to desktop links, mobile links, and dropdown items.",
+      "WAI-ARIA 1.1 tab panel (Labs Tabs): role=tablist on the container; role=tab, aria-selected, aria-controls, and id on each tab button. Inactive tabs use tabIndex=-1; focus managed programmatically. ArrowRight/ArrowLeft cycle tabs; Home/End jump to first/last.",
+      "Focus trap (modal containment): useFocusTrap hook (hooks/useFocusTrap.ts, zero-dependency) constrains Tab/Shift-Tab to focusable elements inside an open dialog. requestAnimationFrame moves initial focus after paint. Stores and restores document.activeElement on close. Respects aria-hidden subtrees.",
+      "Dialog ARIA contract: all modal overlays set role=dialog, aria-modal=true, aria-labelledby pointing to the visible title element. ESC key handler closes modals; guards busy/loading state to prevent premature close. Confirm buttons expose aria-busy during async operations.",
+      "ARIA live regions (chat): message list uses aria-live=polite so tokens are announced after streaming completes. Form carries aria-busy={isLoading}. Error messages use an always-rendered role=alert paragraph to avoid DOM insertion timing issues."
+    ],
+    diagram: {
+      title: "F) Focus Trap + Modal Lifecycle",
+      mermaid: `sequenceDiagram
+  participant U as User (keyboard)
+  participant T as Trigger button
+  participant M as Modal dialog
+  participant H as useFocusTrap hook
+
+  U->>T: Enter / Space / Click
+  T->>M: open = true
+  M->>H: activate trap (enabled=true)
+  H->>H: store document.activeElement
+  H->>M: rAF → focus first focusable element
+  U->>M: Tab / Shift+Tab
+  H->>H: constrain to first↔last focusable
+  U->>M: Escape key
+  M->>M: open = false
+  H->>H: cleanup listener
+  H->>T: restore focus to trigger button`
+    }
+  },
+  {
     id: "tradeoffs",
-    title: "10) Tradeoffs & Roadmap",
+    title: "11) Tradeoffs & Roadmap",
     body: [
       "Intentional simplifications: lightweight SIWE session handling, public static-first architecture, and dummy balances for Agent Studio keep complexity and cost low.",
       "Hardening roadmap: optional Cognito integration, signed API requests, stronger quota enforcement, and DynamoDB-backed token-bucket controls for abuse resistance.",

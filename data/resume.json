@@ -15,6 +15,7 @@
     "groups": [
       {
         "name": "Backend",
+        "yearsExp": 10,
         "items": [
           "Spring Boot",
           "Java"
@@ -22,6 +23,7 @@
       },
       {
         "name": "Frontend",
+        "yearsExp": 10,
         "items": [
           "JavaScript",
           "TypeScript",
@@ -31,6 +33,7 @@
       },
       {
         "name": "Runtime/Platform",
+        "yearsExp": 7,
         "items": [
           "Node.js",
           "Python"
@@ -38,6 +41,7 @@
       },
       {
         "name": "Cloud/DevOps",
+        "yearsExp": 5,
         "items": [
           "AWS",
           "Kubernetes (CKAD Certified)",
@@ -49,6 +53,7 @@
       },
       {
         "name": "AI/LLM",
+        "yearsExp": 3,
         "items": [
           "LangChain",
           "LangGraph",
@@ -59,6 +64,7 @@
       },
       {
         "name": "Practices",
+        "yearsExp": 10,
         "items": [
           "Agile/Kanban",
           "Site Reliability Engineering (SRE)",

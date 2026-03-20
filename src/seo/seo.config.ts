@@ -18,22 +18,22 @@ const sharedImages = [{ url: "/profile-photo.PNG", width: 1200, height: 630, alt
 
 export const routeMetadata: Record<(typeof seoRoutes)[number], Metadata> = {
   "/": {
-    title: "Tarun Raja — AI Systems Architect & Social-Media Technologist",
+    title: "Tarun Raja — Senior Software Engineer & Platform Architect",
     description:
-      "Tarun Raja builds trust-aware AI systems, resilient cloud platforms, and mentoring programs for engineering teams.",
+      "10+ years in fintech engineering at JP Morgan Chase. Full-stack architecture, cloud-native platforms, and AI integration — from codebase to VP-level leadership.",
     alternates: { canonical: "/" },
     openGraph: {
-      title: "Tarun Raja — AI Systems Architect & Social-Media Technologist",
+      title: "Tarun Raja — Senior Software Engineer & Platform Architect",
       description:
-        "Explore Tarun Raja's work in AI systems architecture, SRE-enabled platforms, and social-media technology leadership.",
+        "10+ years in fintech engineering at JP Morgan Chase. Full-stack architecture, cloud-native platforms, and AI integration — from codebase to VP-level leadership.",
       url: "/",
       images: sharedImages
     },
     twitter: {
       card: "summary_large_image",
-      title: "Tarun Raja — AI Systems Architect & Social-Media Technologist",
+      title: "Tarun Raja — Senior Software Engineer & Platform Architect",
       description:
-        "Explore Tarun Raja's work in AI systems architecture, SRE-enabled platforms, and social-media technology leadership.",
+        "10+ years in fintech engineering at JP Morgan Chase. Full-stack architecture, cloud-native platforms, and AI integration — from codebase to VP-level leadership.",
       images: ["/profile-photo.PNG"]
     }
   },
