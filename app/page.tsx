@@ -139,6 +139,12 @@ export default function HomePage() {
                 Book session
               </Link>
               <Link
+                href="/about"
+                className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-cyan-400 bg-transparent px-5 py-3 text-sm font-semibold text-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.7),0_0_24px_rgba(34,211,238,0.35)] transition hover:border-cyan-300 hover:text-white hover:shadow-[0_0_16px_rgba(34,211,238,1),0_0_40px_rgba(34,211,238,0.5)] sm:w-auto"
+              >
+                <span aria-hidden="true">✦</span> Chat about me
+              </Link>
+              <Link
                 href="/labs"
                 className="focus-ring inline-flex w-full items-center justify-center rounded-xl border border-white/30 bg-white/10 px-5 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/20 sm:w-auto"
               >
