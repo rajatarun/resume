@@ -1,6 +1,6 @@
 @startuml c4_context
 ' ─── Local C4 stdlib (no remote URLs) ─────────────────────────────────────
-!include c4lib/C4_Context.puml
+!include ../assets/c4lib/C4_Context.puml
 
 ' ─────────────────────────────────────────────
 '  C4 — Context Diagram
@@ -36,7 +36,7 @@ Rel_Back(visitor, zoom, "Books appointment via external Zoom link", "HTTPS")
 
 @startuml c4_containers
 ' ─── Local C4 stdlib (no remote URLs) ─────────────────────────────────────
-!include c4lib/C4_Container.puml
+!include ../assets/c4lib/C4_Container.puml
 
 ' ─────────────────────────────────────────────
 '  C4 — Container Diagram

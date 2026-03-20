@@ -2,7 +2,7 @@
 
 ' ─── Local AWS icons (cloned from awslabs/aws-icons-for-plantuml) ───────────
 ' All icon includes point to the locally cloned dist folder — no remote URLs.
-!define AWSLIB awslib/aws-icons-for-plantuml/dist
+!define AWSLIB ../assets/awslib/aws-icons-for-plantuml/dist
 !include AWSLIB/AWSCommon.puml
 !include AWSLIB/FrontEndWebMobile/Amplify.puml
 !include AWSLIB/NetworkingContentDelivery/CloudFront.puml
