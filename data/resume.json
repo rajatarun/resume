@@ -179,6 +179,7 @@
     {
       "name": "TaskWeave",
       "subtitle": "Agentic AI Framework",
+      "githubRepo": "rajatarun/taskweave",
       "highlights": [
         {
           "label": "Framework Architecture",
