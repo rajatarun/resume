@@ -48,6 +48,7 @@ Prod     → AWS RDS PostgreSQL 16 (db.t4g.micro in private VPC)
 - **Auth**: SIWE (Sign-In with Ethereum) via API Gateway. ERC721 RecruiterPass NFT check on Polygon Amoy.
 - **CI/CD**: AWS Amplify — runs `sync:projects` then `next build`, publishes `out/`
 - **Infrastructure**: Terraform in `infra/terraform/` provisions VPC, private subnets, RDS instance, and security groups
+- **Accessibility**: WCAG 2.1 AA / WAI-ARIA 1.1 — skip link, `aria-current` nav, focus trap hook, dialog ARIA contract, tab arrow-key navigation, ARIA live regions for chat
 
 ---
 
@@ -69,9 +70,13 @@ Prod     → AWS RDS PostgreSQL 16 (db.t4g.micro in private VPC)
 | `lib/agentsCatalog.ts` | Typed agent definitions (prompts, model, cost, wallet) |
 | `lib/recruiterPass.ts` | ERC721 balance check for RecruiterPass NFT gate |
 | `lib/web3/wagmiConfig.ts` | Wagmi config (Mainnet + Sepolia, WalletConnect, Coinbase) |
-| `data/resume.json` | Source of truth for resume data (experience, skills, projects) |
+| `data/resume.json` | Source of truth for resume data (experience, skills, projects, `yearsExp` per skill group) |
 | `data/resume.schema.json` | JSON Schema for resume.json validation |
 | `src/data/websiteArchitecture.ts` | Architecture stack data and Mermaid diagrams for `/website` page |
+| `components/SkillDepthChart.tsx` | Animated bar chart — Framer Motion staggered bars, height = `yearsExp`, shows engineering breadth & depth |
+| `components/SkipLink.tsx` | Skip-to-main-content link for keyboard/screen reader users (ADA) |
+| `hooks/useFocusTrap.ts` | Zero-dependency focus trap hook — traps Tab/Shift-Tab in open modals, restores focus on close (ADA) |
+| `docs/architecture.md` | Full architecture reference including design patterns and ADA accessibility patterns |
 | `infra/docker-compose.yml` | Local pgvector container (postgres 16 + vector extension) |
 | `infra/terraform/main.tf` | AWS VPC, subnets, RDS instance provisioning |
 | `migrations/001_init_pgvector.sql` | DB schema: `resume_chunks` table with ivfflat index |
