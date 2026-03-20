@@ -8,6 +8,10 @@ frontend:
       commands:
         - npm run sync:projects
         - npm run build
+    postBuild:
+      commands:
+        - pip3 install boto3 -q
+        - python3 scripts/push-rag-artifacts.py
   artifacts:
     baseDirectory: out
     files:
