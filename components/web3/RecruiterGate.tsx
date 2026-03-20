@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { ChatPane } from "@/components/ChatPane";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ChatPane, type ChatPaneHandle } from "@/components/ChatPane";
+import { FaqQuestions } from "@/components/FaqQuestions";
 import { ConnectWallet } from "@/components/web3/ConnectWallet";
 import { SiweButton } from "@/components/web3/SiweButton";
 import { onSiweSessionChange, restoreSiweSession } from "@/lib/web3/siweClientSession";
@@ -12,6 +13,8 @@ type RecruiterGateProps = {
 
 export function RecruiterGate({ requireWalletGate }: RecruiterGateProps) {
   const [signedIn, setSignedIn] = useState(false);
+  const [isChatSubmitting, setIsChatSubmitting] = useState(false);
+  const chatPaneRef = useRef<ChatPaneHandle | null>(null);
 
   const refreshSession = useCallback(async () => {
     const session = await restoreSiweSession();
@@ -26,6 +29,10 @@ export function RecruiterGate({ requireWalletGate }: RecruiterGateProps) {
   }, [refreshSession]);
 
   const showChat = !requireWalletGate || signedIn;
+
+  const handleFaqSelect = (question: string) => {
+    chatPaneRef.current?.submitQuestion(question);
+  };
 
   return (
     <div className="space-y-6 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-900">
@@ -45,7 +52,17 @@ export function RecruiterGate({ requireWalletGate }: RecruiterGateProps) {
         </div>
       ) : null}
 
-      {showChat ? <ChatPane mode="recruiter" /> : null}
+      {showChat ? (
+        <div className="grid gap-4 lg:grid-cols-[300px_1fr]">
+          {/* FAQ panel — scrollable sidebar on desktop, stacked above chat on mobile */}
+          <div className="max-h-[540px] overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/40 lg:max-h-[640px]">
+            <FaqQuestions onSelect={handleFaqSelect} isDisabled={isChatSubmitting} />
+          </div>
+
+          {/* Chat pane */}
+          <ChatPane ref={chatPaneRef} mode="recruiter" onSubmittingChange={setIsChatSubmitting} />
+        </div>
+      ) : null}
     </div>
   );
 }

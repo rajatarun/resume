@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, FormEvent, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { postAboutChatQuestion, type AboutChatResponse } from "@/lib/api";
 import { getRecruiterModeConfig, type RecruiterMode } from "@/lib/recruiter";
 import { Button } from "@/components/Button";
@@ -13,6 +13,15 @@ type ChatMessage = {
   metadata?: AboutChatResponse;
 };
 
+export type ChatPaneHandle = {
+  submitQuestion: (text: string) => Promise<void>;
+};
+
+type ChatPaneProps = {
+  mode: RecruiterMode;
+  onSubmittingChange?: (isSubmitting: boolean) => void;
+};
+
 const createId = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 const createOpeningMessage = (mode: RecruiterMode): ChatMessage => ({
@@ -21,12 +30,13 @@ const createOpeningMessage = (mode: RecruiterMode): ChatMessage => ({
   content: getRecruiterModeConfig(mode).openingMessage
 });
 
-export function ChatPane({ mode }: { mode: RecruiterMode }) {
+export const ChatPane = forwardRef<ChatPaneHandle, ChatPaneProps>(function ChatPane({ mode, onSubmittingChange }, ref) {
   const [messages, setMessages] = useState<ChatMessage[]>(() => [createOpeningMessage(mode)]);
   const [question, setQuestion] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
+  const isSubmittingRef = useRef(false);
 
   useEffect(() => {
     setMessages([createOpeningMessage(mode)]);
@@ -41,13 +51,15 @@ export function ChatPane({ mode }: { mode: RecruiterMode }) {
   const canSubmit = useMemo(() => question.trim().length > 0 && !isSubmitting, [question, isSubmitting]);
   const config = getRecruiterModeConfig(mode);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const trimmedQuestion = question.trim();
+  const setSubmitting = (value: boolean) => {
+    isSubmittingRef.current = value;
+    setIsSubmitting(value);
+    onSubmittingChange?.(value);
+  };
 
-    if (!trimmedQuestion || isSubmitting) {
-      return;
-    }
+  const submitQuestion = async (text: string) => {
+    const trimmedQuestion = text.trim();
+    if (!trimmedQuestion || isSubmittingRef.current) return;
 
     setError(null);
     setQuestion("");
@@ -66,7 +78,7 @@ export function ChatPane({ mode }: { mode: RecruiterMode }) {
     };
 
     setMessages((prev) => [...prev, userMessage, assistantPlaceholder]);
-    setIsSubmitting(true);
+    setSubmitting(true);
 
     try {
       const response = await postAboutChatQuestion({
@@ -91,8 +103,15 @@ export function ChatPane({ mode }: { mode: RecruiterMode }) {
       setError(message);
       setMessages((prev) => prev.filter((chatMessage) => chatMessage.id !== assistantMessageId));
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
+  };
+
+  useImperativeHandle(ref, () => ({ submitQuestion }));
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await submitQuestion(question);
   };
 
   return (
@@ -185,6 +204,6 @@ export function ChatPane({ mode }: { mode: RecruiterMode }) {
       </form>
     </section>
   );
-}
+});
 
 export type { RecruiterMode };
