@@ -24,6 +24,8 @@ BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Folders to exclude (relative to repo root)
 EXCLUDE_DIRS = {
     os.path.join(BASE, "docs", "assets"),
+    os.path.join(BASE, "node_modules"),
+    os.path.join(BASE, "sam-aws"),
 }
 
 
@@ -41,7 +43,7 @@ def main():
     to_upload = [f for f in sorted(files) if not should_exclude(f)]
     excluded = len(files) - len(to_upload)
 
-    print(f"Found {len(files)} files ({excluded} excluded in assets), uploading {len(to_upload)}...")
+    print(f"Found {len(files)} files ({excluded} excluded), uploading {len(to_upload)}...")
 
     uploaded = 0
     errors = 0
@@ -58,7 +60,7 @@ def main():
             print(f"  ERR {rel}: {e}", file=sys.stderr)
             errors += 1
 
-    print(f"\nDone: {uploaded} uploaded, {errors} errors, {excluded} excluded (assets)")
+    print(f"\nDone: {uploaded} uploaded, {errors} errors, {excluded} excluded")
     if errors:
         sys.exit(1)
 
