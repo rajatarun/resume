@@ -26,6 +26,7 @@ EXCLUDE_DIRS = {
     os.path.join(BASE, "docs", "assets"),
     os.path.join(BASE, "node_modules"),
     os.path.join(BASE, "sam-aws"),
+    os.path.join(BASE, ".aws-sam"),
 }
 
 
