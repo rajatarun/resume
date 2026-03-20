@@ -99,7 +99,12 @@ export default function ChatPage() {
       </header>
 
       <section className="flex min-h-[60vh] flex-col rounded-2xl border border-zinc-200 bg-gradient-to-b from-white to-zinc-50 p-4 shadow-sm dark:border-zinc-800 dark:from-zinc-900 dark:to-zinc-950 sm:p-6">
-        <div className="flex-1 space-y-4 overflow-y-auto pr-1">
+        <div
+          className="flex-1 space-y-4 overflow-y-auto pr-1"
+          aria-live="polite"
+          aria-atomic="false"
+          aria-label="Chat messages"
+        >
           {messages.length === 0 ? (
             <div className="rounded-xl border border-dashed border-zinc-300 p-8 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
               Start the conversation by asking a question.
@@ -135,7 +140,7 @@ export default function ChatPage() {
           <div ref={endRef} />
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-4 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+        <form onSubmit={handleSubmit} aria-busy={isSubmitting} className="mt-4 border-t border-zinc-200 pt-4 dark:border-zinc-800">
           <label htmlFor="question" className="sr-only">
             Ask a question
           </label>
@@ -157,7 +162,9 @@ export default function ChatPage() {
               Send
             </button>
           </div>
-          {error ? <p className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p> : null}
+          <p role="alert" aria-live="assertive" className="mt-3 text-sm text-red-600 dark:text-red-400">
+            {error ?? ""}
+          </p>
         </form>
       </section>
     </div>
