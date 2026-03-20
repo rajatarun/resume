@@ -95,6 +95,11 @@ function buildQuery(ownerType) {
                   }
                 }
               }
+              architectureDoc: object(expression: "HEAD:docs/architecture.md") {
+                ... on Blob {
+                  text
+                }
+              }
             }
           }
         }
@@ -133,6 +138,11 @@ function buildQuery(ownerType) {
                   topic {
                     name
                   }
+                }
+              }
+              architectureDoc: object(expression: "HEAD:docs/architecture.md") {
+                ... on Blob {
+                  text
                 }
               }
             }
@@ -216,7 +226,8 @@ async function main() {
         language,
         updatedAt: repo.updatedAt,
         topics,
-        categories
+        categories,
+        architectureDoc: repo.architectureDoc?.text || null
       };
     })
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());

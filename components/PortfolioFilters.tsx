@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import { Card } from "@/components/Card";
 import { Badge } from "@/components/Badge";
 
@@ -19,6 +20,7 @@ type Project = {
   updatedAt: string;
   topics: string[];
   categories: string[];
+  architectureDoc?: string | null;
 };
 
 type ProjectsResponse = {
@@ -27,6 +29,85 @@ type ProjectsResponse = {
 };
 
 const filters: Filter[] = ["All", "Backend", "Frontend", "Cloud", "GenAI"];
+
+function ArchitectureDoc({ content }: { content: string }) {
+  return (
+    <div className="prose prose-sm dark:prose-invert max-w-none rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50">
+      <ReactMarkdown
+        components={{
+          h1: ({ children }) => <h1 className="text-base font-bold mb-2 text-slate-900 dark:text-slate-100">{children}</h1>,
+          h2: ({ children }) => <h2 className="text-sm font-semibold mt-3 mb-1 text-slate-800 dark:text-slate-200">{children}</h2>,
+          h3: ({ children }) => <h3 className="text-sm font-medium mt-2 mb-1 text-slate-700 dark:text-slate-300">{children}</h3>,
+          p: ({ children }) => <p className="text-sm text-slate-600 dark:text-slate-400 mb-2 leading-relaxed">{children}</p>,
+          ul: ({ children }) => <ul className="text-sm text-slate-600 dark:text-slate-400 list-disc pl-4 mb-2 space-y-0.5">{children}</ul>,
+          ol: ({ children }) => <ol className="text-sm text-slate-600 dark:text-slate-400 list-decimal pl-4 mb-2 space-y-0.5">{children}</ol>,
+          li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+          code: ({ inline, children }: { inline?: boolean; children?: React.ReactNode }) =>
+            inline ? (
+              <code className="rounded bg-slate-200 px-1 py-0.5 text-xs font-mono text-slate-800 dark:bg-slate-700 dark:text-slate-200">{children}</code>
+            ) : (
+              <code className="block overflow-x-auto rounded bg-slate-200 p-2 text-xs font-mono text-slate-800 dark:bg-slate-700 dark:text-slate-200">{children}</code>
+            ),
+          pre: ({ children }) => <pre className="mb-2 overflow-x-auto rounded bg-slate-200 p-2 dark:bg-slate-700">{children}</pre>,
+          blockquote: ({ children }) => <blockquote className="border-l-2 border-slate-300 pl-3 italic text-slate-500 dark:border-slate-600 dark:text-slate-400">{children}</blockquote>,
+          a: ({ href, children }) => (
+            <a href={href} target="_blank" rel="noreferrer" className="text-sky-700 underline decoration-sky-300 underline-offset-2 dark:text-sky-300">
+              {children}
+            </a>
+          ),
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    </div>
+  );
+}
+
+function ProjectCard({ project }: { project: Project }) {
+  const [showArch, setShowArch] = useState(false);
+
+  return (
+    <Card>
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <h3 className="text-lg font-semibold">{project.title}</h3>
+          {(project.categories.length ? project.categories : ["All"]).map((category) => (
+            <Badge key={`${project.id}-${category}`} text={category} />
+          ))}
+        </div>
+        <p className="text-sm text-slate-600 dark:text-slate-300">{project.description || "No description provided."}</p>
+        <p className="text-sm">
+          <span className="font-medium">Tech:</span>{" "}
+          {[project.language, ...project.topics].filter(Boolean).join(", ") || "Not specified"}
+        </p>
+        <p className="text-xs text-slate-500 dark:text-slate-400">⭐ {project.stars} · Forks {project.forks}</p>
+        <div className="flex flex-wrap gap-3 text-sm">
+          <a href={project.url} target="_blank" rel="noreferrer" className="font-medium text-sky-700 underline decoration-sky-300 underline-offset-2 dark:text-sky-300">
+            Repository
+          </a>
+          {project.homepage && (
+            <a href={project.homepage} target="_blank" rel="noreferrer" className="font-medium text-sky-700 underline decoration-sky-300 underline-offset-2 dark:text-sky-300">
+              Live Demo
+            </a>
+          )}
+          {project.architectureDoc && (
+            <button
+              onClick={() => setShowArch((prev) => !prev)}
+              className="font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-2 dark:text-emerald-400"
+              aria-expanded={showArch}
+            >
+              {showArch ? "Hide Architecture" : "View Architecture"}
+            </button>
+          )}
+        </div>
+
+        {showArch && project.architectureDoc && (
+          <ArchitectureDoc content={project.architectureDoc} />
+        )}
+      </div>
+    </Card>
+  );
+}
 
 export function PortfolioFilters() {
   const [active, setActive] = useState<Filter>("All");
@@ -100,32 +181,7 @@ export function PortfolioFilters() {
               </Card>
             ))
           : visibleProjects.map((project) => (
-              <Card key={project.id}>
-                <div className="space-y-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-lg font-semibold">{project.title}</h3>
-                    {(project.categories.length ? project.categories : ["All"]).map((category) => (
-                      <Badge key={`${project.id}-${category}`} text={category} />
-                    ))}
-                  </div>
-                  <p className="text-sm text-slate-600 dark:text-slate-300">{project.description || "No description provided."}</p>
-                  <p className="text-sm">
-                    <span className="font-medium">Tech:</span>{" "}
-                    {[project.language, ...project.topics].filter(Boolean).join(", ") || "Not specified"}
-                  </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">⭐ {project.stars} · Forks {project.forks}</p>
-                  <div className="flex flex-wrap gap-3 text-sm">
-                    <a href={project.url} target="_blank" rel="noreferrer" className="font-medium text-sky-700 underline decoration-sky-300 underline-offset-2 dark:text-sky-300">
-                      Repository
-                    </a>
-                    {project.homepage && (
-                      <a href={project.homepage} target="_blank" rel="noreferrer" className="font-medium text-sky-700 underline decoration-sky-300 underline-offset-2 dark:text-sky-300">
-                        Live Demo
-                      </a>
-                    )}
-                  </div>
-                </div>
-              </Card>
+              <ProjectCard key={project.id} project={project} />
             ))}
       </div>
 
