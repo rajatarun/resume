@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { Route } from "next";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { useAccount } from "wagmi";
 import { Web3NavControls } from "@/components/web3/Web3NavControls";
 
@@ -52,9 +53,12 @@ type NavLinkProps = {
   item: NavItem;
   className: string;
   onClick?: () => void;
+  currentPathname?: string;
 };
 
-function NavLink({ item, className, onClick }: NavLinkProps) {
+function NavLink({ item, className, onClick, currentPathname }: NavLinkProps) {
+  const isCurrent = !item.external && currentPathname === item.href;
+
   if (item.external) {
     return (
       <a
@@ -70,13 +74,18 @@ function NavLink({ item, className, onClick }: NavLinkProps) {
   }
 
   return (
-    <Link href={item.href} className={className} onClick={onClick}>
+    <Link
+      href={item.href}
+      className={className}
+      onClick={onClick}
+      aria-current={isCurrent ? "page" : undefined}
+    >
       {item.label}
     </Link>
   );
 }
 
-function DesktopDropdown({ label, items }: NavGroup) {
+function DesktopDropdown({ label, items, currentPathname }: NavGroup & { currentPathname: string }) {
   return (
     <details className="group relative">
       <summary className="focus-ring flex cursor-pointer list-none items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white">
@@ -90,6 +99,7 @@ function DesktopDropdown({ label, items }: NavGroup) {
           <NavLink
             key={`${item.label}-${item.href}`}
             item={item}
+            currentPathname={currentPathname}
             className="focus-ring block rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
           />
         ))}
@@ -101,6 +111,7 @@ function DesktopDropdown({ label, items }: NavGroup) {
 export function TopNav() {
   const [isOpen, setIsOpen] = useState(false);
   const { isConnected } = useAccount();
+  const pathname = usePathname();
 
   const primaryNavItems = isConnected
     ? [...primaryLinks, { href: "/admin" as Route, label: "Admin" }]
@@ -118,6 +129,7 @@ export function TopNav() {
             type="button"
             aria-label="Toggle navigation menu"
             aria-expanded={isOpen}
+            aria-controls="mobile-nav"
             onClick={() => setIsOpen((prev) => !prev)}
             className="focus-ring rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 md:hidden dark:border-slate-700 dark:text-slate-200"
           >
@@ -129,11 +141,12 @@ export function TopNav() {
               <NavLink
                 key={`${item.label}-${item.href}`}
                 item={item}
+                currentPathname={pathname}
                 className="focus-ring rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white"
               />
             ))}
             {dropdownGroups.map((group) => (
-              <DesktopDropdown key={group.label} {...group} />
+              <DesktopDropdown key={group.label} {...group} currentPathname={pathname} />
             ))}
           </nav>
           <div className="hidden md:block">
@@ -143,6 +156,7 @@ export function TopNav() {
 
         {isOpen && (
           <nav
+            id="mobile-nav"
             aria-label="Mobile primary navigation"
             className="mt-3 space-y-3 border-t border-slate-200 pt-3 md:hidden dark:border-slate-800"
           >
@@ -151,6 +165,7 @@ export function TopNav() {
                 <NavLink
                   key={`${item.label}-${item.href}`}
                   item={item}
+                  currentPathname={pathname}
                   className="focus-ring rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
                   onClick={() => setIsOpen(false)}
                 />
@@ -165,6 +180,7 @@ export function TopNav() {
                   <NavLink
                     key={`${item.label}-${item.href}`}
                     item={item}
+                    currentPathname={pathname}
                     className="focus-ring block rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
                     onClick={() => setIsOpen(false)}
                   />
