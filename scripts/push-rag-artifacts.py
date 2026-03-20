@@ -54,7 +54,15 @@ def main():
         ext = os.path.splitext(fpath)[1]
         content_type = "text/markdown" if ext == ".md" else "text/plain"
         try:
-            s3.upload_file(fpath, BUCKET, key, ExtraArgs={"ContentType": content_type})
+            s3.upload_file(
+                fpath,
+                BUCKET,
+                key,
+                ExtraArgs={
+                    "ContentType": content_type,
+                    "ServerSideEncryption": "aws:kms",
+                },
+            )
             print(f"  OK  {rel}")
             uploaded += 1
         except Exception as e:
