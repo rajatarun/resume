@@ -14,7 +14,7 @@ export function SiteFooter() {
             LinkedIn – Tarun Raja
           </a>
           <Link href="/appointment" className="focus-ring text-sky-600 hover:text-sky-700 dark:text-sky-400">
-            Book a session
+            Let's talk
           </Link>
         </div>
       </div>
