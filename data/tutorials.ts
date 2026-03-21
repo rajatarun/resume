@@ -25,7 +25,7 @@ export const tutorialTopics: TutorialTopic[] = [
         description:
           "Get started with Cloud AI platforms — understand the landscape and make your first API call.",
         pdfUrl:
-          "https://YOUR_BUCKET.s3.YOUR_REGION.amazonaws.com/pdfs/ai-platform-overview.pdf",
+          "https://tarun-website-tutorials.s3.us-east-1.amazonaws.com/AI/cloud-ai-guide-1.pdf",
         downloadName: "Platform Overview & First API Call – Tarun Raja.pdf",
         level: "Beginner",
       },
@@ -35,7 +35,7 @@ export const tutorialTopics: TutorialTopic[] = [
         description:
           "Build retrieval-augmented generation pipelines using managed cloud vector stores and LLM APIs.",
         pdfUrl:
-          "https://YOUR_BUCKET.s3.YOUR_REGION.amazonaws.com/pdfs/ai-rag-cloud.pdf",
+          "https://tarun-website-tutorials.s3.us-east-1.amazonaws.com/AI/cloud-ai-guide-2.pdf",
         downloadName: "RAG on the Cloud – Tarun Raja.pdf",
         level: "Intermediate",
       },
@@ -45,7 +45,7 @@ export const tutorialTopics: TutorialTopic[] = [
         description:
           "Design and coordinate multiple AI agents with tool use, handoffs, and shared memory.",
         pdfUrl:
-          "https://YOUR_BUCKET.s3.YOUR_REGION.amazonaws.com/pdfs/ai-multi-agent.pdf",
+          "https://tarun-website-tutorials.s3.us-east-1.amazonaws.com/AI/cloud-ai-guide-3.pdf",
         downloadName: "Multi-Agent Orchestration – Tarun Raja.pdf",
         level: "Advanced",
       },
@@ -55,7 +55,7 @@ export const tutorialTopics: TutorialTopic[] = [
         description:
           "Implement safety layers, input/output filtering, and responsible AI controls in production.",
         pdfUrl:
-          "https://YOUR_BUCKET.s3.YOUR_REGION.amazonaws.com/pdfs/ai-guardrails-security.pdf",
+          "https://tarun-website-tutorials.s3.us-east-1.amazonaws.com/AI/cloud-ai-guide-4.pdf",
         downloadName: "Guardrails & Security – Tarun Raja.pdf",
         level: "Intermediate",
       },
@@ -65,7 +65,7 @@ export const tutorialTopics: TutorialTopic[] = [
         description:
           "Battle-tested patterns for deploying AI systems at scale: latency, cost, observability, and reliability.",
         pdfUrl:
-          "https://YOUR_BUCKET.s3.YOUR_REGION.amazonaws.com/pdfs/ai-production-patterns.pdf",
+          "https://tarun-website-tutorials.s3.us-east-1.amazonaws.com/AI/cloud-ai-guide-5.pdf",
         downloadName: "Production Architecture Patterns – Tarun Raja.pdf",
         level: "Advanced",
       },
@@ -75,7 +75,7 @@ export const tutorialTopics: TutorialTopic[] = [
         description:
           "Quick-reference card covering APIs, model comparisons, pricing tiers, and key CLI commands.",
         pdfUrl:
-          "https://YOUR_BUCKET.s3.YOUR_REGION.amazonaws.com/pdfs/ai-cheat-sheet.pdf",
+          "https://tarun-website-tutorials.s3.us-east-1.amazonaws.com/AI/cloud-ai-guide-6.pdf",
         downloadName: "Cloud AI Cheat Sheet – Tarun Raja.pdf",
         level: "Beginner",
       },
