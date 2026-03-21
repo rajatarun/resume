@@ -43,7 +43,7 @@ const dropdownGroups: NavGroup[] = [
     label: "Contact",
     items: [
       { href: "/contact" as Route, label: "Contact" },
-      { href: "/appointment" as Route, label: "Appointment" }
+      { href: "/appointment" as Route, label: "Let's Talk" }
     ]
   }
 ];

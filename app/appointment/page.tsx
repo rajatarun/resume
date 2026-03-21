@@ -6,11 +6,11 @@ import { PageShell } from "@/components/PageShell";
 import { Section } from "@/components/Section";
 
 export const metadata: Metadata = {
-  title: "Appointment",
-  description: "Book an appointment with Tarun Raja and access Zoom meeting details.",
+  title: "Let's Talk",
+  description: "Connect with Tarun Raja over a Zoom call — swap notes on engineering, AI, or anything on your mind.",
   openGraph: {
-    title: "Book an appointment with Tarun Raja",
-    description: "Schedule a Zoom conversation for mentoring, architecture review, or advisory support.",
+    title: "Let's Talk — Tarun Raja",
+    description: "Grab time for a conversation. No agenda required, just a good discussion.",
     url: "/appointment"
   }
 };
@@ -20,17 +20,17 @@ const zoomMeetingId = process.env.NEXT_PUBLIC_ZOOM_MEETING_ID || "Not configured
 
 export default function AppointmentPage() {
   return (
-    <PageShell title="Book an appointment" intro="Let’s connect for mentoring, architecture strategy, or product delivery support.">
+    <PageShell title="Let’s Talk" intro="Grab some time for a conversation — whether you want to swap notes on engineering, AI, or just connect.">
       <div className="grid gap-5 lg:grid-cols-2">
         <Card>
           <Section title="Zoom meeting details">
             <p className="text-sm text-slate-600 dark:text-slate-300">Zoom link: <a href={zoomLink} className="focus-ring text-sky-600 underline">{zoomLink}</a></p>
             <p className="text-sm text-slate-600 dark:text-slate-300">Meeting ID: {zoomMeetingId}</p>
-            <AddToCalendarButtons title="Session with Tarun Raja" details="Architecture/mentoring appointment" location={zoomLink} />
+            <AddToCalendarButtons title="Chat with Tarun Raja" details="A conversation with Tarun Raja" location={zoomLink} />
           </Section>
         </Card>
         <Card>
-          <Section title="Appointment request form" description="No backend required. Your request is stored locally in the browser.">
+          <Section title="Send a message" description="No backend required. Your request is stored locally in the browser.">
             <AppointmentForm />
           </Section>
         </Card>

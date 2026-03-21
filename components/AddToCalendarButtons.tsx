@@ -24,7 +24,7 @@ export function AddToCalendarButtons({ title, details, location }: Props) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "tarun-raja-appointment.ics";
+    a.download = "tarun-raja-chat.ics";
     a.click();
     URL.revokeObjectURL(url);
   };
