@@ -30,7 +30,7 @@ export default function AppointmentPage() {
           </Section>
         </Card>
         <Card>
-          <Section title="Send a message" description="No backend required. Your request is stored locally in the browser.">
+          <Section title="Send a message" description="Drop me a note and I'll follow up over email.">
             <AppointmentForm />
           </Section>
         </Card>
