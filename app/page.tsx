@@ -142,7 +142,7 @@ export default function HomePage() {
                 href="/about"
                 className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-xl border-2 border-cyan-400 bg-transparent px-5 py-3 text-sm font-semibold text-cyan-300 shadow-[0_0_10px_rgba(34,211,238,0.7),0_0_24px_rgba(34,211,238,0.35)] transition hover:border-cyan-300 hover:text-white hover:shadow-[0_0_16px_rgba(34,211,238,1),0_0_40px_rgba(34,211,238,0.5)] sm:w-auto"
               >
-                <span aria-hidden="true" className="text-[1em]">✦</span> Chat about me
+                <span aria-hidden="true" className="text-base leading-none">✦</span> Chat about me
               </Link>
               <Link
                 href="/labs"
