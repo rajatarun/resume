@@ -74,15 +74,15 @@ function FeaturedOutcomes() {
 function FinalCTA() {
   return (
     <section className="mx-auto mt-20 max-w-4xl rounded-3xl border border-slate-200 bg-gradient-to-r from-sky-100 to-indigo-100 p-8 text-center dark:border-slate-700 dark:from-sky-900/30 dark:to-indigo-900/30">
-      <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Ready to accelerate your architecture leadership journey?</h2>
+      <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">Want to talk shop on AI systems, platform design, or engineering craft?</h2>
       <p className="mx-auto mt-3 max-w-2xl text-sm text-slate-700 dark:text-slate-200">
-        Book a 1:1 mentoring session to build a roadmap for reliable AI systems, resilient platforms, and career growth.
+        Grab time for a peer conversation — swap notes on distributed systems, AI integration, or wherever you're headed. No agenda, just a good engineering discussion.
       </p>
       <Link
         href="/appointment"
         className="focus-ring mt-6 inline-flex items-center justify-center rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700"
       >
-        Book session
+        Let's chat
       </Link>
     </section>
   );
@@ -136,7 +136,7 @@ export default function HomePage() {
                 href="/appointment"
                 className="focus-ring inline-flex w-full items-center justify-center rounded-xl bg-sky-500 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-900/30 transition hover:bg-sky-400 sm:w-auto"
               >
-                Book session
+                Let's chat
               </Link>
               <Link
                 href="/about"
