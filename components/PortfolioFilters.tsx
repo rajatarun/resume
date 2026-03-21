@@ -148,8 +148,8 @@ export function PortfolioFilters() {
   }, []);
 
   const visibleProjects = useMemo(() => {
-    if (active === "All") return projects;
-    return projects.filter((project) => project.categories.includes(active));
+    const filtered = active === "All" ? projects : projects.filter((project) => project.categories.includes(active));
+    return [...filtered].sort((a, b) => (b.architectureDoc ? 1 : 0) - (a.architectureDoc ? 1 : 0));
   }, [active, projects]);
 
   return (
