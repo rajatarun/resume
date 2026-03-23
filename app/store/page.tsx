@@ -252,7 +252,7 @@ export default function StorePage() {
   return (
     <PageShell
       title="Workshops"
-      intro="I coach engineering teams from first API call to production-grade AI systems. Each module below reflects a topic I teach hands-on — grab the companion guide or reach out to run a session with your team."
+      intro="I love sharing knowledge with engineering teams on everything from first API call to production-grade AI systems. Each module below reflects a topic I enjoy diving into — grab the companion guide or reach out to run a session with your team."
     >
       {/* Stats bar */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
