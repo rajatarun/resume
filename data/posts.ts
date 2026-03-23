@@ -84,7 +84,7 @@ Production GenAI requires reliability, privacy, and observability.
   {
     slug: "mentoring-engineers-into-tech-leads",
     title: "Mentoring Engineers into Tech Leads",
-    excerpt: "Simple coaching patterns I use to help high-potential engineers lead confidently.",
+    excerpt: "Simple patterns I use to help high-potential engineers lead confidently.",
     date: "2025-09-12",
     readingTime: "5 min read",
     tags: ["Mentoring", "Leadership"],
