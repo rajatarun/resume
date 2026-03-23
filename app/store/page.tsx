@@ -19,7 +19,7 @@ const stats = [
   { value: "10+", label: "Years engineering" },
   { value: "3+", label: "Years in AI/LLM" },
   { value: "3", label: "Technical leads mentored" },
-  { value: "6", label: "Cloud AI curriculum modules" },
+  { value: "6", label: "Cloud AI knowledge modules" },
 ];
 
 function TutorialCard({ tutorial }: { tutorial: Tutorial }) {
@@ -252,7 +252,7 @@ export default function StorePage() {
   return (
     <PageShell
       title="Workshops"
-      intro="I love sharing knowledge with engineering teams on everything from first API call to production-grade AI systems. Each module below reflects a topic I enjoy diving into — grab the companion guide or reach out to run a session with your team."
+      intro="I love sharing knowledge with engineering teams on everything from first API call to production-grade AI systems. Each module below reflects a topic I enjoy diving into — grab the companion guide or reach out and let's connect to learn together."
     >
       {/* Stats bar */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -278,7 +278,7 @@ export default function StorePage() {
       {/* Curriculum */}
       <div className="space-y-4">
         <h2 className="text-sm font-medium uppercase tracking-widest text-slate-400">
-          Curriculum
+          Topics
         </h2>
         {tutorialTopics.map((topic, i) => (
           <TopicAccordion key={topic.topic} topic={topic} defaultOpen={i === 0} />
@@ -288,7 +288,7 @@ export default function StorePage() {
       {/* CTA */}
       <div className="rounded-2xl border border-sky-200 bg-sky-50 p-6 dark:border-sky-800/50 dark:bg-sky-950/20">
         <h2 className="text-base font-semibold text-sky-900 dark:text-sky-200">
-          Run a session with your team
+          Let's connect and learn together
         </h2>
         <p className="mt-1 text-sm text-sky-800 dark:text-sky-300">
           I work with engineering teams to build intuition for Cloud AI — from architecture decisions to hands-on implementation. If you want to level up your team on any of these topics, get in touch.
