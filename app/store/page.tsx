@@ -270,7 +270,7 @@ export default function StorePage() {
       {/* Claude CCA Workshops */}
       <div className="space-y-4">
         <h2 className="text-sm font-medium uppercase tracking-widest text-slate-400">
-          Claude Certified Associate
+          Claude Certified Architect
         </h2>
         <ClaudeWorkshopsAccordion />
       </div>

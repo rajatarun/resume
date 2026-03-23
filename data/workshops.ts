@@ -14,7 +14,7 @@ export type WorkshopSeries = {
 };
 
 export const claudeWorkshops: WorkshopSeries = {
-  name: "Claude Certified Associate (CCA)",
+  name: "Claude Certified Architect (CCA)",
   description:
     "Six workshops aligned to the CCA exam domains. Each module ships with a tutorial PDF and a companion question set to test your understanding.",
   index:
