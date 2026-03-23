@@ -17,7 +17,7 @@ const levelStyles: Record<Tutorial["level"], string> = {
 
 const stats = [
   { value: "10+", label: "Years engineering" },
-  { value: "3+", label: "Years in AI/LLM" },
+  { value: "2", label: "Years in AI/LLM" },
   { value: "3", label: "Technical leads mentored" },
   { value: "6", label: "Cloud AI knowledge modules" },
 ];
