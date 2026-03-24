@@ -17,7 +17,7 @@ const levelStyles: Record<Tutorial["level"], string> = {
 
 const stats = [
   { value: "10+", label: "Years engineering" },
-  { value: "3+", label: "Years in AI/LLM" },
+  { value: "2", label: "Years in AI/LLM" },
   { value: "3", label: "Technical leads mentored" },
   { value: "6", label: "Cloud AI knowledge modules" },
 ];
@@ -288,7 +288,7 @@ export default function StorePage() {
       {/* CTA */}
       <div className="rounded-2xl border border-sky-200 bg-sky-50 p-6 dark:border-sky-800/50 dark:bg-sky-950/20">
         <h2 className="text-base font-semibold text-sky-900 dark:text-sky-200">
-          Let's connect and learn together
+          Let&apos;s connect and learn together
         </h2>
         <p className="mt-1 text-sm text-sky-800 dark:text-sky-300">
           I work with engineering teams to build intuition for Cloud AI — from architecture decisions to hands-on implementation. If you want to level up your team on any of these topics, get in touch.
