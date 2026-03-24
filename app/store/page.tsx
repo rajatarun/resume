@@ -291,7 +291,7 @@ export default function StorePage() {
           Let&apos;s connect and learn together
         </h2>
         <p className="mt-1 text-sm text-sky-800 dark:text-sky-300">
-          I work with engineering teams to build intuition for Cloud AI — from architecture decisions to hands-on implementation. If you want to level up your team on any of these topics, get in touch.
+          I enjoy exploring these topics with engineering teams — from architecture trade-offs to real-world implementation. If any of this resonates, let&apos;s connect.
         </p>
         <a
           href="mailto:rajatarun12@gmail.com"
