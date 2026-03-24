@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type { Route } from "next";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useAccount } from "wagmi";
 import { Web3NavControls } from "@/components/web3/Web3NavControls";
@@ -85,25 +85,55 @@ function NavLink({ item, className, onClick, currentPathname }: NavLinkProps) {
 }
 
 function DesktopDropdown({ label, items, currentPathname }: NavGroup & { currentPathname: string }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    function handleOutsideClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setIsOpen(false);
+    }
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
+
   return (
-    <details className="group relative">
-      <summary className="focus-ring flex cursor-pointer list-none items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white">
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        aria-expanded={isOpen}
+        aria-haspopup="true"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="focus-ring flex cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white"
+      >
         {label}
         <span aria-hidden="true" className="text-xs">
           ▾
         </span>
-      </summary>
-      <div className="absolute left-0 top-full z-50 mt-2 min-w-44 rounded-xl border border-slate-200 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-900">
-        {items.map((item) => (
-          <NavLink
-            key={`${item.label}-${item.href}`}
-            item={item}
-            currentPathname={currentPathname}
-            className="focus-ring block rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
-          />
-        ))}
-      </div>
-    </details>
+      </button>
+      {isOpen && (
+        <div className="absolute left-0 top-full z-50 mt-2 min-w-44 rounded-xl border border-slate-200 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+          {items.map((item) => (
+            <NavLink
+              key={`${item.label}-${item.href}`}
+              item={item}
+              currentPathname={currentPathname}
+              className="focus-ring block rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+              onClick={() => setIsOpen(false)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
