@@ -49,7 +49,8 @@ function DonutChart({ groups, keyField, title, isLoading, colors, fallbackColor 
             ))}
           </Pie>
           <Tooltip
-            formatter={(value: number) => [value.toLocaleString(), 'spans']}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            formatter={(value: any) => [typeof value === 'number' ? value.toLocaleString() : String(value ?? ''), 'spans']}
             contentStyle={{ fontSize: 12 }}
           />
           <Legend
