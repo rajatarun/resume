@@ -6,8 +6,9 @@ import { TeamList } from "@/components/admin/agent-management/teams/TeamList";
 import { RoleList } from "@/components/admin/agent-management/roles/RoleList";
 import { DepartmentList } from "@/components/admin/agent-management/departments/DepartmentList";
 import { SuccessToast } from "@/components/admin/agent-management/shared/SuccessToast";
+import { ObservabilityTab } from "@/components/admin/agent-management/observability/ObservabilityTab";
 
-const SECTIONS = ["Agents", "Teams", "Roles", "Departments"] as const;
+const SECTIONS = ["Agents", "Teams", "Roles", "Departments", "Observability"] as const;
 type Section = (typeof SECTIONS)[number];
 
 export function AgentManagementTab() {
@@ -32,6 +33,7 @@ export function AgentManagementTab() {
       {section === "Teams" && <TeamList onSuccess={setSuccessMessage} />}
       {section === "Roles" && <RoleList onSuccess={setSuccessMessage} />}
       {section === "Departments" && <DepartmentList onSuccess={setSuccessMessage} />}
+      {section === "Observability" && <ObservabilityTab />}
       {successMessage && <SuccessToast message={successMessage} onDone={() => setSuccessMessage("")} />}
     </div>
   );
