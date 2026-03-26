@@ -1,8 +1,8 @@
 'use client';
 
 import { Fragment, useState } from 'react';
-import { format, parseISO } from 'date-fns';
-import { SpanItem, formatCost, formatTokens } from '../shared/observabilityFetch';
+import { format, parseISO, differenceInMilliseconds } from 'date-fns';
+import { SpanItem, formatCost, formatTokens, formatScore } from '../shared/observabilityFetch';
 import { SkeletonRow } from './Skeleton';
 
 interface Props {
@@ -43,6 +43,171 @@ function ShadowScoreBadge({ score }: { score?: number }) {
         ? 'text-amber-600 dark:text-amber-400'
         : 'text-red-600 dark:text-red-400';
   return <span className={`font-mono text-xs ${cls}`}>{score.toFixed(3)}</span>;
+}
+
+// Progress bar that goes red when high, green when low
+function RiskBar({ value, inverted = false }: { value?: number | null; inverted?: boolean }) {
+  if (value === null || value === undefined) return <span className="text-slate-400 text-xs">—</span>;
+  const pct = Math.min(Math.max(value, 0), 1) * 100;
+  const isHigh = inverted ? value < 0.5 : value >= 0.8;
+  const isMid  = inverted ? value < 0.7 : value >= 0.5;
+  const color  = isHigh ? 'bg-red-500' : isMid ? 'bg-amber-500' : 'bg-green-500';
+  return (
+    <div className="flex items-center gap-2">
+      <div className="h-1.5 w-20 rounded-full bg-slate-200 dark:bg-slate-700">
+        <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
+      </div>
+      <span className="font-mono text-xs text-slate-600 dark:text-slate-400">{value.toFixed(3)}</span>
+    </div>
+  );
+}
+
+function Badge({ label, variant }: { label: string; variant: 'red' | 'green' | 'slate' | 'blue' }) {
+  const cls = {
+    red:   'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+    green: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+    slate: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+    blue:  'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  }[variant];
+  return <span className={`inline-flex rounded px-2 py-0.5 text-xs font-medium ${cls}`}>{label}</span>;
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      className="ml-1 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+      title="Copy"
+    >
+      {copied ? '✓' : '⎘'}
+    </button>
+  );
+}
+
+function TruncatedHash({ value }: { value?: string | null }) {
+  if (!value) return <span className="text-slate-400">—</span>;
+  const short = value.length > 16 ? `${value.slice(0, 8)}…${value.slice(-8)}` : value;
+  return (
+    <span className="font-mono text-xs">
+      {short}
+      <CopyButton text={value} />
+    </span>
+  );
+}
+
+function DrawerSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-4">
+      <p className="mb-2 text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{title}</p>
+      <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs sm:grid-cols-3">{children}</div>
+    </div>
+  );
+}
+
+function SpanDrawer({ item }: { item: SpanItem }) {
+  const hasTimings = item.start_time != null && item.end_time != null;
+  let latencyMs: number | null = null;
+  if (hasTimings) {
+    try {
+      latencyMs = differenceInMilliseconds(parseISO(item.end_time!), parseISO(item.start_time!));
+    } catch { /* leave null */ }
+  }
+
+  const fmtBool = (v?: boolean | null) => {
+    if (v === null || v === undefined) return '—';
+    return v ? 'Yes' : 'No';
+  };
+
+  return (
+    <div className="space-y-1 py-2">
+      {/* ── Existing fields ─────────────────────────────── */}
+      <DrawerSection title="Trace">
+        <Detail label="Trace ID" value={item.trace_id} />
+        <Detail label="Operation" value={item.operation} />
+        <Detail label="Shadow Disagreement" value={<ShadowScoreBadge score={item.shadow_disagreement_score} />} />
+        <Detail label="Shadow Numeric Variance" value={<ShadowScoreBadge score={item.shadow_numeric_variance} />} />
+        <Detail label="Prompt Tokens" value={formatTokens(item.prompt_tokens)} />
+        <Detail label="Completion Tokens" value={formatTokens(item.completion_tokens)} />
+      </DrawerSection>
+
+      {/* ── Risk Scores ──────────────────────────────────── */}
+      <DrawerSection title="Risk Scores">
+        <Detail label="Composite Risk" value={<RiskBar value={item.composite_risk_score} />} />
+        <Detail label="Hallucination Risk" value={<RiskBar value={item.hallucination_risk_score} />} />
+        <Detail label="Grounding Score" value={<RiskBar value={item.grounding_score} inverted />} />
+        <Detail label="Verifier Score" value={<RiskBar value={item.verifier_score} inverted />} />
+        <Detail label="Self Consistency" value={<RiskBar value={item.self_consistency_score} inverted />} />
+        <Detail label="Drift Risk" value={<RiskBar value={item.drift_risk} />} />
+      </DrawerSection>
+
+      {/* ── Policy & Gate ───────────────────────────────── */}
+      <DrawerSection title="Policy & Gate">
+        <Detail
+          label="Policy Decision"
+          value={
+            item.policy_decision
+              ? <Badge label={item.policy_decision} variant={item.policy_decision === 'allow' ? 'green' : item.policy_decision === 'block' ? 'red' : 'slate'} />
+              : '—'
+          }
+        />
+        <Detail label="Policy ID" value={item.policy_id ?? '—'} />
+        <Detail label="Policy Version" value={item.policy_version ?? '—'} />
+        <Detail
+          label="Gate Blocked"
+          value={
+            item.gate_blocked === true ? <Badge label="Blocked" variant="red" />
+            : item.gate_blocked === false ? <Badge label="Passed" variant="green" />
+            : '—'
+          }
+        />
+        <Detail
+          label="Risk Tier"
+          value={
+            item.risk_tier
+              ? <Badge label={item.risk_tier} variant={item.risk_tier === 'high' ? 'red' : item.risk_tier === 'medium' ? 'slate' : 'green'} />
+              : '—'
+          }
+        />
+      </DrawerSection>
+
+      {/* ── Execution ───────────────────────────────────── */}
+      <DrawerSection title="Execution">
+        <Detail label="Retries" value={item.retries !== null && item.retries !== undefined ? String(item.retries) : '—'} />
+        <Detail label="Fallback Used" value={fmtBool(item.fallback_used)} />
+        <Detail label="Fallback Type" value={item.fallback_type ?? '—'} />
+        <Detail label="Fallback Reason" value={item.fallback_reason ?? '—'} />
+        <Detail label="Shadow Invocation" value={fmtBool(item.is_shadow)} />
+        <Detail label="Exec Token ID" value={item.exec_token_id ?? '—'} />
+        <Detail label="Exec Token TTL" value={item.exec_token_ttl_ms !== null && item.exec_token_ttl_ms !== undefined ? `${item.exec_token_ttl_ms.toLocaleString()} ms` : '—'} />
+        <Detail label="Token Verified" value={fmtBool(item.exec_token_verified)} />
+      </DrawerSection>
+
+      {/* ── Prompt Fingerprints ─────────────────────────── */}
+      <DrawerSection title="Prompt Fingerprints">
+        <Detail label="Prompt Hash" value={<TruncatedHash value={item.prompt_hash} />} />
+        <Detail label="Normalised Hash" value={<TruncatedHash value={item.normalized_prompt_hash} />} />
+        <Detail label="Answer Hash" value={<TruncatedHash value={item.answer_hash} />} />
+        <Detail label="Prompt Size" value={item.prompt_size_chars !== null && item.prompt_size_chars !== undefined ? `${item.prompt_size_chars.toLocaleString()} chars` : '—'} />
+      </DrawerSection>
+
+      {/* ── Timing ──────────────────────────────────────── */}
+      {hasTimings && (
+        <DrawerSection title="Timing">
+          <Detail label="Start Time" value={item.start_time!} />
+          <Detail label="End Time" value={item.end_time!} />
+          <Detail label="Latency" value={latencyMs !== null ? `${latencyMs.toLocaleString()} ms` : '—'} />
+        </DrawerSection>
+      )}
+    </div>
+  );
 }
 
 type Col = { key: string; label: string; sortable?: boolean };
@@ -151,15 +316,8 @@ export function SpanTable({
                   {isExp && (
                     <tr className="bg-slate-50 dark:bg-slate-800/50">
                       <td />
-                      <td colSpan={7} className="px-3 py-3">
-                        <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs sm:grid-cols-3">
-                          <Detail label="Trace ID" value={item.trace_id} />
-                          <Detail label="Operation" value={item.operation} />
-                          <Detail label="Shadow Disagreement" value={<ShadowScoreBadge score={item.shadow_disagreement_score} />} />
-                          <Detail label="Shadow Numeric Variance" value={<ShadowScoreBadge score={item.shadow_numeric_variance} />} />
-                          <Detail label="Avg Prompt Tokens" value={formatTokens(item.prompt_tokens)} />
-                          <Detail label="Avg Completion Tokens" value={formatTokens(item.completion_tokens)} />
-                        </div>
+                      <td colSpan={7} className="px-4 py-3">
+                        <SpanDrawer item={item} />
                       </td>
                     </tr>
                   )}
