@@ -17,6 +17,19 @@ interface Props {
   initialAgentId?: string;
 }
 
+type SortBy = NonNullable<ListParams['sort_by']>;
+
+const SORT_OPTIONS: { value: SortBy; label: string }[] = [
+  { value: 'timestamp',              label: 'Timestamp' },
+  { value: 'cost_usd',               label: 'Cost' },
+  { value: 'prompt_tokens',          label: 'Prompt tokens' },
+  { value: 'completion_tokens',      label: 'Completion tokens' },
+  { value: 'composite_risk_score',   label: 'Composite risk score' },
+  { value: 'hallucination_risk_score', label: 'Hallucination risk' },
+  { value: 'retries',                label: 'Retries' },
+  { value: 'grounding_score',        label: 'Grounding score' },
+];
+
 function defaultFilters(): ListParams {
   const now = new Date();
   return {
@@ -31,7 +44,7 @@ export function InvocationsList({ initialAgentId }: Props) {
     ...defaultFilters(),
     ...(initialAgentId ? { agent_id: initialAgentId } : {}),
   }));
-  const [sortBy, setSortBy] = useState<ListParams['sort_by']>('timestamp');
+  const [sortBy, setSortBy] = useState<SortBy>('timestamp');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [tokenStack, setTokenStack] = useState<string[]>([]);
   const [errorMsg, setErrorMsg] = useState('');
@@ -67,11 +80,10 @@ export function InvocationsList({ initialAgentId }: Props) {
   }, [isError, error]);
 
   const handleSort = (col: string) => {
-    const validCols = ['timestamp', 'cost_usd', 'prompt_tokens', 'completion_tokens'] as const;
-    type ValidCol = (typeof validCols)[number];
-    if (validCols.includes(col as ValidCol)) {
+    const validCols = SORT_OPTIONS.map((o) => o.value);
+    if (validCols.includes(col as SortBy)) {
       if (sortBy === col) setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
-      else { setSortBy(col as ValidCol); setSortOrder('desc'); }
+      else { setSortBy(col as SortBy); setSortOrder('desc'); }
     }
   };
 
@@ -83,6 +95,27 @@ export function InvocationsList({ initialAgentId }: Props) {
         {errorMsg && (
           <ErrorBanner message={errorMsg} onDismiss={() => setErrorMsg('')} />
         )}
+
+        {/* Sort toolbar */}
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-slate-500">Sort by:</span>
+          <select
+            value={sortBy}
+            onChange={(e) => { setSortBy(e.target.value as SortBy); setSortOrder('desc'); }}
+            className="rounded border border-slate-300 bg-white px-2 py-1 text-xs dark:border-slate-600 dark:bg-slate-800"
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'))}
+            className="rounded border border-slate-300 px-2 py-1 text-xs hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-800"
+          >
+            {sortOrder === 'asc' ? '↑ Asc' : '↓ Desc'}
+          </button>
+        </div>
 
         <SpanTable
           items={data?.items ?? []}

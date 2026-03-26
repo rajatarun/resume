@@ -9,6 +9,24 @@ interface Props {
   onApply: (filters: ListParams) => void;
 }
 
+type ToggleChip = { key: 'is_shadow' | 'gate_blocked' | 'fallback_used'; label: string };
+const TOGGLE_CHIPS: ToggleChip[] = [
+  { key: 'is_shadow',    label: 'Shadow only' },
+  { key: 'gate_blocked', label: 'Gate blocked' },
+  { key: 'fallback_used', label: 'Fallback used' },
+];
+
+function LabelRow({ htmlFor, children }: { htmlFor?: string; children: React.ReactNode }) {
+  return (
+    <label
+      htmlFor={htmlFor}
+      className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1"
+    >
+      {children}
+    </label>
+  );
+}
+
 export function FilterSidebar({ filters, onApply }: Props) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<ListParams>(filters);
@@ -28,12 +46,16 @@ export function FilterSidebar({ filters, onApply }: Props) {
     setOpen(false);
   };
 
+  const toggleChip = (key: 'is_shadow' | 'gate_blocked' | 'fallback_used') => {
+    const current = draft[key];
+    setDraft((prev) => ({ ...prev, [key]: current === 'true' ? undefined : 'true' }));
+  };
+
   const content = (
     <div className="space-y-4 text-sm">
+      {/* ── Existing filters ──────────────────────────────── */}
       <div>
-        <label htmlFor="filter-operation" className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">
-          Operation
-        </label>
+        <LabelRow htmlFor="filter-operation">Operation</LabelRow>
         <select
           id="filter-operation"
           value={draft.operation ?? ''}
@@ -47,9 +69,7 @@ export function FilterSidebar({ filters, onApply }: Props) {
       </div>
 
       <div>
-        <label htmlFor="filter-agent-id" className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">
-          Agent ID
-        </label>
+        <LabelRow htmlFor="filter-agent-id">Agent ID</LabelRow>
         <input
           id="filter-agent-id"
           type="text"
@@ -61,9 +81,7 @@ export function FilterSidebar({ filters, onApply }: Props) {
       </div>
 
       <div>
-        <label htmlFor="filter-model-id" className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">
-          Model ID
-        </label>
+        <LabelRow htmlFor="filter-model-id">Model ID</LabelRow>
         <input
           id="filter-model-id"
           type="text"
@@ -75,9 +93,7 @@ export function FilterSidebar({ filters, onApply }: Props) {
       </div>
 
       <div>
-        <label htmlFor="filter-decision" className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">
-          Decision
-        </label>
+        <LabelRow htmlFor="filter-decision">Decision</LabelRow>
         <select
           id="filter-decision"
           value={draft.decision ?? ''}
@@ -89,6 +105,76 @@ export function FilterSidebar({ filters, onApply }: Props) {
           <option value="DENY">DENY</option>
           <option value="SHADOW">SHADOW</option>
         </select>
+      </div>
+
+      {/* ── v0.2.1 filters ──────────────────────────────── */}
+      <div>
+        <LabelRow htmlFor="filter-risk-tier">Risk Tier</LabelRow>
+        <select
+          id="filter-risk-tier"
+          value={draft.risk_tier ?? ''}
+          onChange={(e) => set('risk_tier', e.target.value || undefined)}
+          className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800"
+        >
+          <option value="">All</option>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+
+      <div>
+        <LabelRow htmlFor="filter-composite-risk">Composite Risk</LabelRow>
+        <select
+          id="filter-composite-risk"
+          value={draft.composite_risk_level ?? ''}
+          onChange={(e) => set('composite_risk_level', e.target.value || undefined)}
+          className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800"
+        >
+          <option value="">All</option>
+          <option value="low">Low</option>
+          <option value="moderate">Moderate</option>
+          <option value="high">High</option>
+          <option value="critical">Critical</option>
+        </select>
+      </div>
+
+      <div>
+        <LabelRow htmlFor="filter-policy-decision">Policy Decision</LabelRow>
+        <select
+          id="filter-policy-decision"
+          value={draft.policy_decision ?? ''}
+          onChange={(e) => set('policy_decision', e.target.value || undefined)}
+          className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800"
+        >
+          <option value="">All</option>
+          <option value="allow">Allow</option>
+          <option value="block">Block</option>
+        </select>
+      </div>
+
+      {/* ── Toggle chips ────────────────────────────────── */}
+      <div>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Flags</p>
+        <div className="flex flex-wrap gap-2">
+          {TOGGLE_CHIPS.map(({ key, label }) => {
+            const active = draft[key] === 'true';
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => toggleChip(key)}
+                className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                  active
+                    ? 'border-slate-900 bg-slate-900 text-white dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900'
+                    : 'border-slate-300 text-slate-600 hover:border-slate-500 dark:border-slate-600 dark:text-slate-400'
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div>
