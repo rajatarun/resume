@@ -113,7 +113,7 @@ function DrawerSection({ title, children }: { title: string; children: React.Rea
 }
 
 function SpanDrawer({ item }: { item: SpanItem }) {
-  const hasTimings = item.start_time != null && item.end_time != null;
+  const hasTimings = item.start_time !== null && item.start_time !== undefined && item.end_time !== null && item.end_time !== undefined;
   let latencyMs: number | null = null;
   if (hasTimings) {
     try {

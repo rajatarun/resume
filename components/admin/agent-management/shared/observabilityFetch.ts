@@ -214,11 +214,6 @@ export function formatTokens(v?: number): string {
   return v.toLocaleString();
 }
 
-export function formatScore(v?: number | null): string {
-  if (v === null || v === undefined) return '—';
-  return v.toFixed(3);
-}
-
 // ─── Fetch ───────────────────────────────────────────────────────────────────
 
 type QueryParams = Record<string, string | number | boolean | null | undefined>;

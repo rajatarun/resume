@@ -40,7 +40,7 @@ function totalCount(groups: AggregateGroup[]): number {
 }
 
 function avgShadowDisagreement(groups: AggregateGroup[]): number | null {
-  const withData = groups.filter((g) => g.avg_shadow_disagreement_score != null);
+  const withData = groups.filter((g) => g.avg_shadow_disagreement_score !== null && g.avg_shadow_disagreement_score !== undefined);
   if (!withData.length) return null;
   const sum = withData.reduce((acc, g) => acc + (g.avg_shadow_disagreement_score ?? 0), 0);
   return sum / withData.length;
