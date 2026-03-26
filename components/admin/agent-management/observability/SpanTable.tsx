@@ -2,7 +2,7 @@
 
 import { Fragment, useState } from 'react';
 import { format, parseISO, differenceInMilliseconds } from 'date-fns';
-import { SpanItem, formatCost, formatTokens, formatScore } from '../shared/observabilityFetch';
+import { SpanItem, formatCost, formatTokens } from '../shared/observabilityFetch';
 import { SkeletonRow } from './Skeleton';
 
 interface Props {
