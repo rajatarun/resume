@@ -5,6 +5,7 @@ import { SkeletonCard } from './Skeleton';
 
 interface Props {
   groups: AggregateGroup[];
+  totalCount?: number;
   isLoading: boolean;
 }
 
@@ -26,7 +27,7 @@ function StatCard({ label, value, sub }: Stat) {
   );
 }
 
-export function StatsBar({ groups, isLoading }: Props) {
+export function StatsBar({ groups, totalCount, isLoading }: Props) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -46,7 +47,11 @@ export function StatsBar({ groups, isLoading }: Props) {
   );
 
   const stats: Stat[] = [
-    { label: 'Total Invocations', value: totals.count.toLocaleString() },
+    {
+      label: 'Total Invocations',
+      value: (totalCount ?? totals.count).toLocaleString(),
+      sub: 'Selected range',
+    },
     { label: 'Total Cost', value: formatCost(totals.cost), sub: 'USD' },
     { label: 'Prompt Tokens', value: formatTokens(totals.prompt) },
     { label: 'Completion Tokens', value: formatTokens(totals.completion) },

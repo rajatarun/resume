@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { subHours, subDays, differenceInDays, formatISO } from 'date-fns';
+import { subHours, differenceInDays, formatISO } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import {
   fetchMetricsAggregate,
@@ -28,6 +28,7 @@ function defaultRange(): DateRange {
 
 interface QueryState {
   groups: AggregateGroup[];
+  totalCount: number;
   isLoading: boolean;
   error: string;
 }
@@ -36,7 +37,7 @@ function useAggregateQuery(
   aggregate: string,
   range: DateRange,
   refetchInterval: number | undefined,
-  extraParams?: Record<string, string | undefined>,
+  extraParams?: Record<string, string | number | undefined>,
 ): QueryState {
   const params = {
     aggregate: aggregate as Parameters<typeof fetchMetricsAggregate>[0]['aggregate'],
@@ -60,6 +61,7 @@ function useAggregateQuery(
 
   return {
     groups: data?.groups ?? [],
+    totalCount: data?.total_count ?? 0,
     isLoading,
     error: isError ? (error instanceof Error ? error.message : 'Failed to load') : '',
   };
@@ -84,7 +86,7 @@ export function ObservabilityDashboard() {
   const interval = autoRefresh ? 60_000 : undefined;
 
   // Core aggregate queries
-  const opQuery      = useAggregateQuery('by_operation', range, interval);
+  const opQuery      = useAggregateQuery('by_operation', range, interval, { limit: 100 });
   const tsQuery      = useAggregateQuery(granularity,    range, interval);
   const agentQuery   = useAggregateQuery('by_agent',     range, interval);
   const decisionQuery = useAggregateQuery('by_decision', range, interval);
@@ -95,9 +97,9 @@ export function ObservabilityDashboard() {
   const policyKpiQuery    = useAggregateQuery('by_policy_decision',          range, interval);
 
   // Reliability queries (base + filtered for rate computation)
-  const reliabilityBase    = useAggregateQuery('by_operation', range, interval);
-  const fallbackQuery      = useAggregateQuery('by_operation', range, interval, { fallback_used: 'true' });
-  const gateBlockedQuery   = useAggregateQuery('by_operation', range, interval, { gate_blocked: 'true' });
+  const reliabilityBase    = useAggregateQuery('by_operation', range, interval, { limit: 100 });
+  const fallbackQuery      = useAggregateQuery('by_operation', range, interval, { fallback_used: 'true', limit: 100 });
+  const gateBlockedQuery   = useAggregateQuery('by_operation', range, interval, { gate_blocked: 'true', limit: 100 });
 
   // Risk time series uses the same granularity as the main time series
   const riskTsQuery = useAggregateQuery(granularity, range, interval);
@@ -209,7 +211,11 @@ export function ObservabilityDashboard() {
       </div>
 
       {/* ── KPI stats bar ──────────────────────────────────── */}
-      <StatsBar groups={opQuery.groups} isLoading={opQuery.isLoading} />
+      <StatsBar
+        groups={opQuery.groups}
+        totalCount={opQuery.totalCount}
+        isLoading={opQuery.isLoading}
+      />
 
       {/* ── Risk score time series ─────────────────────────── */}
       <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
