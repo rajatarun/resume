@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { subHours, subDays, differenceInDays, formatISO } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -9,6 +9,7 @@ import {
   AggregateGroup,
   MetricsAggregateResponse,
 } from '../shared/observabilityFetch';
+import { mergeOperationGroups, findMissingOperations } from '../shared/observabilityUtils';
 import { ErrorBanner } from '../shared/ErrorBanner';
 import { StatsBar } from './StatsBar';
 import { TimeSeriesChart } from './TimeSeriesChart';
@@ -101,6 +102,31 @@ export function ObservabilityDashboard() {
 
   // Risk time series uses the same granularity as the main time series
   const riskTsQuery = useAggregateQuery(granularity, range, interval);
+
+  // The backend by_operation aggregate only scans the OBSERVATORY#invoke_model
+  // partition, so invoke_agent (and legacy classify_question/synthesize_answer)
+  // items are absent from opQuery.groups.  We synthesize the missing
+  // invoke_agent operation group from the by_agent aggregate (which correctly
+  // scans OBSERVATORY#invoke_agent) and merge it in so that StatsBar and
+  // OperationPieChart show accurate totals and include invoke_agent.
+  const mergedOpGroups = useMemo<AggregateGroup[]>(() => {
+    const missing = findMissingOperations(opQuery.groups);
+    if (!missing.includes('invoke_agent') || !agentQuery.groups.length) {
+      return opQuery.groups;
+    }
+    // Sum all by_agent groups to build a synthetic invoke_agent operation group
+    const invokeAgentGroup: AggregateGroup = agentQuery.groups.reduce<AggregateGroup>(
+      (acc, g) => ({
+        key: { operation: 'invoke_agent' },
+        count: acc.count + g.count,
+        sum_cost_usd: (acc.sum_cost_usd ?? 0) + (g.sum_cost_usd ?? 0),
+        sum_prompt_tokens: (acc.sum_prompt_tokens ?? 0) + (g.sum_prompt_tokens ?? 0),
+        sum_completion_tokens: (acc.sum_completion_tokens ?? 0) + (g.sum_completion_tokens ?? 0),
+      }),
+      { key: { operation: 'invoke_agent' }, count: 0 },
+    );
+    return mergeOperationGroups(opQuery.groups, [invokeAgentGroup]);
+  }, [opQuery.groups, agentQuery.groups]);
 
   const allQueries = [
     opQuery, tsQuery, agentQuery, decisionQuery,
@@ -209,7 +235,7 @@ export function ObservabilityDashboard() {
       </div>
 
       {/* ── KPI stats bar ──────────────────────────────────── */}
-      <StatsBar groups={opQuery.groups} isLoading={opQuery.isLoading} />
+      <StatsBar groups={mergedOpGroups} isLoading={opQuery.isLoading || agentQuery.isLoading} />
 
       {/* ── Risk score time series ─────────────────────────── */}
       <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
@@ -258,7 +284,7 @@ export function ObservabilityDashboard() {
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
           <h3 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">Operation Breakdown</h3>
-          <OperationPieChart groups={opQuery.groups} isLoading={opQuery.isLoading} />
+          <OperationPieChart groups={mergedOpGroups} isLoading={opQuery.isLoading || agentQuery.isLoading} />
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
           <h3 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">Decision Distribution</h3>
