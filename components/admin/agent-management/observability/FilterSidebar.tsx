@@ -65,6 +65,8 @@ export function FilterSidebar({ filters, onApply }: Props) {
           <option value="">All</option>
           <option value="invoke_agent">invoke_agent</option>
           <option value="invoke_model">invoke_model</option>
+          <option value="classify_question">classify_question</option>
+          <option value="synthesize_answer">synthesize_answer</option>
         </select>
       </div>
 
@@ -101,9 +103,9 @@ export function FilterSidebar({ filters, onApply }: Props) {
           className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm dark:border-slate-600 dark:bg-slate-800"
         >
           <option value="">All</option>
-          <option value="ALLOW">ALLOW</option>
-          <option value="DENY">DENY</option>
-          <option value="SHADOW">SHADOW</option>
+          <option value="allow">ALLOW</option>
+          <option value="deny">DENY</option>
+          <option value="shadow">SHADOW</option>
         </select>
       </div>
 
