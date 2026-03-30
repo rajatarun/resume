@@ -125,6 +125,28 @@ export function findMissingOperations(groups: AggregateGroup[]): string[] {
   return KNOWN_OPERATIONS.filter((op) => !present.has(op));
 }
 
+/**
+ * Aggregate groups by a string key while dropping entries that do not have a
+ * meaningful key value. Useful for risk/policy charts where older spans may
+ * not contain newer fields (e.g. composite_risk_level, policy_decision).
+ */
+export function aggregateGroupsByStringKey(
+  groups: AggregateGroup[],
+  keyField: string,
+): Array<{ key: string; count: number }> {
+  const byKey = new Map<string, number>();
+
+  for (const g of groups) {
+    const raw = g.key[keyField];
+    if (typeof raw !== 'string') continue;
+    const normalized = raw.trim();
+    if (!normalized) continue;
+    byKey.set(normalized, (byKey.get(normalized) ?? 0) + (g.count ?? 0));
+  }
+
+  return [...byKey.entries()].map(([key, count]) => ({ key, count }));
+}
+
 // ─── Total stats helpers ──────────────────────────────────────────────────────
 
 export interface TotalStats {

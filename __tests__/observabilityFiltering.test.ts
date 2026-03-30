@@ -18,6 +18,7 @@ import {
   computeTotalsFromItems,
   normalizeDecision,
   decisionMatches,
+  aggregateGroupsByStringKey,
 } from '@/components/admin/agent-management/shared/observabilityUtils';
 import type { SpanItem, AggregateGroup } from '@/components/admin/agent-management/shared/observabilityFetch';
 
@@ -271,5 +272,27 @@ describe('invoke_agent specific field presence', () => {
     agentItems.forEach((item) => {
       expect(item.risk_tier).toBe('high');
     });
+  });
+});
+
+describe('aggregateGroupsByStringKey', () => {
+  it('ignores groups with missing/blank risk values when aggregating', () => {
+    const groups: AggregateGroup[] = [
+      { key: { composite_risk_level: 'high' }, count: 3 },
+      { key: { composite_risk_level: 'high' }, count: 2 },
+      { key: { composite_risk_level: 'low' }, count: 4 },
+      { key: { composite_risk_level: '' }, count: 7 },
+      { key: {}, count: 6 },
+    ];
+
+    const aggregated = aggregateGroupsByStringKey(groups, 'composite_risk_level');
+    expect(aggregated).toEqual(
+      expect.arrayContaining([
+        { key: 'high', count: 5 },
+        { key: 'low', count: 4 },
+      ]),
+    );
+    expect(aggregated.find((g) => g.key === '')).toBeUndefined();
+    expect(aggregated).toHaveLength(2);
   });
 });

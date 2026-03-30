@@ -1,6 +1,7 @@
 'use client';
 
 import { AggregateGroup } from '../shared/observabilityFetch';
+import { aggregateGroupsByStringKey } from '../shared/observabilityUtils';
 import { SkeletonCard } from './Skeleton';
 
 interface Props {
@@ -26,11 +27,13 @@ export function RiskKpiRow({ groups, isLoading, activeLevel, onLevelClick }: Pro
     );
   }
 
-  const countByLevel: Record<string, number> = {};
-  for (const g of groups) {
-    const k = g.key.composite_risk_level ?? '';
-    countByLevel[k] = (countByLevel[k] ?? 0) + g.count;
-  }
+  const countByLevel = aggregateGroupsByStringKey(groups, 'composite_risk_level').reduce<Record<string, number>>(
+    (acc, item) => {
+      acc[item.key] = item.count;
+      return acc;
+    },
+    {},
+  );
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
