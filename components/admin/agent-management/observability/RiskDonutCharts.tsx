@@ -2,22 +2,22 @@
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { AggregateGroup } from '../shared/observabilityFetch';
+import { aggregateGroupsByStringKey } from '../shared/observabilityUtils';
 import { SkeletonChart } from './Skeleton';
 
 interface DonutChartProps {
   groups: AggregateGroup[];
   keyField: string;
-  title: string;
   isLoading: boolean;
   colors: Record<string, string>;
   fallbackColor: string;
 }
 
-function DonutChart({ groups, keyField, title, isLoading, colors, fallbackColor }: DonutChartProps) {
+function DonutChart({ groups, keyField, isLoading, colors, fallbackColor }: DonutChartProps) {
   if (isLoading) return <SkeletonChart height={200} />;
 
-  const data = groups
-    .map((g) => ({ name: g.key[keyField] ?? 'unknown', value: g.count }))
+  const data = aggregateGroupsByStringKey(groups, keyField)
+    .map((g) => ({ name: g.key, value: g.count }))
     .filter((d) => d.value > 0);
 
   if (!data.length) {
@@ -99,7 +99,6 @@ export function RiskDonutCharts({ compositeGroups, hallucinationGroups, policyGr
         <DonutChart
           groups={compositeGroups}
           keyField="composite_risk_level"
-          title="Composite Risk"
           isLoading={isLoading}
           colors={COMPOSITE_COLORS}
           fallbackColor="#94a3b8"
@@ -111,7 +110,6 @@ export function RiskDonutCharts({ compositeGroups, hallucinationGroups, policyGr
         <DonutChart
           groups={hallucinationGroups}
           keyField="hallucination_risk_level"
-          title="Hallucination Risk"
           isLoading={isLoading}
           colors={HALLUCINATION_COLORS}
           fallbackColor="#94a3b8"
@@ -123,7 +121,6 @@ export function RiskDonutCharts({ compositeGroups, hallucinationGroups, policyGr
         <DonutChart
           groups={policyGroups}
           keyField="policy_decision"
-          title="Policy Gate"
           isLoading={isLoading}
           colors={POLICY_COLORS}
           fallbackColor="#94a3b8"
