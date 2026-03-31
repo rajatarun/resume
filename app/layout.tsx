@@ -39,7 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Web3Provider>
           <TopNav />
           <StructuredData />
-          <main id="main-content" className="mx-auto w-full max-w-6xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">{children}</main>
+          <main id="main-content" className="mx-auto w-full max-w-6xl px-4 pb-16 pt-24 sm:px-6 lg:px-8">{children}</main>
           <SiteFooter />
         </Web3Provider>
       </body>
