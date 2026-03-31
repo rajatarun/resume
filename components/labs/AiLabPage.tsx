@@ -5,6 +5,7 @@ import { AgentStudioTab } from "@/components/labs/AgentStudioTab";
 import { AboutTab } from "@/components/labs/AboutTab";
 import { HowItWorksModal } from "@/components/labs/HowItWorksModal";
 import { Tabs, type LabTabKey } from "@/components/labs/Tabs";
+import { ObservabilityDashboard } from "@/components/admin/agent-management/observability/ObservabilityDashboard";
 import { cn } from "@/lib/utils/cn";
 
 export function AiLabPage() {
@@ -56,7 +57,9 @@ export function AiLabPage() {
 
       <Tabs activeTab={activeTab} onChange={setActiveTab} />
 
-      {activeTab === "agent-studio" ? <AgentStudioTab onPolygonStatusChange={setPolygonConnected} onPlatformPoolChange={setPlatformPoolSol} /> : <AboutTab />}
+      {activeTab === "agent-studio" && <AgentStudioTab onPolygonStatusChange={setPolygonConnected} onPlatformPoolChange={setPlatformPoolSol} />}
+      {activeTab === "observatory" && <ObservabilityDashboard />}
+      {activeTab === "about" && <AboutTab />}
 
       <HowItWorksModal open={isHowItWorksOpen} onClose={() => setHowItWorksOpen(false)} />
     </main>
