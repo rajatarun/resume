@@ -19,6 +19,7 @@ import {
   normalizeDecision,
   decisionMatches,
   aggregateGroupsByStringKey,
+  computeRiskMetricsFromItems,
 } from '@/components/admin/agent-management/shared/observabilityUtils';
 import type { SpanItem, AggregateGroup } from '@/components/admin/agent-management/shared/observabilityFetch';
 
@@ -294,5 +295,99 @@ describe('aggregateGroupsByStringKey', () => {
     );
     expect(aggregated.find((g) => g.key === '')).toBeUndefined();
     expect(aggregated).toHaveLength(2);
+  });
+});
+
+describe('computeRiskMetricsFromItems — ignore items without risk fields', () => {
+  it('returns null averages when no items have risk score fields', () => {
+    // classify_question and synthesize_answer items have no risk scores
+    const legacyItems = API_ITEMS.filter(
+      (i) => i.operation === 'classify_question' || i.operation === 'synthesize_answer',
+    );
+    const metrics = computeRiskMetricsFromItems(legacyItems);
+    expect(metrics.avg_composite_risk_score).toBeNull();
+    expect(metrics.avg_hallucination_risk_score).toBeNull();
+    expect(metrics.avg_shadow_disagreement_score).toBeNull();
+    expect(metrics.avg_shadow_numeric_variance).toBeNull();
+  });
+
+  it('averages only items that have the field — older records do not dilute scores', () => {
+    const mixedItems: SpanItem[] = [
+      { trace_id: 'a', operation: 'invoke_model', timestamp: '2026-01-01', composite_risk_score: 0.8 },
+      { trace_id: 'b', operation: 'invoke_model', timestamp: '2026-01-01', composite_risk_score: 0.4 },
+      // older record — no composite_risk_score; must be excluded from the average
+      { trace_id: 'c', operation: 'invoke_model', timestamp: '2026-01-01' },
+    ];
+    const metrics = computeRiskMetricsFromItems(mixedItems);
+    // Average of [0.8, 0.4] = 0.6, NOT (0.8 + 0.4 + 0) / 3 = 0.4
+    expect(metrics.avg_composite_risk_score).toBeCloseTo(0.6);
+  });
+
+  it('computes independent averages per field (a record missing one field still counts for others)', () => {
+    const items: SpanItem[] = [
+      { trace_id: 'a', operation: 'invoke_agent', timestamp: '2026-01-01', composite_risk_score: 0.9, hallucination_risk_score: 0.3 },
+      { trace_id: 'b', operation: 'invoke_agent', timestamp: '2026-01-01', composite_risk_score: 0.5 /* no hallucination_risk_score */ },
+      { trace_id: 'c', operation: 'invoke_agent', timestamp: '2026-01-01', hallucination_risk_score: 0.7 /* no composite_risk_score */ },
+    ];
+    const metrics = computeRiskMetricsFromItems(items);
+    // composite: average of [0.9, 0.5] (item c excluded) = 0.7
+    expect(metrics.avg_composite_risk_score).toBeCloseTo(0.7);
+    // hallucination: average of [0.3, 0.7] (item b excluded) = 0.5
+    expect(metrics.avg_hallucination_risk_score).toBeCloseTo(0.5);
+  });
+
+  it('returns null for gate_blocked_rate when no items have the gate_blocked field', () => {
+    const items: SpanItem[] = [
+      { trace_id: 'a', operation: 'invoke_model', timestamp: '2026-01-01', composite_risk_score: 0.5 },
+    ];
+    const metrics = computeRiskMetricsFromItems(items);
+    expect(metrics.gate_blocked_rate).toBeNull();
+    expect(metrics.gate_blocked_count).toBe(0);
+  });
+
+  it('computes gate_blocked_rate only over items that have the gate_blocked field', () => {
+    const items: SpanItem[] = [
+      { trace_id: 'a', operation: 'invoke_agent', timestamp: '2026-01-01', gate_blocked: true },
+      { trace_id: 'b', operation: 'invoke_agent', timestamp: '2026-01-01', gate_blocked: false },
+      { trace_id: 'c', operation: 'invoke_agent', timestamp: '2026-01-01', gate_blocked: false },
+      // older record without gate_blocked — excluded from rate denominator
+      { trace_id: 'd', operation: 'invoke_model', timestamp: '2026-01-01' },
+    ];
+    const metrics = computeRiskMetricsFromItems(items);
+    expect(metrics.gate_blocked_count).toBe(1);
+    // rate = 1/3 (item d not counted in denominator)
+    expect(metrics.gate_blocked_rate).toBeCloseTo(1 / 3);
+  });
+
+  it('returns null averages for shadow fields when no items have them', () => {
+    const items: SpanItem[] = [
+      { trace_id: 'a', operation: 'invoke_model', timestamp: '2026-01-01', composite_risk_score: 0.5 },
+    ];
+    const metrics = computeRiskMetricsFromItems(items);
+    expect(metrics.avg_shadow_disagreement_score).toBeNull();
+    expect(metrics.avg_shadow_numeric_variance).toBeNull();
+  });
+
+  it('averages shadow_disagreement_score and shadow_numeric_variance independently', () => {
+    const items: SpanItem[] = [
+      { trace_id: 'a', operation: 'invoke_agent', timestamp: '2026-01-01', shadow_disagreement_score: 0.2, shadow_numeric_variance: 0.05 },
+      { trace_id: 'b', operation: 'invoke_agent', timestamp: '2026-01-01', shadow_disagreement_score: 0.6 /* no shadow_numeric_variance */ },
+      { trace_id: 'c', operation: 'invoke_agent', timestamp: '2026-01-01' /* no shadow fields */ },
+    ];
+    const metrics = computeRiskMetricsFromItems(items);
+    // disagreement: [0.2, 0.6] → 0.4
+    expect(metrics.avg_shadow_disagreement_score).toBeCloseTo(0.4);
+    // variance: [0.05] → 0.05 (only item a had it)
+    expect(metrics.avg_shadow_numeric_variance).toBeCloseTo(0.05);
+  });
+
+  it('returns null for all averages given an empty item list', () => {
+    const metrics = computeRiskMetricsFromItems([]);
+    expect(metrics.avg_composite_risk_score).toBeNull();
+    expect(metrics.avg_hallucination_risk_score).toBeNull();
+    expect(metrics.avg_shadow_disagreement_score).toBeNull();
+    expect(metrics.avg_shadow_numeric_variance).toBeNull();
+    expect(metrics.gate_blocked_rate).toBeNull();
+    expect(metrics.gate_blocked_count).toBe(0);
   });
 });

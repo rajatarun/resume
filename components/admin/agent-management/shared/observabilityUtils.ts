@@ -147,6 +147,71 @@ export function aggregateGroupsByStringKey(
   return [...byKey.entries()].map(([key, count]) => ({ key, count }));
 }
 
+// ─── Risk metrics helpers ─────────────────────────────────────────────────────
+
+/**
+ * Aggregated risk metrics computed from a list of SpanItems.
+ * Fields are null when no item in the input had that field set (e.g. older
+ * records that pre-date risk instrumentation).  Callers must not treat null
+ * as 0 — it means "no data", not "zero risk".
+ */
+export interface RiskMetrics {
+  /** Average composite risk score, or null if no items had the field. */
+  avg_composite_risk_score: number | null;
+  /** Average hallucination risk score, or null if no items had the field. */
+  avg_hallucination_risk_score: number | null;
+  /** Average shadow disagreement score, or null if no items had the field. */
+  avg_shadow_disagreement_score: number | null;
+  /** Average shadow numeric variance, or null if no items had the field. */
+  avg_shadow_numeric_variance: number | null;
+  /** Number of items where gate_blocked === true (only counts items that have the field). */
+  gate_blocked_count: number;
+  /**
+   * Fraction of items-with-gate-field that were blocked, or null when no
+   * item in the input had the gate_blocked field set at all.
+   */
+  gate_blocked_rate: number | null;
+}
+
+type NumericRiskField =
+  | 'composite_risk_score'
+  | 'hallucination_risk_score'
+  | 'shadow_disagreement_score'
+  | 'shadow_numeric_variance';
+
+/**
+ * Compute risk metric averages from a flat list of SpanItems.
+ *
+ * Items that do not have a given risk field (undefined / null) are excluded
+ * from that field's average.  This prevents older records — which pre-date
+ * the risk instrumentation layer — from diluting metrics with phantom zeros.
+ */
+export function computeRiskMetricsFromItems(items: SpanItem[]): RiskMetrics {
+  function avgOf(field: NumericRiskField): number | null {
+    const values = items
+      .map((item) => item[field])
+      .filter((v): v is number => v !== null && v !== undefined);
+    if (!values.length) return null;
+    return values.reduce((sum, v) => sum + v, 0) / values.length;
+  }
+
+  const itemsWithGateField = items.filter(
+    (i) => i.gate_blocked !== null && i.gate_blocked !== undefined,
+  );
+  const gateBlockedCount = itemsWithGateField.filter((i) => i.gate_blocked === true).length;
+  const gateBlockedRate =
+    itemsWithGateField.length > 0 ? gateBlockedCount / itemsWithGateField.length : null;
+
+  return {
+    avg_composite_risk_score: avgOf('composite_risk_score'),
+    avg_hallucination_risk_score: avgOf('hallucination_risk_score'),
+    avg_shadow_disagreement_score: avgOf('shadow_disagreement_score'),
+    avg_shadow_numeric_variance: avgOf('shadow_numeric_variance'),
+    gate_blocked_count: gateBlockedCount,
+    gate_blocked_rate: gateBlockedRate,
+  };
+}
+
 // ─── Total stats helpers ──────────────────────────────────────────────────────
 
 export interface TotalStats {
