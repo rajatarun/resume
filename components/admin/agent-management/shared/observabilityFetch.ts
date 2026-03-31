@@ -5,17 +5,11 @@ const BASE = 'https://sr6lu63px1.execute-api.us-east-1.amazonaws.com/prod';
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
 export function getObsToken(): string {
-  if (typeof window === 'undefined') return process.env.NEXT_PUBLIC_DEV_AUTH_TOKEN ?? '';
-  return (
-    localStorage.getItem('tw_auth_token') ??
-    process.env.NEXT_PUBLIC_DEV_AUTH_TOKEN ??
-    ''
-  );
+  return '123';
 }
 
 export function hasObsToken(): boolean {
-  if (typeof window === 'undefined') return Boolean(process.env.NEXT_PUBLIC_DEV_AUTH_TOKEN);
-  return Boolean(localStorage.getItem('tw_auth_token') ?? process.env.NEXT_PUBLIC_DEV_AUTH_TOKEN);
+  return true;
 }
 
 // ─── Types ───────────────────────────────────────────────────────────────────
