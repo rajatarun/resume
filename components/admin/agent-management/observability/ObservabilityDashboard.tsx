@@ -72,8 +72,6 @@ export function ObservabilityDashboard() {
   const [range, setRange] = useState<DateRange>(defaultRange);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [dismissedErrors, setDismissedErrors] = useState<Set<string>>(new Set());
-  const [tokenInput, setTokenInput] = useState('');
-  const [showTokenPrompt, setShowTokenPrompt] = useState(!hasObsToken());
   // Active composite risk level filter (set by clicking KPI cards)
   const [activeRiskLevel, setActiveRiskLevel] = useState<string | undefined>();
 
@@ -141,45 +139,6 @@ export function ObservabilityDashboard() {
     .map((q) => q.error)
     .filter((e): e is string => Boolean(e) && !dismissedErrors.has(e));
 
-  if (showTokenPrompt) {
-    return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 dark:border-amber-800 dark:bg-amber-900/20">
-        <p className="mb-3 font-medium text-amber-800 dark:text-amber-300">
-          Authentication required
-        </p>
-        <p className="mb-4 text-sm text-amber-700 dark:text-amber-400">
-          Enter your Bedrock Observability token to view metrics.
-        </p>
-        <div className="flex gap-2">
-          <input
-            type="password"
-            value={tokenInput}
-            onChange={(e) => setTokenInput(e.target.value)}
-            placeholder="Paste bearer token…"
-            className="flex-1 rounded border border-amber-300 bg-white px-3 py-1.5 text-sm dark:border-amber-700 dark:bg-slate-800"
-          />
-          <button
-            type="button"
-            onClick={() => {
-              if (tokenInput.trim()) {
-                localStorage.setItem('tw_auth_token', tokenInput.trim());
-                setShowTokenPrompt(false);
-              }
-            }}
-            className="rounded bg-amber-600 px-4 py-1.5 text-sm text-white hover:bg-amber-700"
-          >
-            Save
-          </button>
-        </div>
-        {process.env.NEXT_PUBLIC_DEV_AUTH_TOKEN && (
-          <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-            Dev token found in env — click Save with empty input or set NEXT_PUBLIC_DEV_AUTH_TOKEN.
-          </p>
-        )}
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Controls */}
@@ -196,13 +155,6 @@ export function ObservabilityDashboard() {
             />
             {autoRefresh && <span className="text-green-600 text-xs">● 60s</span>}
           </label>
-          <button
-            type="button"
-            onClick={() => { localStorage.removeItem('tw_auth_token'); setShowTokenPrompt(true); }}
-            className="text-xs text-slate-400 hover:text-slate-600 underline"
-          >
-            Change token
-          </button>
         </div>
       </div>
 
