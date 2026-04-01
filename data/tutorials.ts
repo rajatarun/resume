@@ -81,4 +81,41 @@ export const tutorialTopics: TutorialTopic[] = [
       },
     ],
   },
+  {
+    topic: "LLMOps",
+    description:
+      "End-to-end LLMOps and AIOps tutorials covering observability, scoring, drift detection, cost optimisation, and production hardening using mcp-observatory as the reference implementation.",
+    tutorials: [
+      {
+        id: "tut-llmops-1",
+        title: "Vol 1 — From Zero to Observable AI Systems",
+        description:
+          "A ground-up introduction to LLMOps and AIOps concepts. Covers MCP tool calls, the InvocationWrapperAPI, risk tiers (LOW/MEDIUM/HIGH), and the two-phase propose/commit pattern. Culminates in building a minimal traced pipeline with nonce replay detection.",
+        pdfUrl:
+          "https://tarun-website-tutorials.s3.amazonaws.com/LLMOps/vol1%20beginner%20llmops%20aiops.pdf",
+        downloadName: "LLMOps Vol 1 Beginner – Tarun Raja.pdf",
+        level: "Beginner",
+      },
+      {
+        id: "tut-llmops-2",
+        title: "Vol 2 — Scoring, Drift Detection & the Wrapper API",
+        description:
+          "A deep dive into the quantitative machinery behind mcp-observatory. Covers the composite scoring engine (Jaccard instability, numeric variance, prompt drift), HMAC-SHA256 token security, dual-run shadow mode, and production Postgres schema design with analytical SQL for drift alerting.",
+        pdfUrl:
+          "https://tarun-website-tutorials.s3.amazonaws.com/LLMOps/vol2%20intermediate%20llmops%20aiops.pdf",
+        downloadName: "LLMOps Vol 2 Intermediate – Tarun Raja.pdf",
+        level: "Intermediate",
+      },
+      {
+        id: "tut-llmops-3",
+        title: "Vol 3 — Production Hardening, Cost Ops & CI/CD",
+        description:
+          "Engineering-focused guide for teams taking AI systems to production. Covers AWS SAM deployment, Step Functions human-in-the-loop approval, token economics and model routing, GitHub Actions eval pipelines, security hardening with Redis rate limiting, and OpenTelemetry integration for Grafana/X-Ray tracing.",
+        pdfUrl:
+          "https://tarun-website-tutorials.s3.amazonaws.com/LLMOps/vol3%20advanced%20llmops%20aiops.pdf",
+        downloadName: "LLMOps Vol 3 Advanced – Tarun Raja.pdf",
+        level: "Advanced",
+      },
+    ],
+  },
 ];
