@@ -18,10 +18,10 @@ function getBaseUrl(): string {
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const { headers: extraHeaders, ...restInit } = init ?? {};
   const response = await fetch(`${getBaseUrl()}${path}`, {
-    headers: { "Content-Type": "application/json" },
-    ...init,
-    ...(init?.body ? {} : {}),
+    ...restInit,
+    headers: { "Content-Type": "application/json", ...(extraHeaders as Record<string, string> | undefined) },
   });
 
   const text = await response.text();
