@@ -8,6 +8,7 @@ import { useToast } from "@/components/admin/ToastProvider";
 import { TaskTable, TaskTableSkeleton } from "./TaskTable";
 import { TaskFormDrawer } from "./TaskFormDrawer";
 import { DeleteTaskDialog } from "./DeleteTaskDialog";
+import { ResultsDrawer } from "./ResultsDrawer";
 
 const TASKS_KEY = ["routineweave", "tasks"] as const;
 
@@ -20,20 +21,27 @@ export default function TasksClient() {
     queryFn: listTasks,
   });
 
-  // Drawer state
+  // Create / edit drawer
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskDefinition | null>(null);
   const [formFieldErrors, setFormFieldErrors] = useState<ApiFieldError[]>([]);
 
-  // Delete dialog state
+  // Delete dialog
   const [deletingTaskName, setDeletingTaskName] = useState<string | null>(null);
   const [deletesBusy, setDeleteBusy] = useState(false);
 
-  // Optimistic toggle state
+  // Optimistic enabled toggle
   const [pendingToggles, setPendingToggles] = useState<Record<string, boolean>>({});
   const [togglingTask, setTogglingTask] = useState<string | null>(null);
 
-  // Error banner dismiss
+  // Optimistic save_result toggle
+  const [pendingSaveResultToggles, setPendingSaveResultToggles] = useState<Record<string, boolean>>({});
+  const [togglingSaveResultTask, setTogglingSaveResultTask] = useState<string | null>(null);
+
+  // Results drawer
+  const [resultsTaskName, setResultsTaskName] = useState<string | null>(null);
+
+  // Error banner
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
   const openCreate = () => {
@@ -111,6 +119,26 @@ export default function TasksClient() {
     }
   }, [queryClient, toast]);
 
+  const handleToggleSaveResult = useCallback(async (task: TaskDefinition) => {
+    const newSaveResult = !(task.save_result ?? false);
+    setTogglingSaveResultTask(task.task_name);
+    setPendingSaveResultToggles((prev) => ({ ...prev, [task.task_name]: newSaveResult }));
+    try {
+      await updateTask(task.task_name, { ...task, save_result: newSaveResult });
+      toast.success(`Save result ${newSaveResult ? "enabled" : "disabled"} for "${task.task_name}".`);
+      void queryClient.invalidateQueries({ queryKey: TASKS_KEY });
+    } catch (err) {
+      setPendingSaveResultToggles((prev) => {
+        const next = { ...prev };
+        delete next[task.task_name];
+        return next;
+      });
+      toast.error(err instanceof Error ? err.message : "Toggle failed");
+    } finally {
+      setTogglingSaveResultTask(null);
+    }
+  }, [queryClient, toast]);
+
   const showError = isError && !bannerDismissed;
   const errorMessage = error instanceof Error ? error.message : "Failed to load tasks";
 
@@ -154,9 +182,13 @@ export default function TasksClient() {
           tasks={tasks ?? []}
           pendingToggles={pendingToggles}
           togglingTask={togglingTask}
+          pendingSaveResultToggles={pendingSaveResultToggles}
+          togglingSaveResultTask={togglingSaveResultTask}
           onEdit={openEdit}
           onDelete={setDeletingTaskName}
           onToggleEnabled={handleToggleEnabled}
+          onToggleSaveResult={handleToggleSaveResult}
+          onViewResults={setResultsTaskName}
           onNew={openCreate}
         />
       )}
@@ -176,6 +208,12 @@ export default function TasksClient() {
         busy={deletesBusy}
         onCancel={() => setDeletingTaskName(null)}
         onConfirm={handleDelete}
+      />
+
+      {/* Results drawer */}
+      <ResultsDrawer
+        taskName={resultsTaskName}
+        onClose={() => setResultsTaskName(null)}
       />
     </div>
   );

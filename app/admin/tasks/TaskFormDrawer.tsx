@@ -198,6 +198,7 @@ interface FormState {
   task_name: string;
   schedule: string;
   enabled: boolean;
+  save_result: boolean;
   model: string;
   grounding: boolean;
   timeout_ms: number;
@@ -219,6 +220,7 @@ function buildInitialState(task?: TaskDefinition | null): FormState {
     task_name: task?.task_name ?? "",
     schedule: task?.schedule ?? "",
     enabled: task?.enabled ?? true,
+    save_result: task?.save_result ?? false,
     model: task?.model ?? DEFAULT_MODEL,
     grounding: task?.grounding ?? false,
     timeout_ms: task?.timeout_ms ?? DEFAULT_TIMEOUT,
@@ -256,6 +258,7 @@ function buildTaskPayload(form: FormState): TaskDefinition {
     task_name: form.task_name,
     schedule: form.schedule,
     enabled: form.enabled,
+    save_result: form.save_result,
     model: form.model,
     grounding: form.grounding,
     timeout_ms: form.timeout_ms,
@@ -442,8 +445,8 @@ export function TaskFormDrawer({ open, task, onClose, onSubmit, fieldErrors }: T
                   />
                 </div>
 
-                {/* enabled + grounding toggles */}
-                <div className="flex gap-6">
+                {/* enabled / grounding / save_result toggles */}
+                <div className="flex flex-wrap gap-6">
                   <label className="flex cursor-pointer items-center gap-2 text-sm">
                     <ToggleSwitch checked={form.enabled} onChange={(v) => set({ enabled: v })} />
                     Enabled
@@ -451,6 +454,10 @@ export function TaskFormDrawer({ open, task, onClose, onSubmit, fieldErrors }: T
                   <label className="flex cursor-pointer items-center gap-2 text-sm">
                     <ToggleSwitch checked={form.grounding} onChange={(v) => set({ grounding: v })} />
                     Grounding
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-2 text-sm">
+                    <ToggleSwitch checked={form.save_result} onChange={(v) => set({ save_result: v })} />
+                    Save result
                   </label>
                 </div>
               </div>

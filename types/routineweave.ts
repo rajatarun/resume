@@ -24,11 +24,41 @@ export interface TaskDefinition {
   model: string;
   grounding: boolean;
   enabled: boolean;
+  save_result: boolean;
   timeout_ms: number;
   max_retries?: number;
   variables?: Record<string, string>;
   input?: Record<string, string | string[]>;
   output: TaskOutput;
+}
+
+export interface ResultMeta {
+  key: string;
+  task_name: string;
+  date: string;
+  timestamp: string;
+  size_bytes: number;
+}
+
+export interface TaskExecutionResult {
+  task_name: string;
+  timestamp: string;
+  success: boolean;
+  result?: string;
+  structured_result?: {
+    summary: string;
+    data: unknown;
+    raw_text: string;
+    [key: string]: unknown;
+  };
+  error?: string;
+  duration_ms: number;
+}
+
+export interface ResultsListResponse {
+  task_name: string;
+  save_result: boolean;
+  results: ResultMeta[];
 }
 
 export interface ApiFieldError {
