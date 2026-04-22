@@ -1,4 +1,4 @@
-import { ApiErrorPayload, TaskDefinition } from "@/types/routineweave";
+import { ApiErrorPayload, ResultsListResponse, TaskDefinition, TaskExecutionResult } from "@/types/routineweave";
 
 export class RoutineWeaveApiError extends Error {
   status: number;
@@ -71,4 +71,15 @@ export async function deleteTask(name: string): Promise<{ message: string }> {
   return request<{ message: string }>(`/tasks/${encodeURIComponent(name)}`, {
     method: "DELETE",
   });
+}
+
+export async function listResults(taskName: string): Promise<ResultsListResponse> {
+  return request<ResultsListResponse>(`/results/${encodeURIComponent(taskName)}`);
+}
+
+export async function getResult(taskName: string, date: string, filename: string): Promise<TaskExecutionResult> {
+  const data = await request<{ result: TaskExecutionResult }>(
+    `/results/${encodeURIComponent(taskName)}/${encodeURIComponent(date)}/${encodeURIComponent(filename)}`
+  );
+  return data.result;
 }
