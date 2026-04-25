@@ -53,6 +53,7 @@ export type DeviceType =
 
 export interface Device {
   id: string;
+  id_truncated?: string;
   name: string;
   device_type: DeviceType;
   capabilities: string[];
