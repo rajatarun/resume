@@ -1,7 +1,14 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
+import { ChatDrawer } from '@/components/admin/agent-management/teams/ChatDrawer';
+
+type ChatAgent = {
+  agentId: string;
+  aliasId: string;
+  agentName: string;
+};
 
 type TeamDetail = {
   team?: {
@@ -30,10 +37,15 @@ export function TeamViewDrawer({
   onClose: () => void;
 }) {
   const drawerRef = useRef<HTMLDivElement>(null);
+  const [chatAgent, setChatAgent] = useState<ChatAgent | null>(null);
+
   useFocusTrap(drawerRef, open && !!data);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setChatAgent(null);
+      return;
+    }
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
@@ -55,7 +67,9 @@ export function TeamViewDrawer({
         className="h-full w-full max-w-xl overflow-auto bg-white p-4 shadow-xl dark:bg-slate-900"
       >
         <div className="flex items-center justify-between">
-          <h3 id="team-drawer-title" className="text-lg font-semibold">Team Details</h3>
+          <h3 id="team-drawer-title" className="text-lg font-semibold">
+            Team Details
+          </h3>
           <button
             type="button"
             aria-label="Close team details"
@@ -74,11 +88,39 @@ export function TeamViewDrawer({
         </pre>
         <h4 className="mt-4 font-medium">Agents</h4>
         <ul className="mt-2 space-y-1 text-sm">
-          {(data.team?.agents ?? []).map((agent) => (
-            <li key={`${agent.bedrock?.agentId ?? agent.agentId ?? 'no-agent'}:${agent.bedrock?.aliasId ?? agent.aliasId ?? 'no-alias'}:${agent.role_id ?? 'no-role'}:${agent.name ?? 'no-name'}`} className="rounded border px-2 py-1">
-              {agent.name} · {agent.role_id} · {agent.bedrock?.agentId ?? agent.agentId ?? '—'} · {agent.bedrock?.aliasId ?? agent.aliasId ?? '—'}
-            </li>
-          ))}
+          {(data.team?.agents ?? []).map((agent) => {
+            const resolvedAgentId = agent.bedrock?.agentId ?? agent.agentId;
+            const resolvedAliasId = agent.bedrock?.aliasId ?? agent.aliasId;
+
+            return (
+              <li
+                key={`${resolvedAgentId ?? 'no-agent'}:${resolvedAliasId ?? 'no-alias'}:${agent.role_id ?? 'no-role'}:${agent.name ?? 'no-name'}`}
+                className="rounded border px-2 py-1"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span>
+                    {agent.name} · {agent.role_id} · {resolvedAgentId ?? '—'} ·{' '}
+                    {resolvedAliasId ?? '—'}
+                  </span>
+                  <button
+                    type="button"
+                    className="underline disabled:cursor-not-allowed disabled:text-slate-400"
+                    disabled={!resolvedAgentId || !resolvedAliasId}
+                    onClick={() => {
+                      if (!resolvedAgentId || !resolvedAliasId) return;
+                      setChatAgent({
+                        agentId: resolvedAgentId,
+                        aliasId: resolvedAliasId,
+                        agentName: agent.name ?? resolvedAgentId,
+                      });
+                    }}
+                  >
+                    Chat
+                  </button>
+                </div>
+              </li>
+            );
+          })}
         </ul>
         <h4 className="mt-4 font-medium">Available Versions</h4>
         <select className="focus-ring mt-2 w-full rounded border px-3 py-2">
@@ -87,6 +129,13 @@ export function TeamViewDrawer({
           ))}
         </select>
       </div>
+      <ChatDrawer
+        open={Boolean(chatAgent)}
+        agentId={chatAgent?.agentId ?? ''}
+        aliasId={chatAgent?.aliasId ?? ''}
+        agentName={chatAgent?.agentName ?? ''}
+        onClose={() => setChatAgent(null)}
+      />
     </div>
   );
 }
