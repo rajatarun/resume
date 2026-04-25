@@ -364,7 +364,6 @@ export function LearningsTab() {
         <LearningsTable
           rows={sorted}
           deviceNameMap={deviceNameMap}
-          sortField={sortField}
           sortIcon={sortIcon}
           onSort={handleSort}
           onDelete={setDeleteTarget}

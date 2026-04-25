@@ -35,7 +35,7 @@ export function PolicyConditionChips({
   }
   return (
     <div className="flex flex-wrap items-center gap-1">
-      {conditions.map((c) => (
+      {conditions.map((c, i) => (
         <Fragment key={`${c.field}-${c.operator}-${String(c.value)}`}>
           {i > 0 && (
             <span className="text-xs font-medium text-slate-400">AND</span>
