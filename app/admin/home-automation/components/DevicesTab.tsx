@@ -449,7 +449,7 @@ export function DevicesTab() {
                   <td className="p-2">
                     <div className="font-medium">{device.name}</div>
                     <div className="font-mono text-xs text-slate-400">
-                      {device.id}
+                      {device.id_truncated ?? device.id}
                     </div>
                   </td>
                   <td className="p-2">
