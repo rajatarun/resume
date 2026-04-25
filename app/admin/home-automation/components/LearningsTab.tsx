@@ -164,6 +164,7 @@ export function LearningsTab() {
   const [deleteTarget, setDeleteTarget] = useState<Learning | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [modalError, setModalError] = useState("");
+  const pendingAddVarsRef = useRef<{ device_id: string; phrase: string } | null>(null);
 
   const { data: learningsData, isLoading: learningsLoading, isError: learningsError, error: learningsErr } = useQuery({
     queryKey: ["learnings"],
@@ -208,9 +209,11 @@ export function LearningsTab() {
   >({
     mutationFn: (vars: { device_id: string; phrase: string } | undefined) => {
       if (!vars) return Promise.reject(new Error("Missing payload"));
+      pendingAddVarsRef.current = vars;
       return addLearning(vars);
     },
-    onSuccess: (_data, vars) => {
+    onSuccess: () => {
+      const vars = pendingAddVarsRef.current;
       const deviceName = vars
         ? (deviceNameMap[vars.device_id] ?? vars.device_id)
         : "device";
