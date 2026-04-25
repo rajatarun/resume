@@ -43,7 +43,7 @@ function AddPhraseModal({
   busy: boolean;
   error: string;
 }) {
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLFormElement>(null);
   useFocusTrap(dialogRef, open);
   const [deviceId, setDeviceId] = useState("");
   const [phrase, setPhrase] = useState("");
