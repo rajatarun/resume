@@ -2,15 +2,17 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { PresenceBar } from "./components/PresenceBar";
+import { HomeTab } from "./components/HomeTab";
 import { DevicesTab } from "./components/DevicesTab";
 import { ScenesTab } from "./components/ScenesTab";
 import { LearningsTab } from "./components/LearningsTab";
 import { PoliciesTab } from "./components/PoliciesTab";
 
-const SUB_TABS = ["devices", "scenes", "learnings", "policies"] as const;
+const SUB_TABS = ["home", "devices", "scenes", "learnings", "policies"] as const;
 type SubTab = (typeof SUB_TABS)[number];
 
 const TAB_LABELS: Record<SubTab, string> = {
+  home: "Home",
   devices: "Devices",
   scenes: "Scenes",
   learnings: "Learnings",
@@ -22,7 +24,7 @@ export default function HomeAutomationPage() {
   const router = useRouter();
   const raw = searchParams.get("tab");
   const activeTab: SubTab =
-    (SUB_TABS as readonly string[]).includes(raw ?? "") ? (raw as SubTab) : "devices";
+    (SUB_TABS as readonly string[]).includes(raw ?? "") ? (raw as SubTab) : "home";
 
   const setTab = (tab: SubTab) => {
     router.push(`/admin/home-automation?tab=${tab}`);
@@ -47,6 +49,7 @@ export default function HomeAutomationPage() {
           </button>
         ))}
       </div>
+      {activeTab === "home" && <HomeTab />}
       {activeTab === "devices" && <DevicesTab />}
       {activeTab === "scenes" && <ScenesTab />}
       {activeTab === "learnings" && <LearningsTab />}
