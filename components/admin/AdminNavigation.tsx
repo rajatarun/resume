@@ -17,7 +17,9 @@ export function AdminNavigation() {
   const tabParam = searchParams.get("tab");
   const isAgentManagementActive = pathname === "/admin" && tabParam === "agent-management";
   const isTasksActive = pathname.startsWith("/admin/tasks");
-  const isContentManagerActive = !isAgentManagementActive && !isTasksActive;
+  const isHomeAutomationActive = pathname.startsWith("/admin/home-automation");
+  const isContentManagerActive =
+    !isAgentManagementActive && !isTasksActive && !isHomeAutomationActive;
 
   return (
     <div className="space-y-4">
@@ -39,6 +41,12 @@ export function AdminNavigation() {
           className={`-mb-px border-b-2 px-3 py-2 text-sm ${isTasksActive ? "border-slate-900 font-medium" : "border-transparent text-slate-500"}`}
         >
           Tasks
+        </Link>
+        <Link
+          href="/admin/home-automation"
+          className={`-mb-px border-b-2 px-3 py-2 text-sm ${isHomeAutomationActive ? "border-slate-900 font-medium" : "border-transparent text-slate-500"}`}
+        >
+          Home Automation
         </Link>
       </div>
 
