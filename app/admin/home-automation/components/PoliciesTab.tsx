@@ -298,7 +298,7 @@ export function PoliciesTab() {
 
   const policies = data?.policies ?? [];
 
-  const handleCreated = (policy: Policy) => {
+  const handleCreated = (_policy: Policy) => {
     void queryClient.invalidateQueries({ queryKey: ["policies"] });
     window.setTimeout(() => setDrawerOpen(false), 2000);
   };
@@ -351,9 +351,9 @@ export function PoliciesTab() {
 
       {isLoading ? (
         <div className="space-y-2">
-          {Array.from({ length: 4 }).map((_, i) => (
+          {["sk1", "sk2", "sk3", "sk4"].map((k) => (
             <div
-              key={i}
+              key={k}
               className="h-16 animate-pulse rounded border bg-slate-100 dark:bg-slate-800"
             />
           ))}
