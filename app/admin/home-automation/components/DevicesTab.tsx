@@ -156,10 +156,14 @@ function DeviceModal({
         <div className="mt-4 space-y-3">
           {!isEdit && (
             <div>
-              <label className="mb-1 block text-sm font-medium">
+              <label
+                htmlFor="device-modal-id"
+                className="mb-1 block text-sm font-medium"
+              >
                 Device ID <span className="text-red-500">*</span>
               </label>
               <input
+                id="device-modal-id"
                 className="w-full rounded border px-3 py-2 text-sm dark:bg-slate-800"
                 placeholder="e.g. living_room_fan"
                 value={form.device_id}
@@ -172,10 +176,14 @@ function DeviceModal({
           )}
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
+            <label
+              htmlFor="device-modal-name"
+              className="mb-1 block text-sm font-medium"
+            >
               Name <span className="text-red-500">*</span>
             </label>
             <input
+              id="device-modal-name"
               className="w-full rounded border px-3 py-2 text-sm dark:bg-slate-800"
               placeholder="e.g. Living Room Fan"
               value={form.name}
@@ -187,10 +195,14 @@ function DeviceModal({
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
+            <label
+              htmlFor="device-modal-type"
+              className="mb-1 block text-sm font-medium"
+            >
               Device Type
             </label>
             <select
+              id="device-modal-type"
               className="w-full rounded border px-3 py-2 text-sm dark:bg-slate-800"
               value={form.device_type}
               onChange={(e) =>
@@ -210,9 +222,9 @@ function DeviceModal({
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium">
+            <span className="mb-2 block text-sm font-medium">
               Capabilities
-            </label>
+            </span>
             <div className="flex flex-wrap gap-x-4 gap-y-2">
               {CAPABILITIES.map((cap) => (
                 <label
@@ -409,9 +421,9 @@ export function DevicesTab() {
 
       {isLoading ? (
         <div className="space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => (
+          {["sk1", "sk2", "sk3", "sk4", "sk5"].map((k) => (
             <div
-              key={i}
+              key={k}
               className="h-10 animate-pulse rounded border bg-slate-100 dark:bg-slate-800"
             />
           ))}

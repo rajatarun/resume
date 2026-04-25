@@ -93,10 +93,14 @@ function AddPhraseModal({
 
         <div className="mt-4 space-y-3">
           <div>
-            <label className="mb-1 block text-sm font-medium">
+            <label
+              htmlFor="add-phrase-device"
+              className="mb-1 block text-sm font-medium"
+            >
               Device <span className="text-red-500">*</span>
             </label>
             <select
+              id="add-phrase-device"
               className="w-full rounded border px-3 py-2 text-sm dark:bg-slate-800"
               value={deviceId}
               onChange={(e) => setDeviceId(e.target.value)}
@@ -111,10 +115,14 @@ function AddPhraseModal({
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium">
+            <label
+              htmlFor="add-phrase-text"
+              className="mb-1 block text-sm font-medium"
+            >
               Phrase <span className="text-red-500">*</span>
             </label>
             <input
+              id="add-phrase-text"
               className="w-full rounded border px-3 py-2 text-sm dark:bg-slate-800"
               placeholder="e.g. turn on the office light"
               value={phrase}
@@ -326,9 +334,9 @@ export function LearningsTab() {
 
       {learningsLoading ? (
         <div className="space-y-2">
-          {Array.from({ length: 5 }).map((_, i) => (
+          {["sk1", "sk2", "sk3", "sk4", "sk5"].map((k) => (
             <div
-              key={i}
+              key={k}
               className="h-10 animate-pulse rounded border bg-slate-100 dark:bg-slate-800"
             />
           ))}
@@ -345,7 +353,6 @@ export function LearningsTab() {
               <LearningsTable
                 rows={rows}
                 deviceNameMap={deviceNameMap}
-                sortField={sortField}
                 sortIcon={sortIcon}
                 onSort={handleSort}
                 onDelete={setDeleteTarget}
@@ -408,14 +415,12 @@ export function LearningsTab() {
 function LearningsTable({
   rows,
   deviceNameMap,
-  sortField,
   sortIcon,
   onSort,
   onDelete,
 }: {
   rows: Learning[];
   deviceNameMap: Record<string, string>;
-  sortField: SortField;
   sortIcon: (f: SortField) => string;
   onSort: (f: SortField) => void;
   onDelete: (l: Learning) => void;
@@ -483,8 +488,8 @@ function LearningsTable({
           </tr>
         </thead>
         <tbody>
-          {rows.map((l, i) => (
-            <tr key={i} className="border-t">
+          {rows.map((l) => (
+            <tr key={`${l.device_id}::${l.phrase}`} className="border-t">
               <td className="p-2">{l.phrase}</td>
               <td className="p-2">{deviceNameMap[l.device_id] ?? l.device_id}</td>
               <td className="p-2">

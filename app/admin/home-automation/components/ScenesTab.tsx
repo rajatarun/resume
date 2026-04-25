@@ -44,9 +44,9 @@ export function ScenesTab() {
 
       {isLoading ? (
         <div className="grid gap-3 md:grid-cols-2">
-          {Array.from({ length: 4 }).map((_, i) => (
+          {["sk1", "sk2", "sk3", "sk4"].map((k) => (
             <div
-              key={i}
+              key={k}
               className="h-28 animate-pulse rounded border bg-slate-100 dark:bg-slate-800"
             />
           ))}
@@ -80,9 +80,9 @@ export function ScenesTab() {
               </div>
               {expanded[scene.id] && scene.sample_phrases.length > 0 && (
                 <div className="mt-3 space-y-1 border-t pt-3">
-                  {scene.sample_phrases.map((phrase, i) => (
+                  {scene.sample_phrases.map((phrase) => (
                     <p
-                      key={i}
+                      key={phrase}
                       className="text-xs text-slate-600 dark:text-slate-400"
                     >
                       &ldquo;{phrase}&rdquo;
