@@ -3,10 +3,12 @@ if (!BASE_URL) throw new Error("NEXT_PUBLIC_DEVICEWEAVE_API_URL is not set");
 
 export class ApiError extends Error {
   readonly status: number;
-  constructor(status: number, message: string) {
+  readonly extra?: Record<string, unknown>;
+  constructor(status: number, message: string, extra?: Record<string, unknown>) {
     super(message);
     this.name = "ApiError";
     this.status = status;
+    this.extra = extra;
   }
 }
 
@@ -22,14 +24,16 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       res.status >= 500
         ? "Something went wrong on the server. Try again."
         : `HTTP ${res.status}`;
+    let extra: Record<string, unknown> | undefined;
     try {
       const body = (await res.json()) as Record<string, unknown>;
       if (typeof body.error === "string") message = body.error;
       else if (typeof body.message === "string") message = body.message;
+      extra = body;
     } catch {
       // ignore parse failure
     }
-    throw new ApiError(res.status, message);
+    throw new ApiError(res.status, message, extra);
   }
   return res.json() as Promise<T>;
 }
@@ -214,6 +218,65 @@ export const deletePolicy = (id: string) =>
       headers: { "Content-Type": "application/json" },
     },
   );
+
+// ─── Execute ──────────────────────────────────────────────────────────────────
+
+export type PolicyBlock = {
+  device_id: string;
+  device_name: string;
+  action: string;
+  policy_verdict: string;
+  reason: string;
+  rule_id: string;
+};
+
+export type DeviceResult = {
+  type: "device";
+  device_id: string;
+  device_name: string;
+  action: string;
+  confidence: number;
+  resolution_tier: "cosine" | "llm";
+  scores: { cosine: number; behavior: number; final: number };
+  result: Record<string, unknown>;
+  reasoning?: string;
+  policy?: { verdict: "modify"; rule_id: string; reason: string };
+};
+
+export type SceneResult = {
+  type: "scene";
+  scene_id: string;
+  scene_name: string;
+  confidence: number;
+  results: Array<{
+    device_id: string;
+    device_name: string;
+    action: string;
+    success: boolean;
+    result?: Record<string, unknown>;
+    error?: string;
+  }>;
+  succeeded: number;
+  failed: number;
+  policy_blocks?: PolicyBlock[];
+};
+
+export type MultiDeviceResult = {
+  type: "multi_device";
+  resolution_tier: "llm";
+  confidence: number;
+  reasoning: string;
+  scores: { cosine: number; final: number };
+  results: SceneResult["results"];
+  succeeded: number;
+  failed: number;
+  policy_blocks?: PolicyBlock[];
+};
+
+export type ExecuteResult = DeviceResult | SceneResult | MultiDeviceResult;
+
+export const executeCommand = (command: string) =>
+  request<ExecuteResult>("/execute", { method: "POST", ...jsonInit({ command }) });
 
 // ─── Presence ─────────────────────────────────────────────────────────────────
 
