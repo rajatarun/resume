@@ -2,11 +2,9 @@
 
 import { Fragment, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   executeCommand,
   ApiError,
-  Device,
   ExecuteResult,
   DeviceResult,
   SceneResult,
@@ -242,7 +240,7 @@ function ErrorCard({
   onGoToPolicies,
 }: {
   error: ErrorState;
-  onGoToPolicies: (ruleId?: string) => void;
+  onGoToPolicies: () => void;
 }) {
   if (error.kind === "infra") {
     return (
@@ -268,7 +266,7 @@ function ErrorCard({
           <button
             type="button"
             className="text-sm text-red-700 underline hover:text-red-900 dark:text-red-400"
-            onClick={() => onGoToPolicies(error.rule_id)}
+            onClick={() => onGoToPolicies()}
           >
             Rule ID: {error.rule_id}
           </button>
@@ -313,7 +311,6 @@ const SUGGESTION_CHIPS = [
 
 export function HomeTab() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [command, setCommand] = useState("");
@@ -327,13 +324,6 @@ export function HomeTab() {
       { command: cmd, status, time: new Date() },
       ...prev.slice(0, 9),
     ]);
-  };
-
-  const resolveDeviceName = (deviceId: string): string => {
-    const cached = queryClient.getQueryData<{ devices: Device[]; count: number }>(
-      ["devices"],
-    );
-    return cached?.devices.find((d) => d.id === deviceId)?.name ?? deviceId;
   };
 
   const handleSubmit = async () => {
@@ -360,7 +350,7 @@ export function HomeTab() {
           setError({
             kind: "unresolved",
             message: err.message,
-            best_match_name: best_match_id ? resolveDeviceName(best_match_id) : undefined,
+            best_match_name: best_match_id,
             final_score:
               typeof extra.final_score === "number" ? extra.final_score : undefined,
             hint: typeof extra.hint === "string" ? extra.hint : undefined,
@@ -379,11 +369,8 @@ export function HomeTab() {
     }
   };
 
-  const handleGoToPolicies = (ruleId?: string) => {
-    const url = `/admin/home-automation?tab=policies${
-      ruleId ? `&rule=${encodeURIComponent(ruleId)}` : ""
-    }`;
-    router.push(url);
+  const handleGoToPolicies = () => {
+    router.push("/admin/home-automation?tab=policies");
   };
 
   return (
@@ -478,16 +465,14 @@ export function HomeTab() {
       )}
 
       {!loading && result && (
-        <>
-          {result.type === "device" ? (
-            <DeviceResultCard result={result} />
-          ) : (
-            <SceneResultCard
-              result={result}
-              label={result.type === "scene" ? "Scene" : "Multi-device · AI resolved"}
-            />
-          )}
-        </>
+        result.type === "device" ? (
+          <DeviceResultCard result={result} />
+        ) : (
+          <SceneResultCard
+            result={result}
+            label={result.type === "scene" ? "Scene" : "Multi-device · AI resolved"}
+          />
+        )
       )}
 
       {!loading && error && (
