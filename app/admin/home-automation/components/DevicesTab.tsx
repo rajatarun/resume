@@ -62,7 +62,7 @@ function DeviceModal({
   error,
 }: DeviceModalProps) {
   const isEdit = Boolean(initial);
-  const dialogRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLFormElement>(null);
   useFocusTrap(dialogRef, open);
 
   const [form, setForm] = useState({
