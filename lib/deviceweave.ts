@@ -317,6 +317,29 @@ export type ExecuteResult = DeviceResult | SceneResult | MultiDeviceResult;
 export const executeCommand = (command: string) =>
   request<ExecuteResult>("/execute", { method: "POST", ...jsonInit({ command }) });
 
+// ─── Conversational agent ──────────────────────────────────────────────────────
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  text: string;
+  timestamp: string; // ISO 8601, set client-side at send time
+}
+
+export interface ConversationalExecuteRequest {
+  session_id: string;
+  command: string;
+}
+
+export interface ConversationalExecuteResponse {
+  type: "conversational";
+  session_id: string;
+  response: string;
+  messages_in_session: number;
+}
+
+export const executeConversational = (body: ConversationalExecuteRequest) =>
+  request<ConversationalExecuteResponse>("/execute", { method: "POST", ...jsonInit(body) });
+
 // ─── Presence ─────────────────────────────────────────────────────────────────
 
 export const getPresence = () => request<Presence>("/presence");
