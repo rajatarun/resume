@@ -4,16 +4,18 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { PresenceBar } from "./components/PresenceBar";
 import { HomeTab } from "./components/HomeTab";
 import { DevicesTab } from "./components/DevicesTab";
+import { ProvidersTab } from "./components/ProvidersTab";
 import { ScenesTab } from "./components/ScenesTab";
 import { LearningsTab } from "./components/LearningsTab";
 import { PoliciesTab } from "./components/PoliciesTab";
 
-const SUB_TABS = ["home", "devices", "scenes", "learnings", "policies"] as const;
+const SUB_TABS = ["home", "devices", "providers", "scenes", "learnings", "policies"] as const;
 type SubTab = (typeof SUB_TABS)[number];
 
 const TAB_LABELS: Record<SubTab, string> = {
   home: "Home",
   devices: "Devices",
+  providers: "Providers",
   scenes: "Scenes",
   learnings: "Learnings",
   policies: "Policies",
@@ -51,6 +53,7 @@ export default function HomeAutomationPage() {
       </div>
       {activeTab === "home" && <HomeTab />}
       {activeTab === "devices" && <DevicesTab />}
+      {activeTab === "providers" && <ProvidersTab />}
       {activeTab === "scenes" && <ScenesTab />}
       {activeTab === "learnings" && <LearningsTab />}
       {activeTab === "policies" && <PoliciesTab />}

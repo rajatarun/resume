@@ -1,17 +1,19 @@
 "use client";
 
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getDevices,
-  createDevice,
   updateDevice,
   deleteDevice,
+  getProviders,
+  ingestDevices,
   Device,
   DeviceType,
-  CreateDeviceBody,
   UpdateDeviceBody,
   ApiError,
+  UpdateDeviceResponse,
+  ProviderRenameStatus,
 } from "@/lib/deviceweave";
 import { useToast } from "@/components/admin/ToastProvider";
 import { ConfirmDialog } from "@/components/admin/agent-management/shared/ConfirmDialog";
@@ -26,31 +28,72 @@ const DEVICE_TYPES: DeviceType[] = [
   "SmartSwitch",
 ];
 
-const CAPABILITIES = [
-  "turn_on",
-  "turn_off",
-  "toggle",
-  "get_status",
-  "set_brightness",
-];
+const CAPABILITIES = ["turn_on", "turn_off", "toggle", "get_status", "set_brightness"];
 
 function toErrorMessage(err: unknown): string {
   if (err instanceof ApiError) return err.message;
   return "Unable to reach DeviceWeave API. Check your connection.";
 }
 
-// ─── Device Modal ─────────────────────────────────────────────────────────────
+type RenameFeedback = Record<string, ProviderRenameStatus>;
+
+function RenameStatusChips({
+  feedback,
+  providerDisplayMap,
+}: {
+  feedback: RenameFeedback;
+  providerDisplayMap: Record<string, string>;
+}) {
+  return (
+    <div className="mt-3 flex flex-wrap gap-2">
+      {Object.entries(feedback).map(([providerKey, status]) => {
+        const providerName = providerDisplayMap[providerKey] ?? providerKey;
+        if (status === "synced") {
+          return (
+            <span
+              key={providerKey}
+              className="rounded-full bg-emerald-100 px-2 py-1 text-xs text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
+            >
+              Synced to {providerName}
+            </span>
+          );
+        }
+
+        if (status === "registry_only") {
+          return (
+            <span
+              key={providerKey}
+              className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700 dark:bg-slate-700 dark:text-slate-300"
+            >
+              Registry only — {providerName} does not support rename
+            </span>
+          );
+        }
+
+        const reason = status.replace("failed: ", "");
+        return (
+          <span
+            key={providerKey}
+            title={reason}
+            className="rounded-full bg-amber-100 px-2 py-1 text-xs text-amber-800 dark:bg-amber-900 dark:text-amber-300"
+          >
+            Sync failed — name saved locally
+          </span>
+        );
+      })}
+    </div>
+  );
+}
 
 interface DeviceModalProps {
   open: boolean;
   initial: Device | null;
   onClose: () => void;
-  onSubmit: (
-    data: CreateDeviceBody | UpdateDeviceBody,
-    isEdit: boolean,
-  ) => void;
+  onSubmit: (data: UpdateDeviceBody) => void;
   busy: boolean;
   error: string;
+  renameFeedback: RenameFeedback | null;
+  providerDisplayMap: Record<string, string>;
 }
 
 function DeviceModal({
@@ -60,13 +103,13 @@ function DeviceModal({
   onSubmit,
   busy,
   error,
+  renameFeedback,
+  providerDisplayMap,
 }: DeviceModalProps) {
-  const isEdit = Boolean(initial);
   const dialogRef = useRef<HTMLFormElement>(null);
   useFocusTrap(dialogRef, open);
 
   const [form, setForm] = useState({
-    device_id: "",
     name: "",
     device_type: "" as DeviceType | "",
     capabilities: [] as string[],
@@ -77,7 +120,6 @@ function DeviceModal({
   useEffect(() => {
     if (open) {
       setForm({
-        device_id: initial?.id ?? "",
         name: initial?.name ?? "",
         device_type: initial?.device_type ?? "",
         capabilities: initial?.capabilities ?? [],
@@ -96,7 +138,7 @@ function DeviceModal({
     return () => document.removeEventListener("keydown", handler);
   }, [open, busy, onClose]);
 
-  if (!open) return null;
+  if (!open || !initial) return null;
 
   const toggleCap = (cap: string, checked: boolean) => {
     setForm((prev) => ({
@@ -109,26 +151,22 @@ function DeviceModal({
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (isEdit) {
-      const body: UpdateDeviceBody = {
-        name: form.name || undefined,
-        device_type: (form.device_type as DeviceType) || undefined,
-        capabilities: form.capabilities.length ? form.capabilities : undefined,
-        ip: form.ip || undefined,
-        model: form.model || undefined,
-      };
-      onSubmit(body, true);
-    } else {
-      const body: CreateDeviceBody = {
-        device_id: form.device_id,
-        name: form.name,
-        device_type: (form.device_type as DeviceType) || undefined,
-        capabilities: form.capabilities.length ? form.capabilities : undefined,
-        ip: form.ip || undefined,
-        model: form.model || undefined,
-      };
-      onSubmit(body, false);
+    const body: UpdateDeviceBody = {};
+
+    if (form.name !== initial.name) body.name = form.name;
+    if (form.device_type && form.device_type !== initial.device_type) {
+      body.device_type = form.device_type;
     }
+
+    const sameCaps =
+      form.capabilities.length === initial.capabilities.length &&
+      form.capabilities.every((cap) => initial.capabilities.includes(cap));
+    if (!sameCaps) body.capabilities = form.capabilities;
+
+    if (form.ip) body.ip = form.ip;
+    if (form.model) body.model = form.model;
+
+    onSubmit(body);
   };
 
   return (
@@ -144,7 +182,7 @@ function DeviceModal({
         className="w-full max-w-lg rounded-xl bg-white p-5 shadow-xl dark:bg-slate-900"
       >
         <h3 id="device-modal-title" className="text-lg font-semibold">
-          {isEdit ? "Edit Device" : "Add Device"}
+          Edit Device
         </h3>
 
         {error && (
@@ -154,63 +192,28 @@ function DeviceModal({
         )}
 
         <div className="mt-4 space-y-3">
-          {!isEdit && (
-            <div>
-              <label
-                htmlFor="device-modal-id"
-                className="mb-1 block text-sm font-medium"
-              >
-                Device ID <span className="text-red-500">*</span>
-              </label>
-              <input
-                id="device-modal-id"
-                className="w-full rounded border px-3 py-2 text-sm dark:bg-slate-800"
-                placeholder="e.g. living_room_fan"
-                value={form.device_id}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, device_id: e.target.value }))
-                }
-                required
-              />
-            </div>
-          )}
-
           <div>
-            <label
-              htmlFor="device-modal-name"
-              className="mb-1 block text-sm font-medium"
-            >
+            <label htmlFor="device-modal-name" className="mb-1 block text-sm font-medium">
               Name <span className="text-red-500">*</span>
             </label>
             <input
               id="device-modal-name"
               className="w-full rounded border px-3 py-2 text-sm dark:bg-slate-800"
-              placeholder="e.g. Living Room Fan"
               value={form.name}
-              onChange={(e) =>
-                setForm((p) => ({ ...p, name: e.target.value }))
-              }
+              onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
               required
             />
           </div>
 
           <div>
-            <label
-              htmlFor="device-modal-type"
-              className="mb-1 block text-sm font-medium"
-            >
+            <label htmlFor="device-modal-type" className="mb-1 block text-sm font-medium">
               Device Type
             </label>
             <select
               id="device-modal-type"
               className="w-full rounded border px-3 py-2 text-sm dark:bg-slate-800"
               value={form.device_type}
-              onChange={(e) =>
-                setForm((p) => ({
-                  ...p,
-                  device_type: e.target.value as DeviceType,
-                }))
-              }
+              onChange={(e) => setForm((p) => ({ ...p, device_type: e.target.value as DeviceType }))}
             >
               <option value="">Select type…</option>
               {DEVICE_TYPES.map((t) => (
@@ -222,15 +225,10 @@ function DeviceModal({
           </div>
 
           <div>
-            <span className="mb-2 block text-sm font-medium">
-              Capabilities
-            </span>
+            <span className="mb-2 block text-sm font-medium">Capabilities</span>
             <div className="flex flex-wrap gap-x-4 gap-y-2">
               {CAPABILITIES.map((cap) => (
-                <label
-                  key={cap}
-                  className="flex cursor-pointer items-center gap-1.5 text-sm"
-                >
+                <label key={cap} className="flex cursor-pointer items-center gap-1.5 text-sm">
                   <input
                     type="checkbox"
                     checked={form.capabilities.includes(cap)}
@@ -244,31 +242,26 @@ function DeviceModal({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="mb-1 block text-sm font-medium">
-                IP Address{" "}
-                <span className="font-normal text-slate-400">(optional)</span>
+              <label htmlFor="device-modal-ip" className="mb-1 block text-sm font-medium">
+                IP Address <span className="font-normal text-slate-400">(optional)</span>
               </label>
               <input
+                id="device-modal-ip"
                 className="w-full rounded border px-3 py-2 text-sm dark:bg-slate-800"
                 placeholder="192.168.1.10"
                 value={form.ip}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, ip: e.target.value }))
-                }
+                onChange={(e) => setForm((p) => ({ ...p, ip: e.target.value }))}
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">
-                Model{" "}
-                <span className="font-normal text-slate-400">(optional)</span>
+              <label htmlFor="device-modal-model" className="mb-1 block text-sm font-medium">
+                Model <span className="font-normal text-slate-400">(optional)</span>
               </label>
               <input
+                id="device-modal-model"
                 className="w-full rounded border px-3 py-2 text-sm dark:bg-slate-800"
-                placeholder="manual"
                 value={form.model}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, model: e.target.value }))
-                }
+                onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))}
               />
             </div>
           </div>
@@ -289,30 +282,45 @@ function DeviceModal({
             disabled={busy}
             aria-busy={busy}
           >
-            {busy ? "Saving…" : isEdit ? "Save Changes" : "Add Device"}
+            {busy ? "Saving…" : "Save Changes"}
           </button>
         </div>
+
+        {renameFeedback && (
+          <RenameStatusChips feedback={renameFeedback} providerDisplayMap={providerDisplayMap} />
+        )}
       </form>
     </div>
   );
 }
-
-// ─── DevicesTab ───────────────────────────────────────────────────────────────
 
 export function DevicesTab() {
   const queryClient = useQueryClient();
   const toast = useToast();
 
   const [search, setSearch] = useState("");
-  const [addOpen, setAddOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Device | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Device | null>(null);
   const [modalError, setModalError] = useState("");
+  const [renameFeedback, setRenameFeedback] = useState<RenameFeedback | null>(null);
 
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["devices"],
     queryFn: getDevices,
   });
+
+  const { data: providersData } = useQuery({
+    queryKey: ["providers"],
+    queryFn: getProviders,
+  });
+
+  const providerDisplayMap = useMemo(
+    () =>
+      Object.fromEntries((providersData?.providers ?? []).map((provider) => [provider.name, provider.display_name])),
+    [providersData?.providers],
+  );
+
+  const showRegistryError = isError && error instanceof ApiError && error.status === 503;
 
   const devices = data?.devices ?? [];
   const filtered = devices.filter(
@@ -322,47 +330,38 @@ export function DevicesTab() {
       d.device_type.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const invalidate = () =>
-    void queryClient.invalidateQueries({ queryKey: ["devices"] });
+  const invalidate = () => void queryClient.invalidateQueries({ queryKey: ["devices"] });
 
-  const createMutation = useMutation<Device, CreateDeviceBody>({
-    mutationFn: (body: CreateDeviceBody | undefined) => {
-      if (!body) return Promise.reject(new Error("Missing payload"));
-      return createDevice(body);
-    },
+  const syncMutation = useMutation({
+    mutationFn: () => ingestDevices(),
     onSuccess: () => {
-      toast.success("Device created");
-      setAddOpen(false);
-      setModalError("");
+      toast.success("Sync complete");
       invalidate();
     },
     onError: (err) => {
-      if (err instanceof ApiError && err.status === 409) {
-        setModalError("A device with this ID already exists");
-      } else {
-        setModalError(toErrorMessage(err));
-      }
+      toast.error(toErrorMessage(err));
     },
   });
 
-  const updateMutation = useMutation<unknown, { id: string; body: UpdateDeviceBody }>({
-    mutationFn: (vars: { id: string; body: UpdateDeviceBody } | undefined) => {
+  const updateMutation = useMutation<UpdateDeviceResponse, { id: string; body: UpdateDeviceBody }>({
+    mutationFn: (vars) => {
       if (!vars) return Promise.reject(new Error("Missing payload"));
       return updateDevice(vars.id, vars.body);
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
       toast.success("Device updated");
-      setEditTarget(null);
       setModalError("");
+      setRenameFeedback(response.provider_rename ?? null);
       invalidate();
     },
     onError: (err) => {
       setModalError(toErrorMessage(err));
+      setRenameFeedback(null);
     },
   });
 
   const deleteMutation = useMutation<unknown, string>({
-    mutationFn: (id: string | undefined) => {
+    mutationFn: (id) => {
       if (!id) return Promise.reject(new Error("Missing ID"));
       return deleteDevice(id);
     },
@@ -377,141 +376,137 @@ export function DevicesTab() {
     },
   });
 
-  const handleModalSubmit = (
-    data: CreateDeviceBody | UpdateDeviceBody,
-    isEdit: boolean,
-  ) => {
+  const handleModalSubmit = (body: UpdateDeviceBody) => {
     setModalError("");
-    if (isEdit && editTarget) {
-      updateMutation.mutate({ id: editTarget.id, body: data as UpdateDeviceBody });
-    } else {
-      createMutation.mutate(data as CreateDeviceBody);
-    }
+    if (!editTarget) return;
+    updateMutation.mutate({ id: editTarget.id, body });
   };
-
-  const isModalBusy = createMutation.isPending || updateMutation.isPending;
-  const isModalOpen = addOpen || Boolean(editTarget);
 
   return (
     <div className="space-y-4">
-      {isError && (
-        <div className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-          {toErrorMessage(error)}
+      {showRegistryError ? (
+        <div className="rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300">
+          ⚠ <strong>Device registry not configured.</strong> Set <code>DEVICE_REGISTRY_TABLE</code> and redeploy,
+          then run <code>POST /ingest</code> to populate devices.
         </div>
-      )}
-
-      <div className="flex flex-wrap items-center gap-2">
-        <input
-          className="rounded border px-3 py-2 text-sm"
-          placeholder="Search by name or type…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <button
-          type="button"
-          className="rounded bg-slate-900 px-3 py-2 text-sm text-white"
-          onClick={() => {
-            setModalError("");
-            setAddOpen(true);
-          }}
-        >
-          Add Device
-        </button>
-      </div>
-
-      {isLoading ? (
-        <div className="space-y-2">
-          {["sk1", "sk2", "sk3", "sk4", "sk5"].map((k) => (
-            <div
-              key={k}
-              className="h-10 animate-pulse rounded border bg-slate-100 dark:bg-slate-800"
-            />
-          ))}
-        </div>
-      ) : filtered.length === 0 ? (
-        <p className="text-sm text-slate-500">
-          {search ? "No devices match your search." : "No devices found."}
-        </p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border text-sm">
-            <thead className="bg-slate-50 dark:bg-slate-800">
-              <tr>
-                <th className="p-2 text-left">Name</th>
-                <th className="p-2 text-left">Type</th>
-                <th className="p-2 text-left">Capabilities</th>
-                <th className="p-2 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((device) => (
-                <tr key={device.id} className="border-t">
-                  <td className="p-2">
-                    <div className="font-medium">{device.name}</div>
-                    <div className="font-mono text-xs text-slate-400">
-                      {device.id_truncated ?? device.id}
-                    </div>
-                  </td>
-                  <td className="p-2">
-                    <span className="rounded bg-slate-100 px-2 py-0.5 text-xs dark:bg-slate-700">
-                      {device.device_type || "—"}
-                    </span>
-                  </td>
-                  <td className="p-2">
-                    <div className="flex flex-wrap gap-1">
-                      {device.capabilities.length === 0 ? (
-                        <span className="text-slate-400">—</span>
-                      ) : (
-                        device.capabilities.map((cap) => (
-                          <span
-                            key={cap}
-                            className="rounded bg-slate-100 px-1.5 py-0.5 text-xs dark:bg-slate-700"
-                          >
-                            {cap}
-                          </span>
-                        ))
-                      )}
-                    </div>
-                  </td>
-                  <td className="p-2">
-                    <div className="flex gap-3">
-                      <button
-                        type="button"
-                        className="text-xs underline"
-                        onClick={() => {
-                          setModalError("");
-                          setEditTarget(device);
-                        }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="text-xs text-red-600 underline"
-                        onClick={() => setDeleteTarget(device)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+        <>
+          {isError && (
+            <div className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {toErrorMessage(error)}
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              className="rounded border px-3 py-2 text-sm"
+              placeholder="Search by name or type…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          {isLoading ? (
+            <div className="space-y-2">
+              {["sk1", "sk2", "sk3", "sk4", "sk5"].map((k) => (
+                <div key={k} className="h-10 animate-pulse rounded border bg-slate-100 dark:bg-slate-800" />
               ))}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="space-y-2 rounded border border-dashed p-4">
+              <p className="text-sm text-slate-700 dark:text-slate-200">No devices found.</p>
+              <p className="text-sm text-slate-500">
+                Run a sync to discover devices from your connected providers.
+              </p>
+              <button
+                type="button"
+                className="rounded bg-slate-900 px-3 py-2 text-sm text-white disabled:opacity-50"
+                onClick={() => syncMutation.mutate()}
+                disabled={syncMutation.isPending}
+              >
+                {syncMutation.isPending ? "Syncing…" : "Sync now"}
+              </button>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full border text-sm">
+                <thead className="bg-slate-50 dark:bg-slate-800">
+                  <tr>
+                    <th className="p-2 text-left">Name</th>
+                    <th className="p-2 text-left">Type</th>
+                    <th className="p-2 text-left">Capabilities</th>
+                    <th className="p-2 text-left">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((device) => (
+                    <tr key={device.id} className="border-t">
+                      <td className="p-2">
+                        <div className="font-medium">{device.name}</div>
+                        <div className="font-mono text-xs text-slate-400">{device.id_truncated ?? device.id}</div>
+                      </td>
+                      <td className="p-2">
+                        <span className="rounded bg-slate-100 px-2 py-0.5 text-xs dark:bg-slate-700">
+                          {device.device_type || "—"}
+                        </span>
+                      </td>
+                      <td className="p-2">
+                        <div className="flex flex-wrap gap-1">
+                          {device.capabilities.length === 0 ? (
+                            <span className="text-slate-400">—</span>
+                          ) : (
+                            device.capabilities.map((cap) => (
+                              <span key={cap} className="rounded bg-slate-100 px-1.5 py-0.5 text-xs dark:bg-slate-700">
+                                {cap}
+                              </span>
+                            ))
+                          )}
+                        </div>
+                      </td>
+                      <td className="p-2">
+                        <div className="flex gap-3">
+                          <button
+                            type="button"
+                            className="text-xs underline"
+                            onClick={() => {
+                              setModalError("");
+                              setRenameFeedback(null);
+                              setEditTarget(device);
+                            }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            className="text-xs text-red-600 underline"
+                            onClick={() => setDeleteTarget(device)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
       )}
 
       <DeviceModal
-        open={isModalOpen}
+        open={Boolean(editTarget)}
         initial={editTarget}
         onClose={() => {
-          setAddOpen(false);
           setEditTarget(null);
           setModalError("");
+          setRenameFeedback(null);
         }}
         onSubmit={handleModalSubmit}
-        busy={isModalBusy}
+        busy={updateMutation.isPending}
         error={modalError}
+        renameFeedback={renameFeedback}
+        providerDisplayMap={providerDisplayMap}
       />
 
       <ConfirmDialog
@@ -524,8 +519,7 @@ export function DevicesTab() {
           if (deleteTarget) deleteMutation.mutate(deleteTarget.id);
         }}
       >
-        Deactivate <strong>{deleteTarget?.name}</strong>? It will no longer be
-        controllable.
+        Deactivate <strong>{deleteTarget?.name}</strong>? It will no longer be controllable.
       </ConfirmDialog>
     </div>
   );

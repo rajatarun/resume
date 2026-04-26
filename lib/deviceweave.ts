@@ -84,6 +84,7 @@ export interface UpdateDeviceResponse {
   device_id: string;
   updated: string[];
   updated_at: string;
+  provider_rename?: Record<string, ProviderRenameStatus>;
 }
 
 export interface DeleteDeviceResponse {
@@ -98,6 +99,24 @@ export interface Scene {
   description: string;
   action_count: number;
   sample_phrases: string[];
+}
+
+export interface Provider {
+  name: string;
+  display_name: string;
+  device_types: string[];
+  configured: boolean;
+  supports_rename: boolean;
+}
+
+export type ProviderRenameStatus =
+  | "synced"
+  | "registry_only"
+  | `failed: ${string}`;
+
+export interface ProvidersResponse {
+  providers: Provider[];
+  count: number;
 }
 
 export interface Learning {
@@ -173,10 +192,30 @@ export const deleteDevice = (id: string) =>
     headers: { "Content-Type": "application/json" },
   });
 
+export const ingestDevices = (body?: { provider?: string }) =>
+  request<{ status?: string; message?: string }>("/ingest", {
+    method: "POST",
+    ...(body ? jsonInit(body) : {}),
+  });
+
 // ─── Scenes ───────────────────────────────────────────────────────────────────
 
 export const getScenes = () =>
   request<{ scenes: Scene[]; count: number }>("/scenes");
+
+export const deleteScene = (id: string) =>
+  request<{ scene_id: string; status: "deleted" }>(
+    `/scenes/${encodeURIComponent(id)}`,
+    {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+    },
+  );
+
+// ─── Providers ────────────────────────────────────────────────────────────────
+
+export const getProviders = () =>
+  request<ProvidersResponse>("/providers");
 
 // ─── Learnings ────────────────────────────────────────────────────────────────
 
