@@ -143,3 +143,20 @@ export type Subscriber = {
   status: string;
   createdAt: string;
 };
+
+export interface Provider {
+  name: string;
+  display_name: string;
+  device_types: string[];
+  configured: boolean;
+  supports_rename: boolean;
+}
+
+export type ProviderRenameStatus = "synced" | "registry_only" | string;
+
+export interface UpdateDeviceResponse {
+  device_id: string;
+  updated: string[];
+  updated_at: string;
+  provider_rename?: Record<string, ProviderRenameStatus>;
+}
