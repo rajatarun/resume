@@ -106,6 +106,7 @@ export function FilterSidebar({ filters, onApply }: Props) {
           <option value="allow">ALLOW</option>
           <option value="deny">DENY</option>
           <option value="shadow">SHADOW</option>
+          <option value="review">REVIEW</option>
         </select>
       </div>
 

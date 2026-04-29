@@ -33,10 +33,13 @@ export interface SpanItem {
   timestamp: string;
   agent_id?: string;
   model_id?: string;
+  model?: string; // backend renamed model_id → model in recent schema change
   prompt_tokens?: number;
   completion_tokens?: number;
   cost_usd?: number;
   decision?: string;
+  decision_reason?: string;
+  service?: string;
   shadow_disagreement_score?: number;
   shadow_numeric_variance?: number;
 

@@ -8,8 +8,9 @@ const DECISION_COLORS: Record<string, string> = {
   ALLOW: '#16a34a',
   DENY: '#dc2626',
   SHADOW: '#2563eb',
+  REVIEW: '#d97706',
 };
-const FALLBACK_COLORS = ['#8b5cf6', '#f59e0b', '#06b6d4'];
+const FALLBACK_COLORS = ['#8b5cf6', '#06b6d4', '#ec4899'];
 
 interface Props {
   groups: AggregateGroup[];
@@ -48,7 +49,7 @@ export function DecisionPieChart({ groups, isLoading }: Props) {
             {data.map((entry, i) => (
               <Cell
                 key={i}
-                fill={DECISION_COLORS[entry.name] ?? FALLBACK_COLORS[i % FALLBACK_COLORS.length]}
+                fill={DECISION_COLORS[entry.name.toUpperCase()] ?? FALLBACK_COLORS[i % FALLBACK_COLORS.length]}
               />
             ))}
           </Pie>
