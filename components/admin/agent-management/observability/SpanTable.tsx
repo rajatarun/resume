@@ -27,7 +27,9 @@ function DecisionBadge({ decision }: { decision?: string }) {
         ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
         : upper === 'SHADOW'
           ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-          : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
+          : upper === 'REVIEW'
+            ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+            : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
   return (
     <span className={`inline-flex rounded px-2 py-0.5 text-xs font-medium ${cls}`}>
       {decision ? decision.toUpperCase() : '—'}
@@ -133,6 +135,8 @@ function SpanDrawer({ item }: { item: SpanItem }) {
       <DrawerSection title="Trace">
         <Detail label="Trace ID" value={item.trace_id} />
         <Detail label="Operation" value={item.operation} />
+        {item.service && <Detail label="Service" value={item.service} />}
+        {item.decision_reason && <Detail label="Decision Reason" value={item.decision_reason} />}
         <Detail label="Shadow Disagreement" value={<ShadowScoreBadge score={item.shadow_disagreement_score} />} />
         <Detail label="Shadow Numeric Variance" value={<ShadowScoreBadge score={item.shadow_numeric_variance} />} />
         <Detail label="Prompt Tokens" value={formatTokens(item.prompt_tokens)} />
@@ -308,7 +312,7 @@ export function SpanTable({
                     </td>
                     <td className="px-3 py-2 font-mono text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap">{ts}</td>
                     <td className="px-3 py-2 font-mono text-xs">{item.agent_id ?? '—'}</td>
-                    <td className="px-3 py-2 font-mono text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap">{item.model_id ?? '—'}</td>
+                    <td className="px-3 py-2 font-mono text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap">{item.model ?? item.model_id ?? '—'}</td>
                     <td className="px-3 py-2"><DecisionBadge decision={item.decision} /></td>
                     <td className="px-3 py-2 text-right font-mono text-xs">{formatTokens(item.prompt_tokens)}</td>
                     <td className="px-3 py-2 text-right font-mono text-xs">{formatTokens(item.completion_tokens)}</td>

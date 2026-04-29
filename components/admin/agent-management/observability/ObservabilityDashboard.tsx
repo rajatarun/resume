@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { subHours, differenceInDays, formatISO } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -71,6 +71,28 @@ function useAggregateQuery(
 export function ObservabilityDashboard() {
   const [range, setRange] = useState<DateRange>(defaultRange);
   const [autoRefresh, setAutoRefresh] = useState(false);
+  // Track the original window width so we can slide both ends forward together
+  const rangeDurationMsRef = useRef<number>(24 * 60 * 60 * 1000);
+
+  // When auto-refresh is on, advance range.end (and range.start) to keep the
+  // window current. Without this, end stays frozen at page-load time and new
+  // data is never included in any query.
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const id = setInterval(() => {
+      setRange((prev) => {
+        const startMs = prev.start ? new Date(prev.start).getTime() : Date.now() - rangeDurationMsRef.current;
+        const endMs   = prev.end   ? new Date(prev.end).getTime()   : Date.now();
+        rangeDurationMsRef.current = endMs - startMs;
+        const now = Date.now();
+        return {
+          start: formatISO(new Date(now - rangeDurationMsRef.current)),
+          end:   formatISO(new Date(now)),
+        };
+      });
+    }, 60_000);
+    return () => clearInterval(id);
+  }, [autoRefresh]);
   const [dismissedErrors, setDismissedErrors] = useState<Set<string>>(new Set());
   // Active composite risk level filter (set by clicking KPI cards)
   const [activeRiskLevel, setActiveRiskLevel] = useState<string | undefined>();
