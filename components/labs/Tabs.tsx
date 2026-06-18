@@ -3,7 +3,7 @@
 import { useRef, KeyboardEvent } from "react";
 import { cn } from "@/lib/utils/cn";
 
-export type LabTabKey = "agent-studio" | "observatory" | "about";
+export type LabTabKey = "agent-studio" | "mcp-simulator" | "observatory" | "about";
 
 type TabsProps = {
   activeTab: LabTabKey;
@@ -12,6 +12,7 @@ type TabsProps = {
 
 const tabs: Array<{ key: LabTabKey; label: string }> = [
   { key: "agent-studio", label: "Agent Studio" },
+  { key: "mcp-simulator", label: "MCP Simulator" },
   { key: "observatory", label: "Observatory" },
   { key: "about", label: "About" },
 ];

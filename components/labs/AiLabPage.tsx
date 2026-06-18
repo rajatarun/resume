@@ -6,6 +6,7 @@ import { AboutTab } from "@/components/labs/AboutTab";
 import { HowItWorksModal } from "@/components/labs/HowItWorksModal";
 import { Tabs, type LabTabKey } from "@/components/labs/Tabs";
 import { ObservabilityDashboard } from "@/components/admin/agent-management/observability/ObservabilityDashboard";
+import { McpSimulatorTab } from "@/components/labs/McpSimulatorTab";
 import { cn } from "@/lib/utils/cn";
 
 export function AiLabPage() {
@@ -58,6 +59,7 @@ export function AiLabPage() {
       <Tabs activeTab={activeTab} onChange={setActiveTab} />
 
       {activeTab === "agent-studio" && <AgentStudioTab onPolygonStatusChange={setPolygonConnected} onPlatformPoolChange={setPlatformPoolSol} />}
+      {activeTab === "mcp-simulator" && <McpSimulatorTab />}
       {activeTab === "observatory" && <ObservabilityDashboard />}
       {activeTab === "about" && <AboutTab />}
 
