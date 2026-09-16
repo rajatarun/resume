@@ -1,19 +1,32 @@
-// Live directory of every Weave product, sourced from ai-content-orchestrator's
-// deploy workflow. That repo's CI already assumes the account-wide deploy
-// role and already reads TeamWeave's and SIWE's stack outputs to resolve its
-// own deploy parameters (see .github/workflows/deploy.yml,
-// "Load shared stack outputs"); scripts/build_platform_manifest.py reuses
-// that same access, adds two more best-effort stack lookups, and commits the
-// result to docs/platform-manifest.json on every successful deploy to main.
+// Live directory of every Weave product, resolved from two sources that
+// degrade independently:
 //
-// This page fetches that file from raw.githubusercontent.com rather than the
+//   1. This site's own build-time NEXT_PUBLIC_* config (see localApiBases
+//      below) -- always present, no network, covers the six products this
+//      site already calls from its other tabs.
+//   2. ai-content-orchestrator's deploy workflow, which publishes
+//      docs/platform-manifest.json with URLs read from real CloudFormation
+//      Outputs, including stacks this site has no config for.
+//
+// (2) wins where it has a value -- a stack output is current, a build-time
+// constant is only as fresh as the last Amplify build -- but (1) means the
+// page still shows live URLs when (2) is missing entirely, which it will be
+// until that workflow has run on main at least once.
+//
+// The manifest is fetched from raw.githubusercontent.com rather than the
 // GitHub Actions API: it's a public repo, the file is plain JSON, and no
 // token or server round-trip through this static-exported site is needed --
-// the same reasoning the OpenAPI specs below are fetched by.
+// the same reasoning the OpenAPI specs are fetched by.
 const MANIFEST_URL =
   'https://raw.githubusercontent.com/rajatarun/ai-content-orchestrator/main/docs/platform-manifest.json';
 
 export type ProductStatus = 'active' | 'archived' | 'reserved';
+
+// Where a product's live base URL came from. The distinction matters: a stack
+// output is what CloudFormation currently reports, while site-config is what
+// this site was *built* against -- the same URL its own admin tabs are
+// calling right now, but only as fresh as the last Amplify build.
+export type ApiSource = 'stack-output' | 'site-config' | null;
 
 export type PlatformProduct = {
   name: string;
@@ -24,6 +37,64 @@ export type PlatformProduct = {
   openApiSpecUrl: string | null;
   status: ProductStatus;
 };
+
+export type ResolvedProduct = PlatformProduct & { apiSource: ApiSource };
+
+// The manifest was solving a problem this site had already solved for itself:
+// six of these URLs are sitting in its own build environment, because its
+// other admin tabs call them. Those are inlined at build time (Next only
+// substitutes literal `process.env.NEXT_PUBLIC_X` reads, never a dynamic
+// lookup, so each one is spelled out), need no network, and are already in
+// the public client bundle -- showing them on a gated page discloses nothing
+// that wasn't already shipped.
+//
+// This is the floor, not the ceiling: the manifest still wins where it has a
+// value, because a stack output is current where a build-time constant is
+// only as old as the last deploy of this site. But the page is now useful
+// with the manifest missing entirely, which is what it should have been from
+// the start.
+function usable(value: string | undefined): string | undefined {
+  // .env.example ships placeholders like https://<rest-api-id>.execute-api...
+  // A build that picked those up should read as "not configured", not as a
+  // live URL that happens to 404 for everyone.
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.includes('<') || !/^https?:\/\//.test(trimmed)) return undefined;
+  return trimmed.replace(/\/$/, '');
+}
+
+function baseOf(endpoint: string | undefined, suffix: string): string | undefined {
+  const url = usable(endpoint);
+  if (!url) return undefined;
+  return url.endsWith(suffix) ? url.slice(0, -suffix.length) : url;
+}
+
+export function localApiBases(): Record<string, string | undefined> {
+  return {
+    'ai-content-orchestrator':
+      usable(process.env.NEXT_PUBLIC_ADMIN_API_BASE) ?? usable(process.env.NEXT_PUBLIC_API_BASE_URL),
+    TeamWeave: usable(process.env.NEXT_PUBLIC_AGENT_MANAGEMENT_API_BASE),
+    AuthChain: usable(process.env.NEXT_PUBLIC_SIWE_API_BASE),
+    DeviceWeave: usable(process.env.NEXT_PUBLIC_DEVICEWEAVE_API_URL),
+    RoutineWeave: usable(process.env.NEXT_PUBLIC_ROUTINEWEAVE_API_URL),
+    // NEXT_PUBLIC_ABOUT_CHAT_API is a full endpoint (.../prod/query-expertise),
+    // which is ContextWeave's -- the About page's chat is ContextWeave.
+    ContextWeave: baseOf(process.env.NEXT_PUBLIC_ABOUT_CHAT_API, '/query-expertise'),
+  };
+}
+
+export function resolveProducts(products: PlatformProduct[]): ResolvedProduct[] {
+  const local = localApiBases();
+  return products.map((product) => {
+    if (product.apiBaseUrl) {
+      return { ...product, apiSource: 'stack-output' as const };
+    }
+    const fromSite = local[product.name];
+    return fromSite
+      ? { ...product, apiBaseUrl: fromSite, apiSource: 'site-config' as const }
+      : { ...product, apiSource: null };
+  });
+}
 
 export type PlatformManifest = {
   generatedAt: string;
