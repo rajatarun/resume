@@ -4,7 +4,13 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card } from '@/components/Card';
 import { Badge } from '@/components/Badge';
-import { fetchPlatformManifest, CATEGORY_ORDER, type PlatformProduct } from '@/lib/admin/platform';
+import {
+  fetchPlatformManifest,
+  resolveProducts,
+  CATEGORY_ORDER,
+  type PlatformProduct,
+  type ResolvedProduct,
+} from '@/lib/admin/platform';
 import { SpecExplorer } from './SpecExplorer';
 
 const STATUS_STYLES: Record<PlatformProduct['status'], string> = {
@@ -13,7 +19,12 @@ const STATUS_STYLES: Record<PlatformProduct['status'], string> = {
   reserved: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
 };
 
-function ProductCard({ product }: { product: PlatformProduct }) {
+const SOURCE_LABEL: Record<'stack-output' | 'site-config', string> = {
+  'stack-output': 'from stack output',
+  'site-config': "from this site's config",
+};
+
+function ProductCard({ product }: { product: ResolvedProduct }) {
   const [expanded, setExpanded] = useState(false);
   const hasSpec = Boolean(product.openApiSpecUrl);
 
@@ -38,10 +49,10 @@ function ProductCard({ product }: { product: PlatformProduct }) {
 
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <Badge text={product.category} />
-        {product.apiBaseUrl ? (
+        {product.apiBaseUrl && product.apiSource ? (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
-            live API
+            live API · {SOURCE_LABEL[product.apiSource]}
           </span>
         ) : (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-500">
@@ -81,21 +92,25 @@ export default function PlatformClient() {
     queryFn: fetchPlatformManifest,
   });
 
+  // Whatever the manifest fetch returned (live or fallback), every product is
+  // then topped up from this site's own build config, so a missing manifest
+  // costs the four stack-only entries, not the whole directory.
+  const resolved = useMemo(
+    () => resolveProducts(manifestQuery.data?.manifest.products ?? []),
+    [manifestQuery.data],
+  );
+
   const grouped = useMemo(() => {
-    const products = manifestQuery.data?.manifest.products ?? [];
-    const map = new Map<string, PlatformProduct[]>();
-    for (const product of products) {
+    const map = new Map<string, ResolvedProduct[]>();
+    for (const product of resolved) {
       const list = map.get(product.category) ?? [];
       list.push(product);
       map.set(product.category, list);
     }
     return map;
-  }, [manifestQuery.data]);
+  }, [resolved]);
 
-  const liveCount = useMemo(
-    () => (manifestQuery.data?.manifest.products ?? []).filter((p) => p.apiBaseUrl).length,
-    [manifestQuery.data],
-  );
+  const liveCount = useMemo(() => resolved.filter((p) => p.apiBaseUrl).length, [resolved]);
 
   if (manifestQuery.isLoading) {
     return <p className="text-sm text-slate-500 dark:text-slate-400">Loading the platform directory…</p>;
@@ -115,12 +130,15 @@ export default function PlatformClient() {
         {isLive ? (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
-            live manifest — generated {manifest.generatedAt || 'just now'}
+            stack manifest — generated {manifest.generatedAt || 'just now'}
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
-            <span className="h-1.5 w-1.5 rounded-full bg-amber-500" aria-hidden="true" />
-            showing the built-in fallback directory — live manifest unreachable
+          // Not an error state: the URLs above still come from this site's own
+          // build config. What's missing is only the stack-resolved extras,
+          // which don't exist until that workflow has run on main.
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+            <span className="h-1.5 w-1.5 rounded-full bg-slate-400" aria-hidden="true" />
+            stack manifest not published yet — URLs below are from this site&rsquo;s build config
           </span>
         )}
       </div>
