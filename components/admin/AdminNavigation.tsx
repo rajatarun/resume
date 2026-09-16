@@ -19,11 +19,12 @@ export function AdminNavigation() {
   const isTasksActive = pathname.startsWith("/admin/tasks");
   const isHomeAutomationActive = pathname.startsWith("/admin/home-automation");
   const isControlRoomActive = pathname.startsWith("/admin/control-room");
+  const isPlatformActive = pathname.startsWith("/admin/platform");
   // Content Manager is active by elimination, so every sibling tab has to be
   // listed here. A new route that is not excluded lights this tab up too, and
   // two tabs read as current at once.
   const isContentManagerActive =
-    !isAgentManagementActive && !isTasksActive && !isHomeAutomationActive && !isControlRoomActive;
+    !isAgentManagementActive && !isTasksActive && !isHomeAutomationActive && !isControlRoomActive && !isPlatformActive;
 
   return (
     <div className="space-y-4">
@@ -58,6 +59,13 @@ export function AdminNavigation() {
           className={`-mb-px border-b-2 px-3 py-2 text-sm ${isControlRoomActive ? "border-slate-900 font-medium" : "border-transparent text-slate-500"}`}
         >
           Control Room
+        </Link>
+        <Link
+          href="/admin/platform"
+          aria-current={isPlatformActive ? "page" : undefined}
+          className={`-mb-px border-b-2 px-3 py-2 text-sm ${isPlatformActive ? "border-slate-900 font-medium" : "border-transparent text-slate-500"}`}
+        >
+          Platform
         </Link>
       </div>
 
