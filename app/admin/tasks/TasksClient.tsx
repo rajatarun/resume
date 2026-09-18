@@ -9,6 +9,8 @@ import { TaskTable, TaskTableSkeleton } from "./TaskTable";
 import { TaskFormDrawer } from "./TaskFormDrawer";
 import { DeleteTaskDialog } from "./DeleteTaskDialog";
 import { ResultsDrawer } from "./ResultsDrawer";
+import { InlineGate } from "@/components/admin/InlineGate";
+import { propose, type Proposal } from "@/lib/admin/gate";
 
 const TASKS_KEY = ["routineweave", "tasks"] as const;
 
@@ -28,6 +30,12 @@ export default function TasksClient() {
 
   // Delete dialog
   const [deletingTaskName, setDeletingTaskName] = useState<string | null>(null);
+
+  // The gate, staged for one task at a time. Enabling a routine sets it
+  // running unattended on a schedule, so it is proposed and scored before it
+  // is committed; disabling only ever stops something, so it goes straight
+  // through.
+  const [staged, setStaged] = useState<{ task: TaskDefinition; proposal: Proposal } | null>(null);
   const [deletesBusy, setDeleteBusy] = useState(false);
 
   // Optimistic enabled toggle
@@ -99,8 +107,9 @@ export default function TasksClient() {
     }
   }, [deletingTaskName, queryClient, toast]);
 
-  const handleToggleEnabled = useCallback(async (task: TaskDefinition) => {
+  const commitToggle = useCallback(async (task: TaskDefinition) => {
     const newEnabled = !task.enabled;
+    setStaged(null);
     setTogglingTask(task.task_name);
     setPendingToggles((prev) => ({ ...prev, [task.task_name]: newEnabled }));
     try {
@@ -118,6 +127,18 @@ export default function TasksClient() {
       setTogglingTask(null);
     }
   }, [queryClient, toast]);
+
+  const handleToggleEnabled = useCallback((task: TaskDefinition) => {
+    if (task.enabled) {
+      void commitToggle(task);
+      return;
+    }
+    setStaged((current) =>
+      current?.task.task_name === task.task_name
+        ? null
+        : { task, proposal: propose("routine-toggle", `Enable ${task.task_name}`, task.task_name) },
+    );
+  }, [commitToggle]);
 
   const handleToggleSaveResult = useCallback(async (task: TaskDefinition) => {
     const newSaveResult = !(task.save_result ?? false);
@@ -190,6 +211,16 @@ export default function TasksClient() {
           onToggleSaveResult={handleToggleSaveResult}
           onViewResults={setResultsTaskName}
           onNew={openCreate}
+          renderGate={(task) =>
+            staged?.task.task_name === task.task_name ? (
+              <InlineGate
+                proposal={staged.proposal}
+                busy={togglingTask === task.task_name}
+                onCommit={() => void commitToggle(task)}
+                onDiscard={() => setStaged(null)}
+              />
+            ) : null
+          }
         />
       )}
 
