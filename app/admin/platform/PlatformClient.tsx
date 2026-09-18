@@ -11,7 +11,8 @@ import {
   type PlatformProduct,
   type ResolvedProduct,
 } from '@/lib/admin/platform';
-import { SpecExplorer } from './SpecExplorer';
+import { EndpointConsole } from '@/components/admin/EndpointConsole';
+import { ENDPOINTS, type Endpoint } from '@/lib/admin/endpoints';
 
 const STATUS_STYLES: Record<PlatformProduct['status'], string> = {
   active: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
@@ -24,9 +25,19 @@ const SOURCE_LABEL: Record<'stack-output' | 'site-config', string> = {
   'site-config': "from this site's config",
 };
 
-function ProductCard({ product }: { product: ResolvedProduct }) {
+function ProductCard({
+  product,
+  onOpenEndpoint,
+}: {
+  product: ResolvedProduct;
+  onOpenEndpoint: (endpoint: Endpoint) => void;
+}) {
   const [expanded, setExpanded] = useState(false);
-  const hasSpec = Boolean(product.openApiSpecUrl);
+  // Only products whose endpoints are declared in the catalogue can be
+  // called. The rest are libraries and MCP servers with no HTTP surface, and
+  // saying so is more use than an empty try-it-out form.
+  const endpoints = ENDPOINTS.filter((e) => e.product === product.name);
+  const hasEndpoints = endpoints.length > 0;
 
   return (
     <Card className="flex flex-col gap-3">
@@ -68,25 +79,51 @@ function ProductCard({ product }: { product: ResolvedProduct }) {
         </code>
       )}
 
-      {hasSpec && (
+      {hasEndpoints && (
         <button
           type="button"
           onClick={() => setExpanded((prev) => !prev)}
-          className="focus-ring self-start rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+          className="focus-ring min-h-[44px] self-start rounded-lg border border-slate-300 px-3 text-xs font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
           aria-expanded={expanded}
         >
-          {expanded ? 'Hide API explorer' : 'Explore API'}
+          {expanded ? 'Hide endpoints' : `${endpoints.length} endpoints`}
         </button>
       )}
 
-      {hasSpec && expanded && product.openApiSpecUrl && (
-        <SpecExplorer specUrl={product.openApiSpecUrl} />
+      {hasEndpoints && expanded && (
+        <ul className="divide-y rounded-lg border dark:divide-slate-700 dark:border-slate-700">
+          {endpoints.map((endpoint) => (
+            <li key={endpoint.id}>
+              <button
+                type="button"
+                onClick={() => onOpenEndpoint(endpoint)}
+                className="flex min-h-[44px] w-full items-center gap-2.5 px-3 py-2.5 text-left hover:bg-slate-50 dark:hover:bg-slate-800"
+              >
+                <span
+                  className={`shrink-0 rounded px-1.5 py-0.5 font-mono text-[10px] font-bold ${
+                    endpoint.method === 'GET'
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300'
+                      : 'bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300'
+                  }`}
+                >
+                  {endpoint.method}
+                </span>
+                <span className="min-w-0 flex-1 truncate font-mono text-xs">{endpoint.path}</span>
+                <span aria-hidden="true" className="shrink-0 text-slate-400">›</span>
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
     </Card>
   );
 }
 
 export default function PlatformClient() {
+  // One endpoint open at a time: on a phone the console needs the whole
+  // screen, so it replaces the directory rather than expanding inside it.
+  const [openEndpoint, setOpenEndpoint] = useState<Endpoint | null>(null);
+
   const manifestQuery = useQuery({
     queryKey: ['platform-manifest'],
     queryFn: fetchPlatformManifest,
@@ -111,6 +148,10 @@ export default function PlatformClient() {
   }, [resolved]);
 
   const liveCount = useMemo(() => resolved.filter((p) => p.apiBaseUrl).length, [resolved]);
+
+  if (openEndpoint) {
+    return <EndpointConsole endpoint={openEndpoint} onBack={() => setOpenEndpoint(null)} />;
+  }
 
   if (manifestQuery.isLoading) {
     return <p className="text-sm text-slate-500 dark:text-slate-400">Loading the platform directory…</p>;
@@ -150,7 +191,7 @@ export default function PlatformClient() {
           </h2>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {grouped.get(category)!.map((product) => (
-              <ProductCard key={product.name} product={product} />
+              <ProductCard key={product.name} product={product} onOpenEndpoint={setOpenEndpoint} />
             ))}
           </div>
         </section>
