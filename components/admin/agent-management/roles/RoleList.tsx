@@ -6,6 +6,7 @@ import { RoleCreateModal } from '@/components/admin/agent-management/roles/RoleC
 import { RoleEditModal } from '@/components/admin/agent-management/roles/RoleEditModal';
 import { ErrorBanner } from '@/components/admin/agent-management/shared/ErrorBanner';
 import { apiFetch } from '@/components/admin/agent-management/shared/apiFetch';
+import type { SchemaInfo } from '@/components/admin/agent-management/shared/types';
 import { RecordList } from '@/components/admin/agent-management/shared/RecordList';
 
 type Role = {
@@ -38,6 +39,7 @@ function toErrorMessage(error: unknown): string {
 export function RoleList({ onSuccess }: { onSuccess: (message: string) => void }) {
   const [roles, setRoles] = useState<Role[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
+  const [schemas, setSchemas] = useState<SchemaInfo[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -57,12 +59,16 @@ export function RoleList({ onSuccess }: { onSuccess: (message: string) => void }
   const load = useCallback(async (): Promise<void> => {
     setLoading(true);
     try {
-      const [roleData, departmentData] = await Promise.all([
+      const [roleData, departmentData, schemaData] = await Promise.all([
         apiFetch<GetRolesResponse>('/roles'),
         apiFetch<{ departments: Department[] }>('/departments'),
+        // Tolerated as missing: an older deployment has no GET /schemas, and
+        // that should cost the dropdown, not the whole Roles tab.
+        apiFetch<{ schemas: SchemaInfo[] }>('/schemas').catch(() => ({ schemas: [] })),
       ]);
       setRoles(normalizeRoles(roleData));
       setDepartments(departmentData.departments ?? []);
+      setSchemas(schemaData.schemas ?? []);
     } catch (err) {
       setError(toErrorMessage(err));
     } finally {
@@ -129,6 +135,7 @@ export function RoleList({ onSuccess }: { onSuccess: (message: string) => void }
       <RoleCreateModal
         open={showCreate}
         departments={departments}
+        schemas={schemas}
         onClose={() => setShowCreate(false)}
         onSubmit={(payload) => {
           void (async () => {
