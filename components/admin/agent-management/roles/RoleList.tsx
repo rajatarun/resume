@@ -6,6 +6,7 @@ import { RoleCreateModal } from '@/components/admin/agent-management/roles/RoleC
 import { RoleEditModal } from '@/components/admin/agent-management/roles/RoleEditModal';
 import { ErrorBanner } from '@/components/admin/agent-management/shared/ErrorBanner';
 import { apiFetch } from '@/components/admin/agent-management/shared/apiFetch';
+import { RecordList } from '@/components/admin/agent-management/shared/RecordList';
 
 type Role = {
   role_id: string;
@@ -78,67 +79,53 @@ export function RoleList({ onSuccess }: { onSuccess: (message: string) => void }
       {error && <ErrorBanner message={error} onDismiss={() => setError('')} />}
       <button
         type="button"
-        className="rounded bg-slate-900 px-3 py-2 text-sm text-white"
+        className="focus-ring min-h-[44px] rounded-lg bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-700"
         onClick={() => setShowCreate(true)}
       >
         Add Role
       </button>
-      {loading ? (
-        <div className="rounded border p-4 text-sm">Loading roles...</div>
-      ) : (
-        <table className="w-full border text-sm">
-          <thead className="bg-slate-50">
-            <tr>
-              <th className="p-2 text-left">Role ID</th>
-              <th className="p-2 text-left">Title</th>
-              <th className="p-2 text-left">Level</th>
-              <th className="p-2 text-left">Department</th>
-              <th className="p-2 text-left">Schema Ref</th>
-              <th className="p-2 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {roles.map((role) => (
-              <tr key={role.role_id} className="border-t">
-                <td className="p-2">{role.role_id}</td>
-                <td className="p-2">{role.title ?? '—'}</td>
-                <td className="p-2">{role.level ?? '—'}</td>
-                <td className="p-2">{role.department_id ?? '—'}</td>
-                <td className="p-2">{role.schema_ref ?? '—'}</td>
-                <td className="p-2">
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      className="underline"
-                      onClick={() => {
-                        void (async () => {
-                          try {
-                            const details = await apiFetch<GetRoleResponse>(
-                              `/roles/${encodeURIComponent(role.role_id)}`,
-                            );
-                            setEditRole(normalizeRole(details) ?? role);
-                          } catch (err) {
-                            setError(toErrorMessage(err));
-                          }
-                        })();
-                      }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className="underline"
-                      onClick={() => setConfig(role.agent_config ?? {})}
-                    >
-                      View Config
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+
+      <RecordList
+        rows={roles}
+        rowKey={(role) => role.role_id}
+        loading={loading}
+        emptyTitle="No roles defined"
+        emptyBody="Roles describe what an agent is for and which schema its output is validated against. Add one before creating agents that reference it."
+        columns={[
+          { key: 'title', header: 'Title', primary: true, cell: (role) => role.title ?? role.role_id },
+          { key: 'role_id', header: 'Role ID', cell: (role) => <span className="font-mono text-xs">{role.role_id}</span> },
+          { key: 'level', header: 'Level', cell: (role) => role.level ?? '—' },
+          { key: 'department', header: 'Department', cell: (role) => role.department_id ?? '—' },
+          {
+            key: 'schema',
+            header: 'Schema Ref',
+            tableOnly: true,
+            cell: (role) => <span className="font-mono text-xs">{role.schema_ref ?? '—'}</span>,
+          },
+        ]}
+        actions={[
+          {
+            label: 'Edit',
+            onClick: (role) => {
+              void (async () => {
+                try {
+                  const details = await apiFetch<GetRoleResponse>(
+                    `/roles/${encodeURIComponent(role.role_id)}`,
+                  );
+                  setEditRole(normalizeRole(details) ?? role);
+                } catch (err) {
+                  setError(toErrorMessage(err));
+                }
+              })();
+            },
+          },
+          {
+            label: 'View Config',
+            onClick: (role) => setConfig(role.agent_config ?? {}),
+          },
+        ]}
+      />
+
       <RoleCreateModal
         open={showCreate}
         departments={departments}

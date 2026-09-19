@@ -1,11 +1,12 @@
 'use client';
 
-import { Fragment, useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AgentCreateModal } from '@/components/admin/agent-management/agents/AgentCreateModal';
 import { AgentEditModal } from '@/components/admin/agent-management/agents/AgentEditModal';
 import { ConfirmDialog } from '@/components/admin/agent-management/shared/ConfirmDialog';
 import { ErrorBanner } from '@/components/admin/agent-management/shared/ErrorBanner';
 import { apiFetch } from '@/components/admin/agent-management/shared/apiFetch';
+import { RecordList } from '@/components/admin/agent-management/shared/RecordList';
 
 type Agent = { agentName: string; agentStatus?: string; foundationModel?: string };
 type GetAgentsResponse = { agents?: Agent[]; result?: { agents?: Agent[] } };
@@ -80,10 +81,10 @@ export function AgentList({ onSuccess }: { onSuccess: (message: string) => void 
   }, [load]);
 
   const statusClass = (status?: string): string => {
-    if (status === 'PREPARED') return 'bg-emerald-100 text-emerald-700';
-    if (status === 'NOT_PREPARED') return 'bg-amber-100 text-amber-700';
-    if (status === 'FAILED') return 'bg-red-100 text-red-700';
-    return 'bg-slate-100 text-slate-600';
+    if (status === 'PREPARED') return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300';
+    if (status === 'NOT_PREPARED') return 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300';
+    if (status === 'FAILED') return 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300';
+    return 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400';
   };
 
   const toggleExpand = async (name: string): Promise<void> => {
@@ -142,6 +143,19 @@ export function AgentList({ onSuccess }: { onSuccess: (message: string) => void 
     }
   };
 
+  const openEdit = async (name: string): Promise<void> => {
+    try {
+      const details = await apiFetch<{
+        agent?: AgentDetail['agent'];
+        aliases?: AgentDetail['aliases'];
+        result?: { agent?: AgentDetail['agent']; aliases?: AgentDetail['aliases'] };
+      }>(`/agents/${encodeURIComponent(name)}`);
+      setEditAgent(normalizeAgentDetail(details).agent);
+    } catch (err) {
+      setError(toErrorMessage(err));
+    }
+  };
+
   const deleteNames = async (names: string[]): Promise<void> => {
     try {
       await apiFetch('/agents', { method: 'DELETE', body: { agent_names: names } });
@@ -157,126 +171,110 @@ export function AgentList({ onSuccess }: { onSuccess: (message: string) => void 
   return (
     <div className="space-y-3">
       {error && <ErrorBanner message={error} onDismiss={() => setError('')} />}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          className="rounded bg-slate-900 px-3 py-2 text-sm text-white"
+          className="focus-ring min-h-[44px] rounded-lg bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-700"
           onClick={() => setCreateOpen(true)}
         >
           Create Agent
         </button>
         <button
           type="button"
-          className="rounded border px-3 py-2 text-sm disabled:opacity-50"
+          className="focus-ring min-h-[44px] rounded-lg border border-slate-300 px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:opacity-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
           disabled={!selected.length}
           onClick={() => setConfirmNames(selected)}
         >
-          Delete Selected
+          {selected.length ? `Delete ${selected.length} selected` : 'Delete Selected'}
         </button>
       </div>
-      {loading ? (
-        <div className="rounded border p-4 text-sm">Loading agents...</div>
-      ) : (
-        <table className="w-full border text-sm">
-          <thead className="bg-slate-50">
-            <tr>
-              <th className="p-2" />
-              <th className="p-2 text-left">Name</th>
-              <th className="p-2 text-left">Status</th>
-              <th className="p-2 text-left">Model</th>
-              <th className="p-2 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {agents.map((agent) => (
-              <Fragment key={agent.agentName}>
-                <tr className="border-t">
-                  <td className="p-2">
-                    <input
-                      type="checkbox"
-                      aria-label={`Select ${agent.agentName}`}
-                      checked={selected.includes(agent.agentName)}
-                      onChange={(event) =>
-                        setSelected((prev) =>
-                          event.target.checked
-                            ? [...prev, agent.agentName]
-                            : prev.filter((name) => name !== agent.agentName),
-                        )
-                      }
-                    />
-                  </td>
-                  <td className="p-2">{agent.agentName}</td>
-                  <td className="p-2">
-                    <span className={`rounded px-2 py-1 text-xs ${statusClass(agent.agentStatus)}`}>
-                      {agent.agentStatus ?? 'UNKNOWN'}
-                    </span>
-                  </td>
-                  <td className="p-2">{agent.foundationModel ?? '—'}</td>
-                  <td className="p-2">
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        className="underline"
-                        onClick={() => {
-                          void toggleExpand(agent.agentName);
-                        }}
-                      >
-                        {expanded[agent.agentName] ? 'Collapse' : 'Expand'}
-                      </button>
-                      <button
-                        type="button"
-                        className="underline"
-                        onClick={() => {
-                          void (async () => {
-                            try {
-                              const details = await apiFetch<{
-                                agent?: AgentDetail['agent'];
-                                aliases?: AgentDetail['aliases'];
-                                result?: {
-                                  agent?: AgentDetail['agent'];
-                                  aliases?: AgentDetail['aliases'];
-                                };
-                              }>(
-                                `/agents/${encodeURIComponent(agent.agentName)}`,
-                              );
-                              setEditAgent(normalizeAgentDetail(details).agent);
-                            } catch (err) {
-                              setError(toErrorMessage(err));
-                            }
-                          })();
-                        }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        className="underline text-red-700"
-                        onClick={() => setConfirmNames([agent.agentName])}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                {expanded[agent.agentName] && (
-                  <tr className="border-t bg-slate-50">
-                    <td className="p-2" colSpan={5}>
-                      <p>
-                        <strong>Instruction:</strong>{' '}
-                        {expanded[agent.agentName].agent.instruction ?? '—'}
-                      </p>
-                      <p>
-                        <strong>Aliases:</strong>{' '}
-                        {aliasNames(expanded[agent.agentName].aliases).join(', ') || 'None'}
-                      </p>
-                    </td>
-                  </tr>
-                )}
-              </Fragment>
-            ))}
-          </tbody>
-        </table>
-      )}
+
+      <RecordList
+        rows={agents}
+        rowKey={(agent) => agent.agentName}
+        loading={loading}
+        emptyTitle="No agents yet"
+        emptyBody="Bedrock agents created here appear in this list. Create one to get started, or check the agent management API if you expected agents to be here already."
+        emptyAction={
+          <button
+            type="button"
+            className="focus-ring min-h-[44px] rounded-lg bg-slate-900 px-4 text-sm font-medium text-white"
+            onClick={() => setCreateOpen(true)}
+          >
+            Create Agent
+          </button>
+        }
+        selection={{
+          isSelected: (agent) => selected.includes(agent.agentName),
+          label: (agent) => `Select ${agent.agentName}`,
+          onToggle: (agent, next) =>
+            setSelected((prev) =>
+              next ? [...prev, agent.agentName] : prev.filter((name) => name !== agent.agentName),
+            ),
+        }}
+        columns={[
+          {
+            key: 'name',
+            header: 'Name',
+            primary: true,
+            cell: (agent) => agent.agentName,
+          },
+          {
+            key: 'status',
+            header: 'Status',
+            cell: (agent) => (
+              <span className={`inline-flex rounded px-2 py-1 text-xs ${statusClass(agent.agentStatus)}`}>
+                {agent.agentStatus ?? 'UNKNOWN'}
+              </span>
+            ),
+          },
+          {
+            key: 'model',
+            header: 'Model',
+            cell: (agent) => (
+              <span className="font-mono text-xs">{agent.foundationModel ?? '—'}</span>
+            ),
+          },
+        ]}
+        actions={[
+          {
+            label: 'Details',
+            onClick: (agent) => {
+              void toggleExpand(agent.agentName);
+            },
+          },
+          {
+            label: 'Edit',
+            onClick: (agent) => {
+              void openEdit(agent.agentName);
+            },
+          },
+          {
+            label: 'Delete',
+            danger: true,
+            onClick: (agent) => setConfirmNames([agent.agentName]),
+          },
+        ]}
+        expanded={(agent) => {
+          const detail = expanded[agent.agentName];
+          if (!detail) return null;
+          return (
+            <dl className="space-y-1.5 text-sm">
+              <div>
+                <dt className="text-xs font-semibold text-slate-500 dark:text-slate-400">Instruction</dt>
+                <dd className="text-slate-900 dark:text-slate-100">{detail.agent.instruction ?? '—'}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-semibold text-slate-500 dark:text-slate-400">Aliases</dt>
+                <dd className="text-slate-900 dark:text-slate-100">
+                  {aliasNames(detail.aliases).join(', ') || 'None'}
+                </dd>
+              </div>
+            </dl>
+          );
+        }}
+      />
+
       <AgentCreateModal
         open={createOpen}
         roles={roles}
