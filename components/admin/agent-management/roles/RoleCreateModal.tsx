@@ -3,17 +3,20 @@
 import { FormEvent, useState } from 'react';
 import type { Json } from '@/components/admin/agent-management/shared/apiFetch';
 import { BTN_PRIMARY, BTN_SECONDARY, FIELD } from '@/components/admin/agent-management/shared/controls';
+import type { SchemaInfo } from '@/components/admin/agent-management/shared/types';
 
 type Department = { department_id: string; name: string };
 
 export function RoleCreateModal({
   open,
   departments,
+  schemas,
   onClose,
   onSubmit,
 }: {
   open: boolean;
   departments: Department[];
+  schemas: SchemaInfo[];
   onClose: () => void;
   onSubmit: (payload: Record<string, Json>) => void;
 }) {
@@ -28,6 +31,8 @@ export function RoleCreateModal({
     primary_task_action: '',
     primary_task_description: '',
   });
+  const selectedSchema = schemas.find((schema) => schema.schema_ref === form.schema_ref);
+
   if (!open) return null;
   const submit = (event: FormEvent) => {
     event.preventDefault();
@@ -91,13 +96,34 @@ export function RoleCreateModal({
               </option>
             ))}
           </select>
-          <input
-            className={FIELD}
-            placeholder="Schema Ref"
-            aria-label="Schema Ref"
-            value={form.schema_ref}
-            onChange={(e) => setForm((p) => ({ ...p, schema_ref: e.target.value }))}
-          />
+          <div>
+            <label
+              htmlFor="role-schema-ref"
+              className="mb-1 block text-xs font-semibold text-slate-700 dark:text-slate-300"
+            >
+              Output schema
+            </label>
+            <select
+              id="role-schema-ref"
+              aria-describedby="role-schema-ref-hint"
+              className={`w-full ${FIELD}`}
+              value={form.schema_ref}
+              onChange={(e) => setForm((p) => ({ ...p, schema_ref: e.target.value }))}
+            >
+              <option value="">Choose a schema…</option>
+              {schemas.map((schema) => (
+                <option key={schema.schema_ref} value={schema.schema_ref}>
+                  {schema.schema_ref}
+                  {schema.title && schema.title !== schema.schema_ref ? ` — ${schema.title}` : ''}
+                </option>
+              ))}
+            </select>
+            <p id="role-schema-ref-hint" className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              {selectedSchema?.fields?.length
+                ? `Agents in this role must return: ${selectedSchema.fields.join(', ')}`
+                : 'Every agent given this role is validated against this schema. It was a free-text box, so a typo was only found when a run failed.'}
+            </p>
+          </div>
         </div>
         <textarea
           className="mt-3 min-h-20 w-full rounded border px-3 py-2"

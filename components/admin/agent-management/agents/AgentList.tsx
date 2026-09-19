@@ -7,6 +7,7 @@ import { ConfirmDialog } from '@/components/admin/agent-management/shared/Confir
 import { ErrorBanner } from '@/components/admin/agent-management/shared/ErrorBanner';
 import { apiFetch } from '@/components/admin/agent-management/shared/apiFetch';
 import { RecordList } from '@/components/admin/agent-management/shared/RecordList';
+import type { Role, SchemaInfo } from '@/components/admin/agent-management/shared/types';
 
 type Agent = { agentName: string; agentStatus?: string; foundationModel?: string };
 type GetAgentsResponse = { agents?: Agent[]; result?: { agents?: Agent[] } };
@@ -20,7 +21,7 @@ type AgentDetail = {
   };
   aliases: AgentAlias[] | string[];
 };
-type Role = { role_id: string; title?: string };
+
 
 function toErrorMessage(error: unknown): string {
   const status = (error as Error & { status?: number }).status;
@@ -31,6 +32,7 @@ function toErrorMessage(error: unknown): string {
 export function AgentList({ onSuccess }: { onSuccess: (message: string) => void }) {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
+  const [schemas, setSchemas] = useState<SchemaInfo[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [expanded, setExpanded] = useState<Record<string, AgentDetail>>({});
   const [loading, setLoading] = useState(true);
@@ -63,12 +65,17 @@ export function AgentList({ onSuccess }: { onSuccess: (message: string) => void 
     setLoading(true);
     setError('');
     try {
-      const [agentData, roleData] = await Promise.all([
+      // The schema catalogue is a nicety, not a precondition: an older
+      // deployment without GET /schemas should still list agents rather than
+      // showing the whole tab as broken.
+      const [agentData, roleData, schemaData] = await Promise.all([
         apiFetch<GetAgentsResponse>('/agents'),
         apiFetch<{ roles: Role[] }>('/roles'),
+        apiFetch<{ schemas: SchemaInfo[] }>('/schemas').catch(() => ({ schemas: [] })),
       ]);
       setAgents(agentData.result?.agents ?? agentData.agents ?? []);
       setRoles(roleData.roles ?? []);
+      setSchemas(schemaData.schemas ?? []);
     } catch (err) {
       setError(toErrorMessage(err));
     } finally {
@@ -278,6 +285,7 @@ export function AgentList({ onSuccess }: { onSuccess: (message: string) => void 
       <AgentCreateModal
         open={createOpen}
         roles={roles}
+        schemas={schemas}
         onClose={() => setCreateOpen(false)}
         onSubmit={(payload) => {
           void createAgent(payload);
