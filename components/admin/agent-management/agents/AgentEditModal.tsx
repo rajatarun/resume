@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import { BTN_PRIMARY, BTN_SECONDARY, TEXTAREA } from '@/components/admin/agent-management/shared/controls';
 
 type Agent = {
   agentName: string;
@@ -53,28 +54,31 @@ export function AgentEditModal({
       >
         <h3 className="text-lg font-semibold">Edit {agent.agentName}</h3>
         <textarea
-          className="mt-3 min-h-28 w-full rounded border px-3 py-2"
+          className={`mt-3 min-h-28 w-full ${TEXTAREA}`}
           placeholder="Instruction"
+            aria-label="Instruction"
           value={form.instruction}
           onChange={(e) => setForm((p) => ({ ...p, instruction: e.target.value }))}
         />
         <input
           className="mt-3 w-full rounded border px-3 py-2"
           placeholder="Description"
+            aria-label="Description"
           value={form.description}
           onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
         />
         <input
           className="mt-3 w-full rounded border px-3 py-2"
           placeholder="Foundation Model"
+            aria-label="Foundation Model"
           value={form.foundationModel}
           onChange={(e) => setForm((p) => ({ ...p, foundationModel: e.target.value }))}
         />
         <div className="mt-4 flex justify-end gap-2">
-          <button type="button" className="rounded border px-3 py-2" onClick={onClose}>
+          <button type="button" className={BTN_SECONDARY} onClick={onClose}>
             Cancel
           </button>
-          <button type="submit" className="rounded bg-slate-900 px-3 py-2 text-white">
+          <button type="submit" className={BTN_PRIMARY}>
             {busy ? 'Saving...' : 'Save'}
           </button>
         </div>

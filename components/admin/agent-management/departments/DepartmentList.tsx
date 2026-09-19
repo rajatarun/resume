@@ -6,6 +6,7 @@ import { DepartmentEditModal } from '@/components/admin/agent-management/departm
 import { DepartmentViewModal } from '@/components/admin/agent-management/departments/DepartmentViewModal';
 import { ErrorBanner } from '@/components/admin/agent-management/shared/ErrorBanner';
 import { apiFetch } from '@/components/admin/agent-management/shared/apiFetch';
+import { RecordList } from '@/components/admin/agent-management/shared/RecordList';
 
 type Department = {
   department_id: string;
@@ -74,76 +75,74 @@ export function DepartmentList({ onSuccess }: { onSuccess: (message: string) => 
       {error && <ErrorBanner message={error} onDismiss={() => setError('')} />}
       <button
         type="button"
-        className="rounded bg-slate-900 px-3 py-2 text-sm text-white"
+        className="focus-ring min-h-[44px] rounded-lg bg-slate-900 px-4 text-sm font-medium text-white transition hover:bg-slate-700"
         onClick={() => setShowCreate(true)}
       >
         Add Department
       </button>
-      {loading ? (
-        <div className="rounded border p-4 text-sm">Loading departments...</div>
-      ) : (
-        <table className="w-full border text-sm">
-          <thead className="bg-slate-50">
-            <tr>
-              <th className="p-2 text-left">Dept ID</th>
-              <th className="p-2 text-left">Name</th>
-              <th className="p-2 text-left">Allowed Roles</th>
-              <th className="p-2 text-left">Allowed Schemas</th>
-              <th className="p-2 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {departments.map((department) => (
-              <tr key={department.department_id} className="border-t">
-                <td className="p-2">{department.department_id}</td>
-                <td className="p-2">{department.name ?? '—'}</td>
-                <td className="p-2">{department.allowed_roles?.length ?? 0}</td>
-                <td className="p-2">{department.allowed_schemas?.length ?? 0}</td>
-                <td className="p-2">
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      className="underline"
-                      onClick={() => {
-                        void (async () => {
-                          try {
-                            const details = await apiFetch<GetDepartmentResponse>(
-                              `/departments/${encodeURIComponent(department.department_id)}`,
-                            );
-                            setViewDepartment(normalizeDepartment(details) ?? department);
-                          } catch (err) {
-                            setError(toErrorMessage(err));
-                          }
-                        })();
-                      }}
-                    >
-                      View
-                    </button>
-                    <button
-                      type="button"
-                      className="underline"
-                      onClick={() => {
-                        void (async () => {
-                          try {
-                            const details = await apiFetch<GetDepartmentResponse>(
-                              `/departments/${encodeURIComponent(department.department_id)}`,
-                            );
-                            setEditDepartment(normalizeDepartment(details) ?? department);
-                          } catch (err) {
-                            setError(toErrorMessage(err));
-                          }
-                        })();
-                      }}
-                    >
-                      Edit
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+
+      <RecordList
+        rows={departments}
+        rowKey={(department) => department.department_id}
+        loading={loading}
+        emptyTitle="No departments defined"
+        emptyBody="A department groups the roles and schemas a team is allowed to use. Add one to start assigning roles."
+        columns={[
+          {
+            key: 'name',
+            header: 'Name',
+            primary: true,
+            cell: (department) => department.name ?? department.department_id,
+          },
+          {
+            key: 'department_id',
+            header: 'Dept ID',
+            cell: (department) => <span className="font-mono text-xs">{department.department_id}</span>,
+          },
+          {
+            key: 'roles',
+            header: 'Allowed Roles',
+            cell: (department) => department.allowed_roles?.length ?? 0,
+          },
+          {
+            key: 'schemas',
+            header: 'Allowed Schemas',
+            cell: (department) => department.allowed_schemas?.length ?? 0,
+          },
+        ]}
+        actions={[
+          {
+            label: 'View',
+            onClick: (department) => {
+              void (async () => {
+                try {
+                  const details = await apiFetch<GetDepartmentResponse>(
+                    `/departments/${encodeURIComponent(department.department_id)}`,
+                  );
+                  setViewDepartment(normalizeDepartment(details) ?? department);
+                } catch (err) {
+                  setError(toErrorMessage(err));
+                }
+              })();
+            },
+          },
+          {
+            label: 'Edit',
+            onClick: (department) => {
+              void (async () => {
+                try {
+                  const details = await apiFetch<GetDepartmentResponse>(
+                    `/departments/${encodeURIComponent(department.department_id)}`,
+                  );
+                  setEditDepartment(normalizeDepartment(details) ?? department);
+                } catch (err) {
+                  setError(toErrorMessage(err));
+                }
+              })();
+            },
+          },
+        ]}
+      />
       <DepartmentCreateModal
         open={showCreate}
         roles={roles}

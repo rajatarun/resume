@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import { BTN_PRIMARY, BTN_SECONDARY, FIELD, TEXTAREA } from '@/components/admin/agent-management/shared/controls';
 
 type Role = { role_id: string; title?: string };
 
@@ -41,14 +42,16 @@ export function AgentCreateModal({
         <h3 className="text-lg font-semibold">Create Agent</h3>
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <input
-            className="rounded border px-3 py-2"
+            className={FIELD}
             placeholder="Name"
+            aria-label="Name"
             value={form.name}
             onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
             required
           />
           <select
-            className="rounded border px-3 py-2"
+            className={FIELD}
+            aria-label="Role"
             value={form.role}
             onChange={(e) => setForm((p) => ({ ...p, role: e.target.value }))}
             required
@@ -61,29 +64,32 @@ export function AgentCreateModal({
             ))}
           </select>
           <input
-            className="rounded border px-3 py-2"
+            className={FIELD}
             placeholder="Schema Ref"
+            aria-label="Schema Ref"
             value={form.schema_ref}
             onChange={(e) => setForm((p) => ({ ...p, schema_ref: e.target.value }))}
           />
           <input
-            className="rounded border px-3 py-2"
+            className={FIELD}
             placeholder="Foundation Model"
+            aria-label="Foundation Model"
             value={form.foundation_model}
             onChange={(e) => setForm((p) => ({ ...p, foundation_model: e.target.value }))}
           />
         </div>
         <textarea
-          className="mt-3 min-h-28 w-full rounded border px-3 py-2"
+          className={`mt-3 min-h-28 w-full ${TEXTAREA}`}
           placeholder="Goal Template"
+            aria-label="Goal Template"
           value={form.goal_template}
           onChange={(e) => setForm((p) => ({ ...p, goal_template: e.target.value }))}
         />
         <div className="mt-4 flex justify-end gap-2">
-          <button type="button" className="rounded border px-3 py-2" onClick={onClose}>
+          <button type="button" className={BTN_SECONDARY} onClick={onClose}>
             Cancel
           </button>
-          <button type="submit" className="rounded bg-slate-900 px-3 py-2 text-white">
+          <button type="submit" className={BTN_PRIMARY}>
             {busy ? 'Saving...' : 'Create'}
           </button>
         </div>

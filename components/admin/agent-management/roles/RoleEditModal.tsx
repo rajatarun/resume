@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import type { Json } from '@/components/admin/agent-management/shared/apiFetch';
+import { BTN_PRIMARY, BTN_SECONDARY } from '@/components/admin/agent-management/shared/controls';
 
 type Role = Record<string, unknown> & { role_id: string };
 
@@ -53,10 +54,10 @@ export function RoleEditModal({
             </div>
           ))}
         <div className="mt-4 flex justify-end gap-2">
-          <button type="button" className="rounded border px-3 py-2" onClick={onClose}>
+          <button type="button" className={BTN_SECONDARY} onClick={onClose}>
             Cancel
           </button>
-          <button type="submit" className="rounded bg-slate-900 px-3 py-2 text-white">
+          <button type="submit" className={BTN_PRIMARY}>
             Save Changes
           </button>
         </div>

@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import type { Json } from '@/components/admin/agent-management/shared/apiFetch';
+import { BTN_PRIMARY, BTN_SECONDARY, FIELD } from '@/components/admin/agent-management/shared/controls';
 
 type Department = {
   department_id: string;
@@ -74,14 +75,16 @@ export function DepartmentEditModal({
         </p>
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <input
-            className="rounded border px-3 py-2"
+            className={FIELD}
             placeholder="Name"
+            aria-label="Name"
             value={form.name}
             onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
           />
           <input
-            className="rounded border px-3 py-2"
+            className={FIELD}
             placeholder="Slug"
+            aria-label="Slug"
             value={form.slug}
             onChange={(e) => setForm((p) => ({ ...p, slug: e.target.value }))}
           />
@@ -89,12 +92,14 @@ export function DepartmentEditModal({
         <textarea
           className="mt-3 min-h-20 w-full rounded border px-3 py-2"
           placeholder="Description"
+            aria-label="Description"
           value={form.description}
           onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
         />
         <input
           className="mt-3 w-full rounded border px-3 py-2"
           placeholder="Allowed Schemas (comma-separated)"
+            aria-label="Allowed Schemas (comma-separated)"
           value={form.allowed_schemas}
           onChange={(e) => setForm((p) => ({ ...p, allowed_schemas: e.target.value }))}
         />
@@ -121,10 +126,10 @@ export function DepartmentEditModal({
           </div>
         </div>
         <div className="mt-4 flex justify-end gap-2">
-          <button type="button" className="rounded border px-3 py-2" onClick={onClose}>
+          <button type="button" className={BTN_SECONDARY} onClick={onClose}>
             Cancel
           </button>
-          <button type="submit" className="rounded bg-slate-900 px-3 py-2 text-white">
+          <button type="submit" className={BTN_PRIMARY}>
             Save
           </button>
         </div>

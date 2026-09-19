@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ConfirmDialog } from '@/components/admin/agent-management/shared/ConfirmDialog';
 import { ErrorBanner } from '@/components/admin/agent-management/shared/ErrorBanner';
 import { apiFetch } from '@/components/admin/agent-management/shared/apiFetch';
+import { RecordList } from '@/components/admin/agent-management/shared/RecordList';
 import { TeamViewDrawer } from '@/components/admin/agent-management/teams/TeamViewDrawer';
 
 type Team = {
@@ -140,65 +141,60 @@ export function TeamList({ onSuccess }: { onSuccess: (message: string) => void }
           {JSON.stringify(results, null, 2)}
         </pre>
       )}
-      {loading ? (
-        <div className="rounded border p-4 text-sm">Loading teams...</div>
-      ) : (
-        <table className="w-full border text-sm">
-          <thead className="bg-slate-50">
-            <tr>
-              <th className="p-2 text-left">Team Name</th>
-              <th className="p-2 text-left">Team ID</th>
-              <th className="p-2 text-left">Version</th>
-              <th className="p-2 text-left">Agent Count</th>
-              <th className="p-2 text-left">Provisioned</th>
-              <th className="p-2 text-left">Owner</th>
-              <th className="p-2 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {teams.map((team) => (
-              <tr key={team.name} className="border-t">
-                <td className="p-2">{team.name}</td>
-                <td className="p-2">{team.team_id ?? '—'}</td>
-                <td className="p-2">{team.latest_version ?? '—'}</td>
-                <td className="p-2">{team.agent_count ?? 0}</td>
-                <td className="p-2">{team.provisioned ? '✅' : '⏳'}</td>
-                <td className="p-2">{team.owner ?? '—'}</td>
-                <td className="p-2">
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      className="underline"
-                      onClick={() => {
-                        void (async () => {
-                          try {
-                            setTeamDetail(
-                              normalizeTeamDetail(
-                                await apiFetch<TeamDetail>(`/teams/${encodeURIComponent(team.name)}`),
-                              ),
-                            );
-                          } catch (err) {
-                            setError(toErrorMessage(err));
-                          }
-                        })();
-                      }}
-                    >
-                      View
-                    </button>
-                    <button
-                      type="button"
-                      className="underline text-red-700"
-                      onClick={() => setTeamToDelete(team.name)}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <RecordList
+        rows={teams}
+        rowKey={(team) => team.name}
+        loading={loading}
+        emptyTitle="No teams yet"
+        emptyBody="A team is a pipeline of agents defined by a team.json in S3. Once one is registered it appears here with its provisioning state."
+        columns={[
+          { key: 'name', header: 'Team Name', primary: true, cell: (team) => team.name },
+          {
+            key: 'team_id',
+            header: 'Team ID',
+            cell: (team) => <span className="font-mono text-xs">{team.team_id ?? '—'}</span>,
+          },
+          { key: 'version', header: 'Version', cell: (team) => team.latest_version ?? '—' },
+          { key: 'agents', header: 'Agents', cell: (team) => team.agent_count ?? 0 },
+          {
+            key: 'provisioned',
+            header: 'Provisioned',
+            cell: (team) => (
+              // The emoji alone carried the whole meaning and reads as nothing
+              // to a screen reader.
+              <span
+                className={`inline-flex rounded px-2 py-1 text-xs ${
+                  team.provisioned
+                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                    : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+                }`}
+              >
+                {team.provisioned ? 'Provisioned' : 'Pending'}
+              </span>
+            ),
+          },
+          { key: 'owner', header: 'Owner', tableOnly: true, cell: (team) => team.owner ?? '—' },
+        ]}
+        actions={[
+          {
+            label: 'View',
+            onClick: (team) => {
+              void (async () => {
+                try {
+                  setTeamDetail(
+                    normalizeTeamDetail(
+                      await apiFetch<TeamDetail>(`/teams/${encodeURIComponent(team.name)}`),
+                    ),
+                  );
+                } catch (err) {
+                  setError(toErrorMessage(err));
+                }
+              })();
+            },
+          },
+          { label: 'Delete', danger: true, onClick: (team) => setTeamToDelete(team.name) },
+        ]}
+      />
       <TeamViewDrawer
         open={Boolean(teamDetail)}
         data={teamDetail}

@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import type { Json } from '@/components/admin/agent-management/shared/apiFetch';
+import { BTN_PRIMARY, BTN_SECONDARY, FIELD } from '@/components/admin/agent-management/shared/controls';
 
 type Department = { department_id: string; name: string };
 
@@ -42,28 +43,32 @@ export function RoleCreateModal({
         <h3 className="text-lg font-semibold">Add Role</h3>
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <input
-            className="rounded border px-3 py-2"
+            className={FIELD}
             placeholder="Role ID"
+            aria-label="Role ID"
             value={form.role_id}
             onChange={(e) => setForm((p) => ({ ...p, role_id: e.target.value }))}
             required
           />
           <input
-            className="rounded border px-3 py-2"
+            className={FIELD}
             placeholder="Title"
+            aria-label="Title"
             value={form.title}
             onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
             required
           />
           <input
-            className="rounded border px-3 py-2"
+            className={FIELD}
             placeholder="Slug"
+            aria-label="Slug"
             value={form.slug}
             onChange={(e) => setForm((p) => ({ ...p, slug: e.target.value }))}
             required
           />
           <select
-            className="rounded border px-3 py-2"
+            className={FIELD}
+            aria-label="Level"
             value={form.level}
             onChange={(e) => setForm((p) => ({ ...p, level: e.target.value }))}
           >
@@ -74,7 +79,8 @@ export function RoleCreateModal({
             <option>Specialist</option>
           </select>
           <select
-            className="rounded border px-3 py-2"
+            className={FIELD}
+            aria-label="Department"
             value={form.department_id}
             onChange={(e) => setForm((p) => ({ ...p, department_id: e.target.value }))}
           >
@@ -86,8 +92,9 @@ export function RoleCreateModal({
             ))}
           </select>
           <input
-            className="rounded border px-3 py-2"
+            className={FIELD}
             placeholder="Schema Ref"
+            aria-label="Schema Ref"
             value={form.schema_ref}
             onChange={(e) => setForm((p) => ({ ...p, schema_ref: e.target.value }))}
           />
@@ -95,26 +102,29 @@ export function RoleCreateModal({
         <textarea
           className="mt-3 min-h-20 w-full rounded border px-3 py-2"
           placeholder="Persona"
+            aria-label="Persona"
           value={form.persona}
           onChange={(e) => setForm((p) => ({ ...p, persona: e.target.value }))}
         />
         <input
           className="mt-3 w-full rounded border px-3 py-2"
           placeholder="Primary Task Action"
+            aria-label="Primary Task Action"
           value={form.primary_task_action}
           onChange={(e) => setForm((p) => ({ ...p, primary_task_action: e.target.value }))}
         />
         <textarea
           className="mt-3 min-h-20 w-full rounded border px-3 py-2"
           placeholder="Primary Task Description"
+            aria-label="Primary Task Description"
           value={form.primary_task_description}
           onChange={(e) => setForm((p) => ({ ...p, primary_task_description: e.target.value }))}
         />
         <div className="mt-4 flex justify-end gap-2">
-          <button type="button" className="rounded border px-3 py-2" onClick={onClose}>
+          <button type="button" className={BTN_SECONDARY} onClick={onClose}>
             Cancel
           </button>
-          <button type="submit" className="rounded bg-slate-900 px-3 py-2 text-white">
+          <button type="submit" className={BTN_PRIMARY}>
             Save
           </button>
         </div>
