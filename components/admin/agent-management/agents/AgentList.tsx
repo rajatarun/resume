@@ -201,7 +201,7 @@ export function AgentList({ onSuccess }: { onSuccess: (message: string) => void 
         rowKey={(agent) => agent.agentName}
         loading={loading}
         emptyTitle="No agents yet"
-        emptyBody="Agents created here appear in this list. Create one to get started, or check the agent management API if you expected agents to be here already."
+        emptyBody="Bedrock Agents Classic resources in this account. Nothing invokes them — TeamWeave runs on AgentCore, and the agents that execute are under the Agents tab. This view exists so the legacy resources are visible, not so they are managed."
         emptyAction={
           <button
             type="button"
