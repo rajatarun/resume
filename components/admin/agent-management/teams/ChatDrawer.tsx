@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { apiFetch } from '@/components/admin/agent-management/shared/apiFetch';
 import { useFocusTrap } from '@/hooks/useFocusTrap';
+import type { AgentSubstrate } from '@/components/admin/agent-management/shared/substrate';
 
 type Message = {
   role: 'user' | 'agent';
@@ -14,6 +15,8 @@ type Message = {
 type ConverseResponse = {
   agent_id: string;
   alias_id: string;
+  /** Which substrate answered. Absent from an older deployment of the API. */
+  runtime?: string;
   session_id: string;
   response: string;
 };
@@ -27,14 +30,18 @@ function createSessionId(): string {
 
 export function ChatDrawer({
   open,
-  agentId,
-  aliasId,
+  substrate,
   agentName,
   onClose,
 }: {
   open: boolean;
-  agentId: string;
-  aliasId: string;
+  /**
+   * The agent's coordinates, or null when the drawer is closed. An agent with
+   * no coordinates of its own is the normal case on AgentCore: the stack
+   * runtime serves it, so `converseFields` is empty and the API resolves the
+   * runtime itself.
+   */
+  substrate: AgentSubstrate | null;
   agentName: string;
   onClose: () => void;
 }) {
@@ -44,12 +51,14 @@ export function ChatDrawer({
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [answeredBy, setAnsweredBy] = useState('');
 
   useFocusTrap(drawerRef, open);
 
   useEffect(() => {
     if (!open) return;
     setSessionId(createSessionId());
+    setAnsweredBy('');
   }, [open]);
 
   useEffect(() => {
@@ -84,12 +93,16 @@ export function ChatDrawer({
       const data = await apiFetch<ConverseResponse>('/agent/converse', {
         method: 'POST',
         body: {
-          agent_id: agentId,
-          alias_id: aliasId,
+          // Only what this agent actually has. The API needs session_id and
+          // message; which coordinates it needs on top of those depends on the
+          // substrate it is deployed on, so it decides rather than the console
+          // guessing and disabling the button when it guesses wrong.
+          ...(substrate?.converseFields ?? {}),
           session_id: sessionId,
           message,
         },
       });
+      if (data.runtime) setAnsweredBy(data.runtime);
       appendMessage({ role: 'agent', text: data.response, ts: new Date() });
     } catch (error) {
       const messageText = error instanceof Error ? error.message : 'Unable to send message';
@@ -117,7 +130,16 @@ export function ChatDrawer({
             <h3 id="chat-drawer-title" className="text-lg font-semibold">
               Chat with {agentName}
             </h3>
-            <p className="text-xs text-slate-500">Session: {sessionId}</p>
+            <p className="text-xs text-slate-500">
+              Session: {sessionId}
+              {answeredBy ? ` · answered by ${answeredBy}` : ''}
+            </p>
+            {substrate && (
+              <p className="text-xs text-slate-500" title={substrate.hint}>
+                {substrate.label}
+                {substrate.detail ? ` · ${substrate.detail}` : ''}
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -127,6 +149,7 @@ export function ChatDrawer({
                 setMessages([]);
                 setSessionId(createSessionId());
                 setInput('');
+                setAnsweredBy('');
               }}
             >
               New conversation

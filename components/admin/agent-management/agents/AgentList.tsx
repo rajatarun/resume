@@ -201,7 +201,7 @@ export function AgentList({ onSuccess }: { onSuccess: (message: string) => void 
         rowKey={(agent) => agent.agentName}
         loading={loading}
         emptyTitle="No agents yet"
-        emptyBody="Bedrock agents created here appear in this list. Create one to get started, or check the agent management API if you expected agents to be here already."
+        emptyBody="Agents created here appear in this list. Create one to get started, or check the agent management API if you expected agents to be here already."
         emptyAction={
           <button
             type="button"

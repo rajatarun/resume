@@ -81,7 +81,7 @@ export function AgentCreateModal({
               label="Name"
               htmlFor="agent-name"
               required
-              hint="Lowercase letters, digits and hyphens. This becomes the Bedrock agent name."
+              hint="Lowercase letters, digits and hyphens. This is how the agent is referred to in its team's workflow steps."
             >
               <input
                 id="agent-name"
@@ -188,7 +188,7 @@ export function AgentCreateModal({
             <FormField
               label="Foundation model"
               htmlFor="agent-model"
-              hint="The Bedrock model this agent runs on. It must be enabled in this account and region."
+              hint="The model this agent runs on. It must be enabled for Bedrock in this account and region."
             >
               <select
                 id="agent-model"

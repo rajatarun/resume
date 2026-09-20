@@ -6,6 +6,7 @@ import { ErrorBanner } from '@/components/admin/agent-management/shared/ErrorBan
 import { apiFetch } from '@/components/admin/agent-management/shared/apiFetch';
 import { RecordList } from '@/components/admin/agent-management/shared/RecordList';
 import { TeamViewDrawer } from '@/components/admin/agent-management/teams/TeamViewDrawer';
+import type { TeamAgent } from '@/components/admin/agent-management/shared/substrate';
 
 type Team = {
   name: string;
@@ -20,38 +21,34 @@ type ProvisionTeamsResponse = {
   results?: Record<string, unknown>;
   result?: { results?: Record<string, unknown> };
 };
+type TeamPayload = {
+  team?: Record<string, unknown>;
+  globals?: Record<string, unknown>;
+  agents?: TeamAgent[];
+  workflow?: Array<Record<string, unknown>>;
+  schemas?: Record<string, unknown>;
+};
 type TeamDetail = {
-  team?: {
-    team?: Record<string, unknown>;
-    globals?: Record<string, unknown>;
-    agents?: Array<{
-      name?: string;
-      role_id?: string;
-      bedrock?: { agentId?: string; aliasId?: string };
-      agentId?: string;
-      aliasId?: string;
-    }>;
-    workflow?: Array<Record<string, unknown>>;
-    schemas?: Record<string, unknown>;
-  };
+  team?: TeamPayload;
   versions?: string[];
   result?: {
-    team?: {
-      team?: Record<string, unknown>;
-      globals?: Record<string, unknown>;
-      agents?: Array<{
-        name?: string;
-        role_id?: string;
-        bedrock?: { agentId?: string; aliasId?: string };
-        agentId?: string;
-        aliasId?: string;
-      }>;
-      workflow?: Array<Record<string, unknown>>;
-      schemas?: Record<string, unknown>;
-    };
+    team?: TeamPayload;
     versions?: string[];
   };
 };
+
+/**
+ * Why this whole control is now a legacy affordance. Teams run on AgentCore,
+ * where one stack runtime serves every agent and nothing per-agent is created.
+ * This button still calls the Classic provisioner, which creates Bedrock
+ * Agents Classic resources that no run invokes -- so a team showing no Classic
+ * agents is working normally, and pressing this is only for a rollback to
+ * AGENT_RUNTIME=classic.
+ */
+const CLASSIC_PROVISIONING_NOTE =
+  'Creates Bedrock Agents Classic resources. Teams run on AgentCore, where one ' +
+  'stack runtime serves every agent — so this is only needed to roll back to ' +
+  'the Classic substrate.';
 
 function toErrorMessage(error: unknown): string {
   const status = (error as Error & { status?: number }).status;
@@ -109,6 +106,7 @@ export function TeamList({ onSuccess }: { onSuccess: (message: string) => void }
         <button
           type="button"
           className="rounded bg-slate-900 px-3 py-2 text-sm text-white"
+          title={CLASSIC_PROVISIONING_NOTE}
           onClick={() => {
             void (async () => {
               try {
@@ -117,7 +115,9 @@ export function TeamList({ onSuccess }: { onSuccess: (message: string) => void }
                   body: dryRun ? { dry_run: true } : {},
                 });
                 setResults(normalizeProvisionResults(data));
-                onSuccess(dryRun ? 'Dry run finished' : 'Provision completed');
+                onSuccess(
+                  dryRun ? 'Dry run finished' : 'Bedrock Agents Classic provisioning completed',
+                );
                 await load();
               } catch (err) {
                 setError(toErrorMessage(err));
@@ -125,7 +125,7 @@ export function TeamList({ onSuccess }: { onSuccess: (message: string) => void }
             })();
           }}
         >
-          Provision All
+          Provision Classic Agents
         </button>
         <label className="flex items-center gap-2 text-sm">
           <input
@@ -136,6 +136,7 @@ export function TeamList({ onSuccess }: { onSuccess: (message: string) => void }
           Dry Run
         </label>
       </div>
+      <p className="text-xs text-slate-500">{CLASSIC_PROVISIONING_NOTE}</p>
       {results && (
         <pre className="rounded border bg-slate-50 p-3 text-xs">
           {JSON.stringify(results, null, 2)}
@@ -158,18 +159,22 @@ export function TeamList({ onSuccess }: { onSuccess: (message: string) => void }
           { key: 'agents', header: 'Agents', cell: (team) => team.agent_count ?? 0 },
           {
             key: 'provisioned',
-            header: 'Provisioned',
+            header: 'Classic agents',
             cell: (team) => (
               // The emoji alone carried the whole meaning and reads as nothing
-              // to a screen reader.
+              // to a screen reader. The header says "Classic agents" because
+              // that is all this flag ever tracked -- and now that AgentCore
+              // serves every team, a "Pending" here is the expected state, not
+              // something to go and fix.
               <span
+                title={CLASSIC_PROVISIONING_NOTE}
                 className={`inline-flex rounded px-2 py-1 text-xs ${
                   team.provisioned
-                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
-                    : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300'
+                    ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                    : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
                 }`}
               >
-                {team.provisioned ? 'Provisioned' : 'Pending'}
+                {team.provisioned ? 'Provisioned' : 'None'}
               </span>
             ),
           },
