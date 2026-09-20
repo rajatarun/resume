@@ -34,12 +34,18 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+      {/* flex column + a growing <main> so the footer sits at the bottom of
+          the viewport on short pages. min-h-screen alone only made the body
+          tall; nothing pushed the footer down, so /admin and /contact ended
+          with the footer floating mid-page above ~500px of dead background.
+          The providers render no element of their own, so the nav, main and
+          footer are this flex container's direct children. */}
+      <body className="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
         <SkipLink />
         <Web3Provider>
           <TopNav />
           <StructuredData />
-          <main id="main-content" className="mx-auto w-full max-w-6xl px-4 pb-16 pt-24 sm:px-6 lg:px-8">{children}</main>
+          <main id="main-content" className="mx-auto w-full max-w-6xl flex-1 px-4 pb-16 pt-24 sm:px-6 lg:px-8">{children}</main>
           <SiteFooter />
         </Web3Provider>
       </body>
