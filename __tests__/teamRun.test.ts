@@ -13,7 +13,10 @@ import {
   missingRequired,
   normalizeRequestSchema,
   pollDelayMs,
+  runIdFromResponse,
   stepOutputs,
+  teamDetailFromResponse,
+  teamsFromResponse,
   workflowStepIds,
 } from '@/components/admin/agent-management/run/teamRun';
 
@@ -212,5 +215,101 @@ describe('elapsed time', () => {
     expect(formatElapsed(4_000)).toBe('4s');
     expect(formatElapsed(65_000)).toBe('1m 05s');
     expect(formatElapsed(-5)).toBe('0s');
+  });
+});
+
+describe('the response envelope', () => {
+  // The management API wraps its payload in `result`. Three components were
+  // already unwrapping it by hand when a fourth read `data.teams`, got
+  // undefined, and showed an empty team picker with no error — the UI's
+  // "teams are not loading".
+  const WRAPPED = {
+    result: {
+      teams: [
+        { name: 'doc_rewrite_team', latest_version: 'v1', agent_count: 3 },
+        { name: 'tarun_visibility_team', latest_version: 'v1', agent_count: 6 },
+      ],
+    },
+  };
+  const BARE = { teams: [{ name: 'doc_rewrite_team', latest_version: 'v1', agent_count: 3 }] };
+
+  it('reads the team list out of a wrapped response', () => {
+    expect(teamsFromResponse(WRAPPED).map((t) => t.name)).toEqual([
+      'doc_rewrite_team', 'tarun_visibility_team',
+    ]);
+  });
+
+  it('still reads an unwrapped response', () => {
+    expect(teamsFromResponse(BARE).map((t) => t.name)).toEqual(['doc_rewrite_team']);
+  });
+
+  it('carries the fields the picker shows', () => {
+    const [first] = teamsFromResponse(WRAPPED);
+    expect(first).toEqual({ name: 'doc_rewrite_team', latest_version: 'v1', agent_count: 3 });
+  });
+
+  it('returns nothing rather than throwing on junk', () => {
+    for (const junk of [null, undefined, 'a string', 42, [], {}, { result: {} }]) {
+      expect(teamsFromResponse(junk)).toEqual([]);
+    }
+  });
+
+  it('drops entries with no name, which cannot be run', () => {
+    const mixed = { result: { teams: [{ name: 'ok' }, {}, { name: '' }, 'nope', null] } };
+    expect(teamsFromResponse(mixed).map((t) => t.name)).toEqual(['ok']);
+  });
+
+  it('reads the team config out of a wrapped detail response', () => {
+    const wrapped = { result: { team: { team: { name: 'doc_rewrite_team' } }, version: 'v2' } };
+    const { config, version } = teamDetailFromResponse(wrapped);
+    expect(config?.team?.name).toBe('doc_rewrite_team');
+    expect(version).toBe('v2');
+  });
+
+  it('still reads an unwrapped detail response', () => {
+    const bare = { team: { team: { name: 'x', version: 'v3' } } };
+    const { config, version } = teamDetailFromResponse(bare);
+    expect(config?.team?.name).toBe('x');
+    expect(version).toBe('v3');
+  });
+
+  it('falls back to v1 when no version is given anywhere', () => {
+    expect(teamDetailFromResponse({ team: {} }).version).toBe('v1');
+  });
+
+  it('never returns an empty version, which would fail the run with a 400', () => {
+    // POST /team/task rejects a request without team and version.
+    for (const payload of [null, {}, { result: {} }, { team: null }]) {
+      expect(teamDetailFromResponse(payload).version).toBeTruthy();
+    }
+  });
+
+  it('prefers the envelope when both shapes are present', () => {
+    // Two tabs must not read the same response two different ways.
+    const both = { teams: [{ name: 'bare' }], result: { teams: [{ name: 'wrapped' }] } };
+    expect(teamsFromResponse(both).map((t) => t.name)).toEqual(['wrapped']);
+  });
+
+  it('ignores an empty envelope rather than losing the payload', () => {
+    const odd = { result: {}, teams: [{ name: 'still here' }] };
+    expect(teamsFromResponse(odd).map((t) => t.name)).toEqual(['still here']);
+  });
+});
+
+describe('the run id', () => {
+  it('is read out of a wrapped start response', () => {
+    expect(runIdFromResponse({ result: { run_id: 'run-123' } })).toBe('run-123');
+  });
+
+  it('is read out of an unwrapped start response', () => {
+    expect(runIdFromResponse({ run_id: 'run-123' })).toBe('run-123');
+  });
+
+  it('is empty when the API returned none, so the caller can say so', () => {
+    // An empty string here must surface as an error; silently polling a
+    // blank id would leave the UI watching nothing forever.
+    for (const junk of [null, {}, { result: {} }, { run_id: 42 }, { run_id: '   ' }]) {
+      expect(runIdFromResponse(junk)).toBe('');
+    }
   });
 });

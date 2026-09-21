@@ -15,6 +15,73 @@
  * stays a JSON change rather than a UI change.
  */
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * The management API wraps its payload in `result`.
+ *
+ * `GET /teams` comes back as `{result: {teams: [...]}}` from the provisioning
+ * proxy and as `{teams: [...]}` from anything answering directly, and three
+ * components in this app were already unwrapping it by hand before a fourth
+ * (this one) read `data.teams`, found undefined, and silently showed no teams
+ * at all. Reading the envelope in one tested place is the fix; a fifth
+ * hand-rolled `?? data.teams` is how it recurs.
+ */
+export function unwrapResult<T extends object>(payload: unknown): Partial<T> {
+  if (!isRecord(payload)) return {};
+  const inner = payload.result;
+  // Prefer the envelope when it carries anything, exactly as the older
+  // components do -- a response with both should not be read two ways in
+  // two tabs.
+  if (isRecord(inner) && Object.keys(inner).length > 0) return inner as Partial<T>;
+  return payload as Partial<T>;
+}
+
+export type TeamSummary = {
+  name: string;
+  latest_version?: string;
+  agent_count?: number | null;
+};
+
+/** The team list, whichever shape the API used. */
+export function teamsFromResponse(payload: unknown): TeamSummary[] {
+  const body = unwrapResult<{ teams?: unknown }>(payload);
+  if (!Array.isArray(body.teams)) return [];
+  return body.teams
+    .filter(isRecord)
+    .map((t) => ({
+      name: typeof t.name === 'string' ? t.name : '',
+      latest_version: typeof t.latest_version === 'string' ? t.latest_version : undefined,
+      agent_count: typeof t.agent_count === 'number' ? t.agent_count : null,
+    }))
+    .filter((t) => t.name);
+}
+
+/** One team's config and the version to run, whichever shape the API used. */
+export function teamDetailFromResponse(
+  payload: unknown,
+): { config: TeamConfig | null; version: string } {
+  const body = unwrapResult<{ team?: unknown; version?: unknown }>(payload);
+  const config = isRecord(body.team) ? (body.team as TeamConfig) : null;
+  const version =
+    (typeof body.version === 'string' && body.version) ||
+    (typeof config?.team?.version === 'string' && config.team.version) ||
+    'v1';
+  return { config, version };
+}
+
+/** The run id from `POST /team/task`, wrapped or not.
+ *
+ * No id means the run cannot be polled, so it is an error rather than an
+ * empty string quietly leaving the UI watching nothing.
+ */
+export function runIdFromResponse(payload: unknown): string {
+  const body = unwrapResult<{ run_id?: unknown }>(payload);
+  return typeof body.run_id === 'string' ? body.run_id.trim() : '';
+}
+
 export type RequestField = {
   name: string;
   label: string;
@@ -50,10 +117,6 @@ export const FALLBACK_SCHEMA: RequestSchema = {
 };
 
 const FIELD_TYPES = new Set(['text', 'textarea']);
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
 
 /**
  * The team's declared inputs, or a usable default.

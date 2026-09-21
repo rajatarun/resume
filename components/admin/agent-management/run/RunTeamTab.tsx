@@ -26,16 +26,15 @@ import {
   missingRequired,
   normalizeRequestSchema,
   pollDelayMs,
+  runIdFromResponse,
   stepOutputs,
+  teamDetailFromResponse,
+  teamsFromResponse,
   type RequestField,
   type RequestSchema,
   type TeamConfig,
+  type TeamSummary,
 } from '@/components/admin/agent-management/run/teamRun';
-
-type TeamSummary = { name: string; latest_version: string; agent_count?: number | null };
-type TeamsResponse = { teams?: TeamSummary[] };
-type TeamDetail = { team?: TeamConfig; version?: string };
-type StartResponse = { run_id?: string };
 
 type Phase = 'idle' | 'starting' | 'running' | 'done' | 'error';
 
@@ -119,11 +118,16 @@ export function RunTeamTab() {
 
   useEffect(() => {
     let live = true;
-    apiFetch<TeamsResponse>('/teams')
-      .then((data) => {
+    apiFetch<unknown>('/teams')
+      .then((payload) => {
         if (!live) return;
-        const list = data.teams ?? [];
+        // The API wraps this in `result`; reading `payload.teams` directly is
+        // why the picker was empty.
+        const list = teamsFromResponse(payload);
         setTeams(list);
+        if (list.length === 0) {
+          setError('The API returned no teams. Check that team configs are synced to S3.');
+        }
         if (list.length > 0) setSelected((current) => current || list[0].name);
       })
       .catch((e: Error) => live && setError(`Could not list teams: ${e.message}`));
@@ -136,11 +140,12 @@ export function RunTeamTab() {
     if (!selected) return;
     let live = true;
     setConfig(null);
-    apiFetch<TeamDetail>(`/teams/${encodeURIComponent(selected)}`)
-      .then((data) => {
+    apiFetch<unknown>(`/teams/${encodeURIComponent(selected)}`)
+      .then((payload) => {
         if (!live) return;
-        setConfig(data.team ?? null);
-        setVersion(data.version || data.team?.team?.version || 'v1');
+        const { config: loaded, version: loadedVersion } = teamDetailFromResponse(payload);
+        setConfig(loaded);
+        setVersion(loadedVersion);
       })
       .catch((e: Error) => live && setError(`Could not load ${selected}: ${e.message}`));
     return () => {
@@ -187,12 +192,13 @@ export function RunTeamTab() {
 
     try {
       // 202 with a run_id. Nothing has run yet.
-      const started = await apiFetch<StartResponse>('/team/task', {
+      const started = await apiFetch<unknown>('/team/task', {
         method: 'POST',
         body: buildRunBody(selected, version, values),
         signal: controller.signal,
       });
-      const id = started.run_id ?? '';
+      // Wrapped here too, for the same reason.
+      const id = runIdFromResponse(started);
       if (!id) throw new Error('The API accepted the run but returned no run_id.');
       setRunId(id);
       setPhase('running');

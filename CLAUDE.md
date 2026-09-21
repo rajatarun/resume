@@ -168,4 +168,14 @@ Copy `.env.example` → `.env.local` before running locally.
     covers all three terminal failures by name. The form itself is built from
     the team's own `request_schema`, so adding a team needs no UI change.
 
-11. **Terraform RDS is publicly accessible**: `publicly_accessible = true` in `infra/terraform/main.tf` — intended for development convenience. Lock this down before production use.
+11. **The management API wraps its payload in `result`.** `GET /teams` comes
+    back as `{result: {teams: [...]}}` from the provisioning proxy and as
+    `{teams: [...]}` from anything answering directly. Three components were
+    already unwrapping this by hand when a fourth read `data.teams`, found
+    `undefined`, and showed an empty team picker with no error — the Run tab's
+    "teams are not loading". `teamRun.ts` exports `unwrapResult`,
+    `teamsFromResponse`, `teamDetailFromResponse` and `runIdFromResponse`,
+    which handle **both** shapes and are tested against both; a fifth
+    hand-rolled `?? data.teams` is how this recurs.
+
+12. **Terraform RDS is publicly accessible**: `publicly_accessible = true` in `infra/terraform/main.tf` — intended for development convenience. Lock this down before production use.
