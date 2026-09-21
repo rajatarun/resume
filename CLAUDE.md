@@ -73,6 +73,8 @@ Prod     → AWS RDS PostgreSQL 16 (db.t4g.micro in private VPC)
 | `data/resume.json` | Source of truth for resume data (experience, skills, projects, `yearsExp` per skill group) |
 | `data/resume.schema.json` | JSON Schema for resume.json validation |
 | `src/data/websiteArchitecture.ts` | Architecture stack data and Mermaid diagrams for `/website` page |
+| `components/admin/agent-management/run/RunTeamTab.tsx` | **Run a team** — the admin UI's first tab. Pick a team, fill the form its config declares, start a pipeline run, watch it, read the output |
+| `components/admin/agent-management/run/teamRun.ts` | Pure logic for that flow: form from `request_schema`, request body, status reading, which step is the answer |
 | `components/SkillDepthChart.tsx` | Animated bar chart — Framer Motion staggered bars, height = `yearsExp`, shows engineering breadth & depth |
 | `components/SkipLink.tsx` | Skip-to-main-content link for keyboard/screen reader users (ADA) |
 | `hooks/useFocusTrap.ts` | Zero-dependency focus trap hook — traps Tab/Shift-Tab in open modals, restores focus on close (ADA) |
@@ -157,4 +159,13 @@ Copy `.env.example` → `.env.local` before running locally.
 
 9. **Rate limiting is client-side only**: `lib/rate-limit/` is a client-side utility. API Gateway throttling is the actual server-side guard.
 
-10. **Terraform RDS is publicly accessible**: `publicly_accessible = true` in `infra/terraform/main.tf` — intended for development convenience. Lock this down before production use.
+10. **Running a team is asynchronous, and a failure arrives as a 200.**
+    `POST /team/task` returns **202** with a `run_id` — nothing has run yet —
+    and `GET /team/task/{run_id}` returns **200** whether the run succeeded,
+    failed, timed out or was aborted. The status is in the body. Anything
+    reading the HTTP code alone records every failed run as a success, which
+    is why `teamRun.ts` interprets the body and `__tests__/teamRun.test.ts`
+    covers all three terminal failures by name. The form itself is built from
+    the team's own `request_schema`, so adding a team needs no UI change.
+
+11. **Terraform RDS is publicly accessible**: `publicly_accessible = true` in `infra/terraform/main.tf` — intended for development convenience. Lock this down before production use.
