@@ -242,14 +242,55 @@ export function stepOutputs(config: TeamConfig | null | undefined, result: unkno
 }
 
 /**
+ * An image a step produced, if it produced one.
+ *
+ * `image_uri` is the durable `s3://` reference and `image_url` a short-lived
+ * signed one; only the second is openable in a browser, and it expires with
+ * the Lambda credentials that signed it.
+ */
+export type RunImage = { url: string; uri: string; prompt: string; label: string };
+
+function asImage(output: unknown, label: string): RunImage | null {
+  if (!isRecord(output)) return null;
+  const uri = typeof output.image_uri === 'string' ? output.image_uri : '';
+  if (!uri) return null;
+  return {
+    uri,
+    url: typeof output.image_url === 'string' ? output.image_url : '',
+    prompt: typeof output.prompt === 'string' ? output.prompt : '',
+    label,
+  };
+}
+
+/**
+ * Every image the run produced, in workflow order.
+ */
+export function runImages(config: TeamConfig | null | undefined, result: unknown): RunImage[] {
+  return stepOutputs(config, result)
+    .map((step) => asImage(step.output, step.label))
+    .filter((image): image is RunImage => image !== null);
+}
+
+/**
  * The answer to show first.
  *
- * The last step of the declared workflow is the team's deliverable — the
- * formatter, the writer, the advisor. With no workflow to go on, the whole
- * result is shown rather than a guess at which key matters.
+ * The last step of the declared workflow is *usually* the team's deliverable —
+ * the formatter, the writer, the advisor. Not always: the visibility team ends
+ * with an illustrator, whose output is a reference to a PNG. Taking the last
+ * step blindly would show `{image_uri, model_id, …}` where the post belongs,
+ * and the thing a person actually came for would be hidden behind the
+ * "earlier steps" disclosure.
+ *
+ * So an image-producing step is skipped when choosing what to show — the image
+ * is rendered separately, beside the copy it illustrates, rather than instead
+ * of it. With no workflow to go on, the whole result is shown rather than a
+ * guess at which key matters.
  */
 export function finalOutput(config: TeamConfig | null | undefined, result: unknown): unknown {
   const outputs = stepOutputs(config, result);
+  for (let i = outputs.length - 1; i >= 0; i -= 1) {
+    if (!asImage(outputs[i].output, '')) return outputs[i].output;
+  }
   if (outputs.length > 0) return outputs[outputs.length - 1].output;
   return result ?? null;
 }

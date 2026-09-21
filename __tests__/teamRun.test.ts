@@ -14,11 +14,13 @@ import {
   normalizeRequestSchema,
   pollDelayMs,
   runIdFromResponse,
+  runImages,
   stepOutputs,
   teamDetailFromResponse,
   teamsFromResponse,
   workflowStepIds,
 } from '@/components/admin/agent-management/run/teamRun';
+import type { TeamConfig } from '@/components/admin/agent-management/run/teamRun';
 
 const CONFIG = {
   team: { name: 'doc_rewrite_team', version: 'v1' },
@@ -311,5 +313,79 @@ describe('the run id', () => {
     for (const junk of [null, {}, { result: {} }, { run_id: 42 }, { run_id: '   ' }]) {
       expect(runIdFromResponse(junk)).toBe('');
     }
+  });
+});
+
+describe('image steps', () => {
+  const config = {
+    workflow: [
+      { step: 'writer' },
+      { step: 'editor' },
+      { step: 'illustrator' },
+    ],
+    agents: [
+      { id: 'writer', name: 'Writer' },
+      { id: 'editor', name: 'Managing Editor' },
+      { id: 'illustrator', name: 'Visual Designer' },
+    ],
+  } as unknown as TeamConfig;
+
+  const result = {
+    steps: {
+      writer: { drafts: ['a'] },
+      editor: { post: 'the approved copy' },
+      illustrator: {
+        image_uri: 's3://bucket/runs/r1/illustrator.png',
+        image_url: 'https://bucket.s3.amazonaws.com/runs/r1/illustrator.png?sig=x',
+        prompt: 'art direction, the approved copy',
+        model_id: 'amazon.nova-canvas-v1:0',
+      },
+    },
+  };
+
+  it('shows the post, not the image reference, as the deliverable', () => {
+    // The illustrator is last in the workflow. Taking the last step blindly
+    // would put {image_uri, model_id, ...} where the post belongs and bury
+    // the thing a person came for behind a disclosure.
+    expect(finalOutput(config, result)).toEqual({ post: 'the approved copy' });
+  });
+
+  it('still takes the last step when nothing is an image', () => {
+    const textOnly = {
+      steps: { writer: { drafts: ['a'] }, editor: { post: 'final' } },
+    };
+    const cfg = {
+      workflow: [{ step: 'writer' }, { step: 'editor' }],
+      agents: [{ id: 'writer' }, { id: 'editor' }],
+    } as unknown as TeamConfig;
+    expect(finalOutput(cfg, textOnly)).toEqual({ post: 'final' });
+  });
+
+  it('collects the images separately so they can be rendered', () => {
+    const images = runImages(config, result);
+    expect(images).toHaveLength(1);
+    expect(images[0].url).toContain('https://');
+    expect(images[0].uri).toBe('s3://bucket/runs/r1/illustrator.png');
+    expect(images[0].label).toBe('Visual Designer');
+  });
+
+  it('reports no images for a run that produced none', () => {
+    expect(runImages(config, { steps: { editor: { post: 'x' } } })).toEqual([]);
+  });
+
+  it('keeps the durable uri when signing failed', () => {
+    // presign() returns "" rather than failing the step, so the UI has to
+    // cope with an image it can reference but not display.
+    const unsigned = {
+      steps: { illustrator: { image_uri: 's3://b/k.png', image_url: '' } },
+    };
+    const [image] = runImages(config, unsigned);
+    expect(image.uri).toBe('s3://b/k.png');
+    expect(image.url).toBe('');
+  });
+
+  it('does not mistake an ordinary output for an image', () => {
+    const notAnImage = { steps: { editor: { post: 'x', model_id: 'm' } } };
+    expect(runImages(config, notAnImage)).toEqual([]);
   });
 });
