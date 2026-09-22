@@ -19,7 +19,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "sync:projects": "node scripts/sync-github-projects.mjs",
-    "prebuild": "node scripts/generate-seo-files.mjs"
+    "prebuild": "node scripts/generate-seo-files.mjs",
+    "test": "vitest run"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -55,6 +56,7 @@
     "tailwindcss": "^3.4.17",
     "ts-jest": "^29.4.6",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.0"
   }
 }

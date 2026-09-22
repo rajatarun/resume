@@ -5,21 +5,27 @@
  */
 import {
   FALLBACK_SCHEMA,
+  buildFollowUpBody,
   buildRunBody,
+  canFollowUp,
   finalOutput,
   formatElapsed,
   initialValues,
   interpretStatus,
+  lastAnswer,
   missingRequired,
   normalizeRequestSchema,
   pollDelayMs,
   runIdFromResponse,
   runImages,
   stepOutputs,
+  supportsConversation,
   teamDetailFromResponse,
   teamsFromResponse,
+  visibleFields,
   workflowStepIds,
 } from '@/components/admin/agent-management/run/teamRun';
+import type { Turn } from '@/components/admin/agent-management/run/teamRun';
 import type { TeamConfig } from '@/components/admin/agent-management/run/teamRun';
 
 const CONFIG = {
@@ -387,5 +393,76 @@ describe('image steps', () => {
   it('does not mistake an ordinary output for an image', () => {
     const notAnImage = { steps: { editor: { post: 'x', model_id: 'm' } } };
     expect(runImages(config, notAnImage)).toEqual([]);
+  });
+});
+
+// ── Conversation ────────────────────────────────────────────────────────────
+//
+// There is no resume in the pipeline: nothing reads `default_jump_to_step`, so
+// a conversation is a series of whole runs, each carrying the previous answer.
+
+describe('conversational follow-ups', () => {
+  const schema = {
+    summary: 's',
+    fields: [
+      { name: 'topic', label: 'Topic', type: 'text' as const, required: true },
+      { name: 'edit_instruction', label: 'Change', type: 'text' as const, required: false },
+      { name: 'previous_output', label: 'Prev', type: 'hidden' as const, required: false },
+      { name: 'previous_run_id', label: 'Run', type: 'hidden' as const, required: false },
+    ],
+  };
+
+  const turn = (over: Partial<Turn> = {}): Turn => ({
+    id: 't', ask: 'a', runId: 'r', state: 'succeeded', result: { post: 'first' }, error: '',
+    ...over,
+  });
+
+  it('hides continuation fields from the form', () => {
+    // A person cannot type the previous run's output, and showing them a box
+    // for it would be asking them to.
+    expect(visibleFields(schema.fields).map((f) => f.name)).toEqual(['topic', 'edit_instruction']);
+  });
+
+  it('treats a team that never declared edit_instruction as one-shot', () => {
+    // Otherwise the page offers a chat box to agents that were never told what
+    // an edit is, and every follow-up silently reruns the same request.
+    expect(supportsConversation(schema)).toBe(true);
+    expect(supportsConversation({ summary: 's', fields: [schema.fields[0]] })).toBe(false);
+  });
+
+  it('resends the original fields, because each run starts from nothing', () => {
+    const body = buildFollowUpBody('t', 'v1', { topic: 'runtimes' }, 'shorter', {
+      runId: 'run-1', output: { post: 'first' },
+    });
+    expect(body.request.topic).toBe('runtimes');
+    expect(body.request.edit_instruction).toBe('shorter');
+    expect(body.request.previous_run_id).toBe('run-1');
+    expect(JSON.parse(body.request.previous_output)).toEqual({ post: 'first' });
+  });
+
+  it('revises the last succeeded answer, not the last turn', () => {
+    // A failed run has no answer. Sending its absence would ask the team to
+    // revise nothing, and it would produce a fresh first draft instead.
+    const turns = [turn({ runId: 'ok' }), turn({ state: 'failed', result: null, runId: 'bad' })];
+    expect(lastAnswer(turns)?.runId).toBe('ok');
+  });
+
+  it('has nothing to revise before the first answer', () => {
+    expect(lastAnswer([])).toBeNull();
+    expect(lastAnswer([turn({ state: 'running', result: null })])).toBeNull();
+  });
+
+  it('refuses to send while a turn is still running', () => {
+    // Two runs in flight would race, and the second would revise an answer the
+    // first is about to replace.
+    expect(canFollowUp([turn()], 'make it shorter')).toBe(true);
+    expect(canFollowUp([turn(), turn({ state: 'running', result: null })], 'x')).toBe(false);
+    expect(canFollowUp([turn()], '   ')).toBe(false);
+    expect(canFollowUp([], 'first thing')).toBe(false);
+  });
+
+  it('sends a string answer through unquoted', () => {
+    const body = buildFollowUpBody('t', 'v1', {}, 'e', { runId: 'r', output: 'plain text' });
+    expect(body.request.previous_output).toBe('plain text');
   });
 });

@@ -85,7 +85,7 @@ export function runIdFromResponse(payload: unknown): string {
 export type RequestField = {
   name: string;
   label: string;
-  type: 'text' | 'textarea';
+  type: 'text' | 'textarea' | 'hidden';
   required: boolean;
   placeholder?: string;
 };
@@ -116,7 +116,15 @@ export const FALLBACK_SCHEMA: RequestSchema = {
   ],
 };
 
-const FIELD_TYPES = new Set(['text', 'textarea']);
+const FIELD_TYPES = new Set(['text', 'textarea', 'hidden']);
+
+/** Continuation state the page carries between turns; nobody types it. */
+export const HIDDEN_TYPE = 'hidden';
+
+/** The name a team uses to declare it accepts follow-up edits. */
+export const EDIT_FIELD = 'edit_instruction';
+export const PREVIOUS_OUTPUT_FIELD = 'previous_output';
+export const PREVIOUS_RUN_FIELD = 'previous_run_id';
 
 /**
  * The team's declared inputs, or a usable default.
@@ -313,4 +321,88 @@ export function formatElapsed(ms: number): string {
   const minutes = Math.floor(total / 60);
   const seconds = total % 60;
   return minutes > 0 ? `${minutes}m ${String(seconds).padStart(2, '0')}s` : `${seconds}s`;
+}
+
+
+// ── Conversation ────────────────────────────────────────────────────────────
+//
+// A run is one Step Functions execution and there is no resume: nothing in the
+// worker reads `default_jump_to_step`, so a pipeline cannot be re-entered part
+// way. A conversation is therefore a *series of runs*, each one carrying the
+// previous answer and the edit asked for, and the thread lives here on the
+// page. That is why the second turn is not cheaper than the first — the team
+// really does run again — and saying so in the UI is better than implying a
+// cheap edit that does not exist.
+
+/** Fields a person fills in. Hidden ones are carried, never rendered. */
+export function visibleFields(fields: RequestField[]): RequestField[] {
+  return fields.filter((f) => f.type !== HIDDEN_TYPE);
+}
+
+/**
+ * Whether this team accepts follow-ups.
+ *
+ * Declared, not assumed: a team whose agents were never told what
+ * `edit_instruction` means would receive one and ignore it, and the page would
+ * show a chat box that silently reruns the same request.
+ */
+export function supportsConversation(schema: RequestSchema): boolean {
+  return schema.fields.some((f) => f.name === EDIT_FIELD);
+}
+
+export type Turn = {
+  id: string;
+  /** What the person said: the first brief, or a follow-up edit. */
+  ask: string;
+  runId: string;
+  state: 'running' | 'succeeded' | 'failed';
+  result: unknown;
+  error: string;
+};
+
+/**
+ * The body for a follow-up turn.
+ *
+ * The original fields are resent because each run starts from nothing — the
+ * team has no memory of the first turn beyond what is in this body. The
+ * previous answer travels as JSON so the agent revises a structure rather than
+ * re-reading its own prose.
+ */
+export function buildFollowUpBody(
+  team: string,
+  version: string,
+  values: Record<string, string>,
+  edit: string,
+  previous: { runId: string; output: unknown },
+): { team: string; version: string; request: Record<string, string> } {
+  const body = buildRunBody(team, version, values);
+  body.request[EDIT_FIELD] = edit.trim();
+  body.request[PREVIOUS_RUN_FIELD] = previous.runId;
+  body.request[PREVIOUS_OUTPUT_FIELD] =
+    typeof previous.output === 'string' ? previous.output : JSON.stringify(previous.output ?? null);
+  return body;
+}
+
+/**
+ * The answer a follow-up should revise.
+ *
+ * The *last succeeded* turn, not the last turn: a failed run has no answer,
+ * and sending its absence as `previous_output` would ask the team to revise
+ * nothing and quietly produce a fresh first draft instead.
+ */
+export function lastAnswer(turns: Turn[]): { runId: string; output: unknown } | null {
+  for (let i = turns.length - 1; i >= 0; i -= 1) {
+    const turn = turns[i];
+    if (turn.state === 'succeeded' && turn.result != null) {
+      return { runId: turn.runId, output: turn.result };
+    }
+  }
+  return null;
+}
+
+/** A follow-up is only sendable with something to say and something to revise. */
+export function canFollowUp(turns: Turn[], draft: string): boolean {
+  if (!draft.trim()) return false;
+  if (turns.some((t) => t.state === 'running')) return false;
+  return lastAnswer(turns) !== null;
 }

@@ -1,3 +1,7 @@
+/**
+ * Written for jest (`jest.fn`, `jest.resetAllMocks`) before this repository had
+ * a runner. `vi` is the direct equivalent for both; no assertion changed.
+ */
 // @ts-nocheck
 import { SiweMessage } from 'siwe';
 import { siweVerify } from '@/lib/siweClient';
@@ -11,7 +15,7 @@ describe('SIWE verification behavior', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
     process.env = {
       ...originalEnv,
       NEXT_PUBLIC_SIWE_API_BASE: 'https://siwe.example.test'
@@ -43,12 +47,12 @@ describe('SIWE verification behavior', () => {
 
     // Mock wallet signer behavior: signing the prepared message returns a deterministic signature.
     const signer = {
-      signMessage: jest.fn(async (message: string) => mockSignMessage(message))
+      signMessage: vi.fn(async (message: string) => mockSignMessage(message))
     };
     const signature = await signer.signMessage(preparedMessage);
 
     // Mock the SIWE verify API response for a valid message/signature pair.
-    const fetchMock = jest.fn().mockResolvedValue({
+    const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
       json: async () => ({ ok: true, token: 'jwt-token-123' })
@@ -94,7 +98,7 @@ describe('SIWE verification behavior', () => {
     const preparedMessage = siwe.prepareMessage();
     const signature = mockSignMessage(preparedMessage);
 
-    const fetchMock = jest.fn().mockResolvedValue({
+    const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
       json: async () => ({ ok: true, token: 'jwt-token-123' })

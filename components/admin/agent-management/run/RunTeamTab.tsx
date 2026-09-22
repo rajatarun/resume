@@ -27,6 +27,11 @@ import {
   missingRequired,
   normalizeRequestSchema,
   pollDelayMs,
+  visibleFields,
+  supportsConversation,
+  buildFollowUpBody,
+  lastAnswer,
+  canFollowUp,
   runIdFromResponse,
   stepOutputs,
   teamDetailFromResponse,
@@ -36,6 +41,7 @@ import {
   type TeamConfig,
   type TeamSummary,
 } from '@/components/admin/agent-management/run/teamRun';
+import type { Turn } from './teamRun';
 
 type Phase = 'idle' | 'starting' | 'running' | 'done' | 'error';
 
@@ -112,6 +118,11 @@ export function RunTeamTab() {
   const [startedAt, setStartedAt] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [showAllSteps, setShowAllSteps] = useState(false);
+  // The conversation. A run cannot be resumed -- nothing in the worker reads
+  // `default_jump_to_step` -- so a follow-up is a whole new run carrying the
+  // previous answer, and the thread lives here rather than on the server.
+  const [turns, setTurns] = useState<Turn[]>([]);
+  const [draft, setDraft] = useState('');
   const abortRef = useRef<AbortController | null>(null);
 
   const schema: RequestSchema = useMemo(() => normalizeRequestSchema(config), [config]);
@@ -173,65 +184,106 @@ export function RunTeamTab() {
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
+  /** Start one run and follow it to a terminal state, as one turn. */
+  const runTurn = useCallback(
+    async (body: ReturnType<typeof buildRunBody>, ask: string) => {
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      const turnId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      setTurns((prev) => [
+        ...prev,
+        { id: turnId, ask, runId: '', state: 'running', result: null, error: '' },
+      ]);
+      const settle = (patch: Partial<Turn>) =>
+        setTurns((prev) => prev.map((t) => (t.id === turnId ? { ...t, ...patch } : t)));
+
+      setError('');
+      setResult(null);
+      setShowAllSteps(false);
+      setPhase('starting');
+      const began = Date.now();
+      setStartedAt(began);
+      setElapsed(0);
+
+      try {
+        // 202 with a run_id. Nothing has run yet.
+        const started = await apiFetch<unknown>('/team/task', {
+          method: 'POST',
+          body,
+          signal: controller.signal,
+        });
+        const id = runIdFromResponse(started);
+        if (!id) throw new Error('The API accepted the run but returned no run_id.');
+        setRunId(id);
+        settle({ runId: id });
+        setPhase('running');
+
+        for (let attempt = 0; ; attempt += 1) {
+          await sleep(pollDelayMs(attempt), controller.signal);
+          const payload = await apiFetch<unknown>(`/team/task/${encodeURIComponent(id)}`, {
+            signal: controller.signal,
+          });
+          // The body decides, not the status code: FAILED arrives as a 200.
+          const state = interpretStatus(payload);
+          if (state.kind === 'running') continue;
+          if (state.kind === 'succeeded') {
+            setResult(state.result);
+            settle({ state: 'succeeded', result: state.result });
+            setPhase('done');
+            return;
+          }
+          if (state.kind === 'failed') {
+            setError(state.error);
+            settle({ state: 'failed', error: state.error });
+            setPhase('error');
+            return;
+          }
+          const unknown = `The run reported an unrecognised state: ${state.status}`;
+          setError(unknown);
+          settle({ state: 'failed', error: unknown });
+          setPhase('error');
+          return;
+        }
+      } catch (e) {
+        if ((e as Error)?.name === 'AbortError') {
+          // A turn nobody waited for is not a turn that failed, but it has no
+          // answer either -- leaving it "running" would block every follow-up.
+          settle({ state: 'failed', error: 'Stopped before it finished.' });
+          return;
+        }
+        const message = (e as Error).message || 'The run could not be started.';
+        setError(message);
+        settle({ state: 'failed', error: message });
+        setPhase('error');
+      }
+    },
+    [],
+  );
+
   const start = useCallback(async () => {
-    const missing = missingRequired(schema.fields, values);
+    const missing = missingRequired(visibleFields(schema.fields), values);
     if (missing.length > 0) {
       setError(`Fill in: ${missing.join(', ')}`);
       return;
     }
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
+    setTurns([]);
+    await runTurn(buildRunBody(selected, version, values), values[schema.fields[0]?.name] || 'Run');
+  }, [runTurn, schema.fields, selected, values, version]);
 
-    setError('');
-    setResult(null);
-    setShowAllSteps(false);
-    setPhase('starting');
-    const began = Date.now();
-    setStartedAt(began);
-    setElapsed(0);
-
-    try {
-      // 202 with a run_id. Nothing has run yet.
-      const started = await apiFetch<unknown>('/team/task', {
-        method: 'POST',
-        body: buildRunBody(selected, version, values),
-        signal: controller.signal,
-      });
-      // Wrapped here too, for the same reason.
-      const id = runIdFromResponse(started);
-      if (!id) throw new Error('The API accepted the run but returned no run_id.');
-      setRunId(id);
-      setPhase('running');
-
-      for (let attempt = 0; ; attempt += 1) {
-        await sleep(pollDelayMs(attempt), controller.signal);
-        const payload = await apiFetch<unknown>(`/team/task/${encodeURIComponent(id)}`, {
-          signal: controller.signal,
-        });
-        // The body decides, not the status code: FAILED arrives as a 200.
-        const state = interpretStatus(payload);
-        if (state.kind === 'running') continue;
-        if (state.kind === 'succeeded') {
-          setResult(state.result);
-          setPhase('done');
-          return;
-        }
-        if (state.kind === 'failed') {
-          setError(state.error);
-          setPhase('error');
-          return;
-        }
-        setError(`The run reported an unrecognised state: ${state.status}`);
-        setPhase('error');
-        return;
-      }
-    } catch (e) {
-      if ((e as Error)?.name === 'AbortError') return;
-      setError((e as Error).message || 'The run could not be started.');
-      setPhase('error');
-    }
-  }, [schema.fields, selected, values, version]);
+  /**
+   * A follow-up. The team runs again from the top with the previous answer and
+   * the edit attached -- there is no partial re-entry to ask for, so the cost
+   * is a full run and the UI says so rather than implying a cheap edit.
+   */
+  const sendFollowUp = useCallback(async () => {
+    const previous = lastAnswer(turns);
+    if (!previous || !canFollowUp(turns, draft)) return;
+    const ask = draft.trim();
+    setDraft('');
+    await runTurn(buildFollowUpBody(selected, version, values, ask, previous), ask);
+  }, [draft, runTurn, selected, turns, values, version]);
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
@@ -244,6 +296,9 @@ export function RunTeamTab() {
   // the post, and the illustration is of it.
   const images = useMemo(() => runImages(config, result), [config, result]);
   const deliverable = steps.length > 0 ? steps[steps.length - 1] : null;
+  // Declared, not assumed: a team whose agents were never told what an edit is
+  // would receive one and ignore it.
+  const conversational = useMemo(() => supportsConversation(schema), [schema]);
 
   return (
     <div className="space-y-5">
@@ -274,7 +329,7 @@ export function RunTeamTab() {
           )}
         </div>
 
-        {schema.fields.map((field) => (
+        {visibleFields(schema.fields).map((field) => (
           <Field
             key={field.name}
             field={field}
@@ -291,7 +346,7 @@ export function RunTeamTab() {
             disabled={busy || !selected}
             className="focus-ring min-h-[40px] rounded-lg bg-slate-900 px-4 text-sm font-semibold text-white disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900"
           >
-            {busy ? 'Running…' : 'Run this team'}
+            {busy ? 'Running…' : turns.length > 0 ? 'Start over' : 'Run this team'}
           </button>
           {busy && (
             <>
@@ -309,6 +364,71 @@ export function RunTeamTab() {
             </>
           )}
         </div>
+        {turns.length > 0 && (
+          <div className="space-y-2 rounded-lg border border-slate-200 p-3 dark:border-slate-800">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              This conversation
+            </p>
+            <ol className="space-y-2">
+              {turns.map((turn, index) => (
+                <li key={turn.id} className="text-sm">
+                  <span className="text-slate-500">{index === 0 ? 'Asked' : 'Edit'}:</span>{' '}
+                  <span className="text-slate-800 dark:text-slate-200">{turn.ask}</span>
+                  <span className="ml-2 text-xs opacity-70">
+                    {turn.state === 'running' && 'running…'}
+                    {turn.state === 'succeeded' && 'answered'}
+                    {turn.state === 'failed' && `failed — ${turn.error}`}
+                  </span>
+                  {turn.runId && (
+                    <span className="ml-2 font-mono text-xs opacity-50">{turn.runId}</span>
+                  )}
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+
+        {conversational && lastAnswer(turns) !== null && (
+          <div className="space-y-2">
+            <label
+              htmlFor="follow-up"
+              className="block text-sm font-medium text-slate-700 dark:text-slate-300"
+            >
+              Ask for a change
+            </label>
+            <textarea
+              id="follow-up"
+              rows={2}
+              value={draft}
+              disabled={busy}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder="e.g. make the opening sharper and cut the third point"
+              className="focus-ring w-full rounded-lg border border-slate-300 bg-white p-2 text-sm dark:border-slate-700 dark:bg-slate-900"
+            />
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={sendFollowUp}
+                disabled={!canFollowUp(turns, draft)}
+                className="focus-ring min-h-[40px] rounded-lg border border-slate-300 px-4 text-sm font-semibold disabled:opacity-50 dark:border-slate-700"
+              >
+                Send edit
+              </button>
+              <span className="text-xs text-slate-500 dark:text-slate-500">
+                The team runs again from the top with your last answer attached — a pipeline has no
+                partial re-entry, so an edit costs a full run.
+              </span>
+            </div>
+          </div>
+        )}
+
+        {!conversational && turns.length > 0 && (
+          <p className="text-xs text-slate-500 dark:text-slate-500">
+            This team has not declared an <code>edit_instruction</code> input, so it cannot take
+            follow-ups yet — a chat box here would send edits its agents were never told to read.
+          </p>
+        )}
+
         {busy && (
           <p className="text-xs text-slate-500 dark:text-slate-500">
             A pipeline runs its agents in sequence, so this takes minutes rather than seconds.
