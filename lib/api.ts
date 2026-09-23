@@ -144,6 +144,7 @@ const getRequestIdFromHeaders = (response: Response): string | undefined => {
 
 const logRequestId = (requestId?: string) => {
   if (requestId) {
+    // eslint-disable-next-line no-console
     console.info("Chat API requestId:", requestId);
   }
 };

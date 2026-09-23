@@ -58,6 +58,7 @@ export function useQuery<T>({ queryKey, queryFn, enabled = true, refetchInterval
     void load();
     const unsub = client.subscribe(() => { void load(); });
     return () => { cancelled = true; unsub(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client, enabled, JSON.stringify(queryKey)]);
 
   useEffect(() => {
@@ -111,6 +112,7 @@ export function useQueries({ queries }: { queries: Array<{ queryKey: QueryKey; q
       cancelled = true;
       unsub();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client, JSON.stringify(queries.map((q) => [q.queryKey, q.enabled]))]);
 
   return results;

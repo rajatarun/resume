@@ -42,6 +42,7 @@ export function SiweButton({ onSuccess }: SiweButtonProps) {
       });
 
       if (process.env.NODE_ENV === "development") {
+        // eslint-disable-next-line no-console
         console.debug("[siwe] checksum", {
           original: address,
           checksummed: checksumAddress
@@ -55,6 +56,7 @@ export function SiweButton({ onSuccess }: SiweButtonProps) {
       }
 
       if (process.env.NODE_ENV === "development") {
+        // eslint-disable-next-line no-console
         console.debug("[siwe] prepared message", {
           preview: preparedMessage.slice(0, 120),
           newlineCount: (preparedMessage.match(/\n/g) ?? []).length

@@ -9,6 +9,7 @@ export function useForm<T extends Record<string, unknown>>(options?: Options<T>)
 
   useEffect(() => {
     if (options?.values) setValues(options.values);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(options?.values)]);
 
   const register = (name: keyof T) => ({
