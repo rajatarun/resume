@@ -7,5 +7,6 @@ export type ProofArtifact = {
 };
 
 export async function recordProof(artifact: ProofArtifact): Promise<void> {
+  // eslint-disable-next-line no-console
   console.log("[proof] recordProof payload", artifact);
 }

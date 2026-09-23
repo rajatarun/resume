@@ -132,11 +132,11 @@ export function useSignMessage() {
   };
 }
 
-export function useEnsName({ address }: { address?: string; chainId?: number; query?: { enabled?: boolean } }) {
+export function useEnsName({ address: _address }: { address?: string; chainId?: number; query?: { enabled?: boolean } }) {
   return { data: undefined as string | undefined, isLoading: false };
 }
 
-export function useEnsAvatar({ name }: { name?: string; chainId?: number; query?: { enabled?: boolean } }) {
+export function useEnsAvatar({ name: _name }: { name?: string; chainId?: number; query?: { enabled?: boolean } }) {
   return { data: undefined as string | undefined, isLoading: false };
 }
 

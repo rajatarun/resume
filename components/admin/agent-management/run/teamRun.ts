@@ -393,7 +393,7 @@ export function buildFollowUpBody(
 export function lastAnswer(turns: Turn[]): { runId: string; output: unknown } | null {
   for (let i = turns.length - 1; i >= 0; i -= 1) {
     const turn = turns[i];
-    if (turn.state === 'succeeded' && turn.result != null) {
+    if (turn.state === 'succeeded' && turn.result !== null && turn.result !== undefined) {
       return { runId: turn.runId, output: turn.result };
     }
   }

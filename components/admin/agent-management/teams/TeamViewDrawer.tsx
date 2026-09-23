@@ -105,6 +105,7 @@ export function TeamViewDrawer({
 
             return (
               <li
+                /* eslint-disable-next-line react/no-array-index-key */
                 key={`${agent.name ?? 'no-name'}:${agent.role_id ?? 'no-role'}:${index}`}
                 className="rounded border px-2 py-1"
               >
