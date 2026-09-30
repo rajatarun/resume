@@ -12,7 +12,7 @@ export const baseUrl = "https://tarunraja.info";
 export const githubUrl = `https://github.com/${process.env.GITHUB_USER}`;
 export const linkedInUrl = `https://www.linkedin.com/in/${process.env.LINKEDIN_USER}`;
 
-export const seoRoutes = ["/", "/resume", "/portfolio", "/about", "/labs", "/blog", "/contact"] as const;
+export const seoRoutes = ["/", "/resume", "/portfolio", "/about", "/labs", "/blog", "/contact", "/publications"] as const;
 
 const sharedImages = [{ url: "/profile-photo.PNG", width: 1200, height: 630, alt: "Tarun Raja" }];
 
@@ -136,6 +136,23 @@ export const routeMetadata: Record<(typeof seoRoutes)[number], Metadata> = {
       card: "summary_large_image",
       title: "Tarun Raja — Contact",
       description: "Get in touch with Tarun Raja for mentoring and engineering collaboration.",
+      images: ["/profile-photo.PNG"]
+    }
+  },
+  "/publications": {
+    title: "Tarun Raja — Publications",
+    description: "Zenodo preprints by Tarun Raja, with author, DOI, and record links for each preprint.",
+    alternates: { canonical: "/publications" },
+    openGraph: {
+      title: "Tarun Raja — Publications",
+      description: "Zenodo preprints by Tarun Raja, with author, DOI, and record links for each preprint.",
+      url: "/publications",
+      images: sharedImages
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Tarun Raja — Publications",
+      description: "Zenodo preprints by Tarun Raja, with author, DOI, and record links for each preprint.",
       images: ["/profile-photo.PNG"]
     }
   }
