@@ -29,6 +29,7 @@ const dropdownGroups: NavGroup[] = [
     items: [
       { href: "/resume" as Route, label: "Resume" },
       { href: "/portfolio" as Route, label: "Portfolio" },
+      { href: "/publications" as Route, label: "Publications" },
       { href: "/website" as Route, label: "Website" }
     ]
   },
