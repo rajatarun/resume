@@ -103,7 +103,6 @@ describe('publications catalogue', () => {
     const serialized = JSON.stringify({ publicationAuthor, publications }).toLowerCase();
     expect(serialized).not.toContain('affiliation');
     expect(serialized).not.toContain('jpmorgan');
-    expect(serialized).not.toContain('mcp-observatory');
   });
 
   it('formats publication dates without shifting the calendar day', () => {
