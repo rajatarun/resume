@@ -96,28 +96,28 @@ function Hero() {
       <HeroParallax className="relative">
         <div className="mx-auto grid min-h-[100svh] max-w-7xl content-center gap-12 px-6 pb-36 pt-32 sm:px-10 sm:pb-28 lg:pt-28">
           <div className="relative z-10 xl:max-w-[34rem]">
-            <Reveal>
+            <Reveal onMount>
               <p className="font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.3em] text-[#f7c9b0]">
                 {"// Senior Lead Software Engineer"}
               </p>
             </Reveal>
-            <Reveal delay={0.08}>
+            <Reveal onMount delay={0.08}>
               <h1 className="mt-6 font-[family-name:var(--font-display)] text-[clamp(4.5rem,13vw,10rem)] leading-[0.85] tracking-tight">
                 Tarun
               </h1>
             </Reveal>
-            <Reveal delay={0.16}>
+            <Reveal onMount delay={0.16}>
               <p className="mt-6 max-w-xl font-[family-name:var(--font-display)] text-[clamp(1.9rem,4vw,3rem)] leading-[1.08]">
                 Building <em className="text-[#ffb08c]">resilient</em> platforms and the teams that ship them.
               </p>
             </Reveal>
-            <Reveal delay={0.24}>
+            <Reveal onMount delay={0.24}>
               <p className="mt-8 max-w-lg text-lg leading-relaxed text-[#fbe3d4]">
                 Engineering leader with 10+ years at JP Morgan Chase — from Spring services and React front ends to
                 Kubernetes, CI/CD and LLM-powered workflows for global payments.
               </p>
             </Reveal>
-            <Reveal delay={0.32}>
+            <Reveal onMount delay={0.32}>
               <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3 font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.25em]">
                 <Link href="/about" className="focus-ring border-b border-[#fbf3ea]/50 pb-1 transition hover:border-[#fbf3ea]">
                   Chat about me →
@@ -132,8 +132,8 @@ function Hero() {
             </Reveal>
           </div>
 
-          {/* Below 1280px: the photo, under the text. */}
-          <Reveal delay={0.2} className="mx-auto w-full max-w-sm xl:hidden">
+          {/* Portrait, below 1280px (phones held upright): the photo, under the text. */}
+          <Reveal onMount delay={0.2} className="mx-auto w-full max-w-sm landscape:hidden xl:hidden">
             <div className="relative aspect-[4/5] overflow-hidden rounded-b-2xl rounded-t-[999px] shadow-[0_30px_60px_-30px_rgba(40,10,0,0.8)]">
               <Image
                 src="/profile-photo.PNG"
@@ -146,12 +146,16 @@ function Hero() {
             </div>
           </Reveal>
 
-          {/* From 1280px: the animated desk scene behind the hero's right
-              side, below the nav, its left and top edges masked into the
-              background so the headline stays clear. Narrower than that the
-              character would stand under the text, so the photo shows instead
-              and the video is never fetched. */}
-          <HeroVideo className="hero-video absolute bottom-0 right-0 top-20 w-[68%]" />
+          {/* The animated desk scene. From 1280px it sits behind the hero's
+              right side, below the nav, its left and top edges masked into
+              the background so the headline stays clear. Narrower but in
+              landscape (phones on their side) it is a card under the text.
+              Narrower and portrait, the photo above shows instead and the
+              video is never fetched. */}
+          <HeroVideo
+            className="hero-video absolute bottom-0 right-0 top-20 w-[68%]"
+            cardClassName="relative aspect-video w-full overflow-hidden rounded-2xl shadow-[0_30px_60px_-30px_rgba(40,10,0,0.8)]"
+          />
         </div>
 
         {/* Keeps the bottom row legible over the brightly lit floor. */}
@@ -197,7 +201,8 @@ function About() {
 
         <div className="mt-16 grid gap-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
           <Reveal>
-            <div className="relative aspect-[4/5] w-full max-w-sm overflow-hidden rounded-sm">
+            {/* Portrait phones already show this photo in the hero, a screen above. */}
+            <div className="relative aspect-[4/5] w-full max-w-sm overflow-hidden rounded-sm max-xl:portrait:hidden">
               <Image src="/profile-photo.PNG" alt="" fill sizes="(min-width: 1024px) 30vw, 90vw" className="object-cover" />
             </div>
           </Reveal>

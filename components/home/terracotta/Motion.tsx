@@ -4,14 +4,31 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { useActiveHomeDesign, useHomeDesignSettled } from "@/lib/homeDesign";
 
-/** Fades and lifts its children in once they scroll into view. */
-export function Reveal({ children, delay = 0, className }: { children: ReactNode; delay?: number; className?: string }) {
+/**
+ * Fades and lifts its children in once they scroll into view. `onMount`
+ * plays it on load instead: for content that starts on screen, like the hero.
+ * A scroll trigger there can miss entirely: on a short landscape phone the
+ * hero's lower lines sit inside the -80px margin and never count as in view.
+ */
+export function Reveal({
+  children,
+  delay = 0,
+  className,
+  onMount = false
+}: {
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+  onMount?: boolean;
+}) {
   const reduce = useReducedMotion();
+  const shown = { opacity: 1, y: 0 };
   return (
     <motion.div
       className={className}
       initial={reduce ? false : { opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      animate={onMount ? shown : undefined}
+      whileInView={onMount ? undefined : shown}
       viewport={{ once: true, margin: "-80px" }}
       transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
     >
@@ -75,18 +92,25 @@ function useMediaQuery(query: string): boolean {
 }
 
 /**
- * The looping desk scene behind the hero, on wide screens only, and only
- * while terracotta is the design showing. Narrower screens show the photo
- * instead, and since this renders nothing there, they never download the video. It never autoplays for visitors who ask for
- * reduced motion (they get the poster), and it can always be paused: WCAG
- * 2.2.2 requires that for anything moving for more than five seconds.
+ * The looping desk scene in the hero, only while terracotta is the design
+ * showing. Two layouts:
+ *   - wide (1280px and up): behind the hero's right side (`className`);
+ *   - landscape, narrower than that (phones on their side, small laptops):
+ *     a card under the headline (`cardClassName`).
+ * Portrait screens narrower than 1280px show the photo instead, and since
+ * this renders nothing there, they never download the video. It never
+ * autoplays for visitors who ask for reduced motion (they get the poster),
+ * and it can always be paused: WCAG 2.2.2 requires that for anything moving
+ * for more than five seconds.
  * Playback starts from an effect rather than the autoPlay attribute so the
  * reduced-motion check runs before the first frame moves.
  */
-export function HeroVideo({ className }: { className?: string }) {
+export function HeroVideo({ className, cardClassName }: { className?: string; cardClassName?: string }) {
   const ref = useRef<HTMLVideoElement>(null);
   const reduce = useReducedMotion();
   const wide = useMediaQuery("(min-width: 1280px)");
+  const landscape = useMediaQuery("(orientation: landscape)");
+  const layout = wide ? "wide" : landscape ? "card" : null;
   // Every design is in the page; a hidden terracotta must not fetch the video,
   // and neither should one that is about to be swapped for the saved design.
   const active = useActiveHomeDesign();
@@ -101,7 +125,7 @@ export function HeroVideo({ className }: { className?: string }) {
       () => setPlaying(true),
       () => setPlaying(false)
     );
-  }, [reduce, wide, shown]);
+  }, [reduce, layout, shown]);
 
   function toggle() {
     const video = ref.current;
@@ -114,10 +138,10 @@ export function HeroVideo({ className }: { className?: string }) {
     }
   }
 
-  if (!wide || !shown) return null;
+  if (!layout || !shown) return null;
 
   return (
-    <div className={className}>
+    <div className={layout === "wide" ? className : cardClassName}>
       <video
         ref={ref}
         aria-hidden="true"
@@ -135,7 +159,7 @@ export function HeroVideo({ className }: { className?: string }) {
       <button
         type="button"
         onClick={toggle}
-        className="focus-ring absolute bottom-24 right-10 rounded-full border border-white/25 bg-black/25 px-3 py-1.5 font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-[0.25em] text-[#fbf3ea] backdrop-blur transition hover:bg-black/40"
+        className={`focus-ring absolute ${layout === "wide" ? "bottom-24 right-10" : "right-3 top-3"} rounded-full border border-white/25 bg-black/25 px-3 py-1.5 font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-[0.25em] text-[#fbf3ea] backdrop-blur transition hover:bg-black/40`}
       >
         {playing ? "Pause" : "Play"}
         <span className="sr-only"> background animation</span>

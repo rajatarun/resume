@@ -62,7 +62,7 @@ export function ConnectWallet({ glass = false }: { glass?: boolean } = {}) {
           aria-describedby={glass && !hasInjectedWallet ? "no-wallet-hint" : undefined}
           className={
             glass
-              ? "focus-ring rounded-full border border-[var(--nav-rim)] px-3 py-1.5 text-xs font-medium transition hover:bg-[var(--nav-hover)]"
+              ? "focus-ring whitespace-nowrap rounded-full border border-[var(--nav-rim)] px-3 py-1.5 text-xs font-medium transition hover:bg-[var(--nav-hover)]"
               : "focus-ring rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
           }
         >
