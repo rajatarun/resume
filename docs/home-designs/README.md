@@ -5,8 +5,9 @@ chosen in the admin UI and takes effect on the next page load, with no redeploy.
 
 | Design | Flag value | In one line |
 |--------|------------|-------------|
-| [Terracotta](#terracotta) | `terracotta` | **Default.** Editorial: terracotta hero with the animated desk scene, glass nav |
+| [Terracotta](#terracotta) | `terracotta` | Editorial: terracotta hero with the animated desk scene, glass nav |
 | [Midnight](#midnight) | `midnight` | The original: dark navy gradient hero card with portrait and expertise cards |
+| [Prism](#prism) | `prism` | **Default.** "Know Tarun as…": the avatar walks desk → camera → books → café; Software Architect, Photographer, AI Researcher, Traveller |
 
 ## How to switch
 
@@ -19,8 +20,8 @@ the homepage reads it from `GET /site/settings` on every load.
 shows that design in that tab only. Each card in the admin picker links to it.
 
 **Fallback:** `NEXT_PUBLIC_HOME_VARIANT` (a build-time env var, default
-`terracotta`) is used only when nothing has been saved or the content API
-can't be reached. Unknown names fall back to `terracotta`.
+`prism`) is used only when nothing has been saved or the content API
+can't be reached. Unknown names fall back to `prism`.
 
 How it avoids a flash: every design is in the homepage HTML. A script in the
 page `<head>` (`lib/homeDesignBoot.ts`) picks the design this browser last
@@ -49,7 +50,7 @@ change.
 
 ## Terracotta
 
-**Flag value:** `terracotta` (default) · **Code:** `components/home/terracotta/`
+**Flag value:** `terracotta` · **Code:** `components/home/terracotta/`
 
 An editorial portfolio in the style of a designer's showreel. It uses serif
 display type (Instrument Serif) with monospace labels (JetBrains Mono).
@@ -75,6 +76,44 @@ display type (Instrument Serif) with monospace labels (JetBrains Mono).
 <summary>Full page, desktop</summary>
 
 ![Terracotta, full page](terracotta/desktop-full.jpg)
+
+</details>
+
+## Prism
+
+**Flag value:** `prism` (default) · **Code:** `components/home/prism/` · **Preview:** `/?home=prism`
+
+One person, four sides. A full-screen landing reads "Know Tarun as", over a
+video of the avatar walking through one long loft: from his standing desk,
+past his camera on its tripod, past the bookshelf (he reaches for a book), to
+a café table with a coffee.
+
+- **The four stops** are Software Architect, Photographer, AI Researcher and Traveller,
+  in the order he walks past them. The one he is at lights up as he reaches
+  it, with a line showing progress through that stop. Tapping one jumps the
+  walk there; while paused it shows that stop's still.
+- **Where they lead:** Software Architect → the About / Experience / Projects /
+  Contact sections below (shared with terracotta); AI Researcher →
+  `/publications`. Photographer and Traveller say "coming soon" until those
+  pages exist. All of this, and the timings, live in `lib/prismStations.ts`
+  (tested in `__tests__/prismStations.test.ts`).
+- **Video:** `public/prism/walk-{landscape,portrait}.{webm,mp4}`: one 8s Flow
+  render, looped by dipping to dark at the join. Portrait screens get a
+  9:16 cut cropped around him, landscape the full frame; turning the phone
+  swaps the file and keeps the place in the walk. Each screen downloads only
+  its own poster and video (about 1.3 MB landscape, 0.8 MB portrait), and
+  nothing while prism is not the live design. Reduced motion gets the still,
+  and there is always a Pause button.
+- Uses the glass nav, tinted dark over the video.
+
+| Desktop | Mobile |
+|---------|--------|
+| ![Prism, desktop](prism/desktop.jpg) | ![Prism, mobile](prism/mobile.jpg) |
+
+<details>
+<summary>Full page, desktop</summary>
+
+![Prism, full page](prism/desktop-full.jpg)
 
 </details>
 

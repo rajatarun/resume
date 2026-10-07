@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { getAddress } from "ethers";
-import { SiweMessage } from "siwe";
 import { useAccount, useChainId, useSignMessage } from "wagmi";
 import { siweNonce, siweVerify } from "@/lib/siweClient";
 import { setSiweSession } from "@/lib/web3/siweClientSession";
@@ -31,6 +30,9 @@ export function SiweButton({ onSuccess }: SiweButtonProps) {
     try {
       const { sessionId, nonce } = await siweNonce();
 
+      // Loaded here, at sign-in, not with the page: `siwe` pulls in ethers
+      // (~190 KB gzipped), and this button sits in the nav on every page.
+      const { SiweMessage } = await import("siwe");
       const siweMessage = new SiweMessage({
         domain: window.location.host,
         address: checksumAddress,

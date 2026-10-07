@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import type { ComponentType } from 'react';
 import { HomeDesignSync } from '@/components/home/HomeDesignSync';
 import { MidnightHome } from '@/components/home/midnight/MidnightHome';
+import { PrismHome } from '@/components/home/prism/PrismHome';
 import { TerracottaHome } from '@/components/home/terracotta/TerracottaHome';
 import { HOME_VARIANTS, type HomeVariant } from '@/lib/featureFlags';
 import { routeMetadata } from '@/src/seo/seo.config';
@@ -14,6 +15,7 @@ export const metadata: Metadata = routeMetadata['/'];
 // design name, so adding a design without its component fails typecheck.
 const homes: Record<HomeVariant, ComponentType> = {
   midnight: MidnightHome,
+  prism: PrismHome,
   terracotta: TerracottaHome,
 };
 

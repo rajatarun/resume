@@ -48,7 +48,7 @@ function useNavTone(enabled: boolean): NavTone {
   return tone;
 }
 
-const glassLink = "focus-ring rounded-full px-3 py-1.5 text-sm font-medium transition hover:bg-[var(--nav-hover)]";
+const glassLink = "focus-ring whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition hover:bg-[var(--nav-hover)]";
 
 type InternalHref = Route;
 type ExternalHref = `http${"s" | ""}://${string}`;
@@ -99,6 +99,15 @@ type NavLinkProps = {
   currentPathname?: string;
 };
 
+/**
+ * Routes too heavy to prefetch from every page. Next prefetches any link in
+ * the viewport, and for /labs that means downloading and parsing its charting
+ * library (recharts, ~115 KB) on pages that never draw a chart; it showed up
+ * in Lighthouse as a 134 ms main-thread task on the homepage. They still load
+ * on click.
+ */
+export const NO_PREFETCH_ROUTES: ReadonlySet<string> = new Set(["/labs", "/admin"]);
+
 function NavLink({ item, className, onClick, currentPathname }: NavLinkProps) {
   const isCurrent = !item.external && currentPathname === item.href;
 
@@ -119,6 +128,7 @@ function NavLink({ item, className, onClick, currentPathname }: NavLinkProps) {
   return (
     <Link
       href={item.href}
+      prefetch={NO_PREFETCH_ROUTES.has(item.href) ? false : undefined}
       className={className}
       onClick={onClick}
       aria-current={isCurrent ? "page" : undefined}
@@ -248,7 +258,7 @@ function NavBar({ glass }: { glass: boolean }) {
         )}
         <div className={isHome ? "relative" : undefined}>
         <div className="flex items-center justify-between gap-3">
-          <Link href="/" className={`focus-ring text-lg font-semibold tracking-tight ${isHome ? "rounded-full px-2" : ""}`}>
+          <Link href="/" className={`focus-ring text-lg font-semibold tracking-tight ${isHome ? "whitespace-nowrap rounded-full px-2" : ""}`}>
             Tarun Raja
           </Link>
 
@@ -260,14 +270,14 @@ function NavBar({ glass }: { glass: boolean }) {
             onClick={() => setIsOpen((prev) => !prev)}
             className={
               isHome
-                ? "focus-ring rounded-full border border-[var(--nav-rim)] px-4 py-1.5 text-sm font-medium transition hover:bg-[var(--nav-hover)] md:hidden"
+                ? "focus-ring rounded-full border border-[var(--nav-rim)] px-4 py-1.5 text-sm font-medium transition hover:bg-[var(--nav-hover)] lg:hidden"
                 : "focus-ring rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 md:hidden dark:border-slate-700 dark:text-slate-200"
             }
           >
             Menu
           </button>
 
-          <nav aria-label="Primary navigation" className="hidden items-center gap-1 md:flex">
+          <nav aria-label="Primary navigation" className={`hidden items-center gap-1 ${isHome ? "lg:flex" : "md:flex"}`}>
             {primaryNavItems.map((item) => (
               <NavLink
                 key={`${item.label}-${item.href}`}
@@ -284,7 +294,8 @@ function NavBar({ glass }: { glass: boolean }) {
               <DesktopDropdown key={group.label} {...group} currentPathname={pathname} glass={isHome} />
             ))}
           </nav>
-          <div className="hidden md:block">
+          {/* The glass pill is narrower than the bar, so it switches to the menu below lg. */}
+          <div className={isHome ? "hidden lg:block" : "hidden md:block"}>
             <Web3NavControls glass={isHome} />
           </div>
         </div>
@@ -293,7 +304,7 @@ function NavBar({ glass }: { glass: boolean }) {
           <nav
             id="mobile-nav"
             aria-label="Mobile primary navigation"
-            className="mt-3 space-y-3 border-t border-slate-200 pt-3 md:hidden dark:border-slate-800"
+            className={`mt-3 space-y-3 border-t border-slate-200 pt-3 dark:border-slate-800 ${isHome ? "lg:hidden" : "md:hidden"}`}
           >
             <div className="grid gap-2">
               {primaryNavItems.map((item) => (

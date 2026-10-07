@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { ProfilePhoto } from "@/components/ProfilePhoto";
 import Link from "next/link";
 import { githubUrl, linkedInUrl } from "@/src/seo/seo.config";
 
@@ -148,6 +148,7 @@ export function MidnightHome() {
               </Link>
               <Link
                 href="/labs"
+                prefetch={false}
                 className="focus-ring inline-flex w-full items-center justify-center rounded-xl border border-white/30 bg-white/10 px-5 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/20 sm:w-auto"
               >
                 Explore AI Lab
@@ -155,12 +156,10 @@ export function MidnightHome() {
             </div>
           </div>
           <div className="mx-auto w-full max-w-sm">
-            <Image
-              src="/profile-photo.PNG"
+            <ProfilePhoto
               alt="Tarun Raja portrait"
-              width={520}
-              height={620}
-              priority
+              eager
+              sizes="(min-width: 640px) 384px, 90vw"
               className="h-auto w-full rounded-3xl border border-white/10 object-cover shadow-2xl"
             />
           </div>

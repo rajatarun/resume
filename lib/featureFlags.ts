@@ -30,6 +30,14 @@ export const HOME_DESIGNS = [
     thumbnail: '/home-designs/midnight.jpg',
     nav: 'standard',
   },
+  {
+    name: 'prism',
+    label: 'Prism',
+    summary:
+      '"Know Tarun as…": the avatar walks from desk to camera to books to café, lighting up Software Architect, Photographer, AI Researcher and Traveller.',
+    thumbnail: '/home-designs/prism.jpg',
+    nav: 'glass',
+  },
 ] as const;
 
 export type HomeVariant = (typeof HOME_DESIGNS)[number]['name'];
@@ -43,7 +51,7 @@ export function navStyleOf(name: HomeVariant): HomeNavStyle {
 export const HOME_VARIANTS: readonly HomeVariant[] = HOME_DESIGNS.map((design) => design.name);
 
 /** The default when nothing usable is configured, so a typo still ships a known design. */
-export const DEFAULT_HOME_VARIANT: HomeVariant = 'terracotta';
+export const DEFAULT_HOME_VARIANT: HomeVariant = 'prism';
 
 export function isHomeVariant(value: unknown): value is HomeVariant {
   return typeof value === 'string' && (HOME_VARIANTS as readonly string[]).includes(value);

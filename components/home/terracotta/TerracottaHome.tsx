@@ -1,13 +1,17 @@
-import Image from "next/image";
+import { ProfilePhoto } from "@/components/ProfilePhoto";
 import Link from "next/link";
-import { Instrument_Serif, JetBrains_Mono, Newsreader } from "next/font/google";
 import { resume } from "@/lib/resume";
 import { githubUrl, linkedInUrl } from "@/src/seo/seo.config";
 import { BarChart, HeroParallax, HeroVideo, Reveal } from "@/components/home/terracotta/Motion";
 
-const display = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--font-display" });
-const body = Newsreader({ subsets: ["latin"], variable: "--font-body" });
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
+import { editorialFontVariables } from "@/components/home/terracotta/fonts";
+
+/**
+ * Every homepage design is in the page at once (hidden by CSS), so the
+ * sections below take an id prefix: prism reuses them, and two `id="about"`s
+ * would send its "#about" links to terracotta's hidden copy.
+ */
+type SectionProps = { idPrefix?: string };
 
 const sections = [
   { id: "about", label: "About" },
@@ -96,28 +100,28 @@ function Hero() {
       <HeroParallax className="relative">
         <div className="mx-auto grid min-h-[100svh] max-w-7xl content-center gap-12 px-6 pb-36 pt-32 sm:px-10 sm:pb-28 lg:pt-28">
           <div className="relative z-10 xl:max-w-[34rem]">
-            <Reveal>
+            <Reveal onMount>
               <p className="font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.3em] text-[#f7c9b0]">
                 {"// Senior Lead Software Engineer"}
               </p>
             </Reveal>
-            <Reveal delay={0.08}>
+            <Reveal onMount delay={0.08}>
               <h1 className="mt-6 font-[family-name:var(--font-display)] text-[clamp(4.5rem,13vw,10rem)] leading-[0.85] tracking-tight">
                 Tarun
               </h1>
             </Reveal>
-            <Reveal delay={0.16}>
+            <Reveal onMount delay={0.16}>
               <p className="mt-6 max-w-xl font-[family-name:var(--font-display)] text-[clamp(1.9rem,4vw,3rem)] leading-[1.08]">
                 Building <em className="text-[#ffb08c]">resilient</em> platforms and the teams that ship them.
               </p>
             </Reveal>
-            <Reveal delay={0.24}>
+            <Reveal onMount delay={0.24}>
               <p className="mt-8 max-w-lg text-lg leading-relaxed text-[#fbe3d4]">
                 Engineering leader with 10+ years at JP Morgan Chase — from Spring services and React front ends to
                 Kubernetes, CI/CD and LLM-powered workflows for global payments.
               </p>
             </Reveal>
-            <Reveal delay={0.32}>
+            <Reveal onMount delay={0.32}>
               <div className="mt-10 flex flex-wrap gap-x-8 gap-y-3 font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.25em]">
                 <Link href="/about" className="focus-ring border-b border-[#fbf3ea]/50 pb-1 transition hover:border-[#fbf3ea]">
                   Chat about me →
@@ -125,33 +129,35 @@ function Hero() {
                 <Link href="/appointment" className="focus-ring border-b border-[#fbf3ea]/50 pb-1 transition hover:border-[#fbf3ea]">
                   Let&apos;s talk →
                 </Link>
-                <Link href="/labs" className="focus-ring border-b border-[#fbf3ea]/50 pb-1 transition hover:border-[#fbf3ea]">
+                <Link href="/labs" prefetch={false} className="focus-ring border-b border-[#fbf3ea]/50 pb-1 transition hover:border-[#fbf3ea]">
                   AI Lab →
                 </Link>
               </div>
             </Reveal>
           </div>
 
-          {/* Below 1280px: the photo, under the text. */}
-          <Reveal delay={0.2} className="mx-auto w-full max-w-sm xl:hidden">
+          {/* Portrait, below 1280px (phones held upright): the photo, under the text. */}
+          <Reveal onMount delay={0.2} className="mx-auto w-full max-w-sm landscape:hidden xl:hidden">
             <div className="relative aspect-[4/5] overflow-hidden rounded-b-2xl rounded-t-[999px] shadow-[0_30px_60px_-30px_rgba(40,10,0,0.8)]">
-              <Image
-                src="/profile-photo.PNG"
+              <ProfilePhoto
                 alt="Tarun Raja"
-                fill
-                priority
+                eager
                 sizes="(min-width: 640px) 384px, 90vw"
-                className="object-cover object-top"
+                className="absolute inset-0 h-full w-full object-cover object-top"
               />
             </div>
           </Reveal>
 
-          {/* From 1280px: the animated desk scene behind the hero's right
-              side, below the nav, its left and top edges masked into the
-              background so the headline stays clear. Narrower than that the
-              character would stand under the text, so the photo shows instead
-              and the video is never fetched. */}
-          <HeroVideo className="hero-video absolute bottom-0 right-0 top-20 w-[68%]" />
+          {/* The animated desk scene. From 1280px it sits behind the hero's
+              right side, below the nav, its left and top edges masked into
+              the background so the headline stays clear. Narrower but in
+              landscape (phones on their side) it is a card under the text.
+              Narrower and portrait, the photo above shows instead and the
+              video is never fetched. */}
+          <HeroVideo
+            className="hero-video absolute bottom-0 right-0 top-20 w-[68%]"
+            cardClassName="relative aspect-video w-full overflow-hidden rounded-2xl shadow-[0_30px_60px_-30px_rgba(40,10,0,0.8)]"
+          />
         </div>
 
         {/* Keeps the bottom row legible over the brightly lit floor. */}
@@ -179,15 +185,15 @@ function Hero() {
   );
 }
 
-function About() {
+export function About({ idPrefix = "" }: SectionProps) {
   const certifications = [...resume.certifications].reverse();
   return (
-    <section data-nav-tone="light" id="about" aria-labelledby="about-heading" className="scroll-mt-16 bg-[#f6f2ea] text-stone-900">
+    <section data-nav-tone="light" id={`${idPrefix}about`} aria-labelledby={`${idPrefix}about-heading`} className="scroll-mt-16 bg-[#f6f2ea] text-stone-900">
       <div className="mx-auto max-w-7xl px-6 py-24 sm:px-10 lg:py-32">
         <Reveal>
           <SectionLabel index="01" label="About" />
           <h2
-            id="about-heading"
+            id={`${idPrefix}about-heading`}
             className="mt-6 max-w-3xl font-[family-name:var(--font-display)] text-[clamp(2.2rem,5vw,3.75rem)] leading-[1.05]"
           >
             I care about the details — from clean <em className="text-[#b8441f]">Spring</em> services to the last green
@@ -197,8 +203,9 @@ function About() {
 
         <div className="mt-16 grid gap-12 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
           <Reveal>
-            <div className="relative aspect-[4/5] w-full max-w-sm overflow-hidden rounded-sm">
-              <Image src="/profile-photo.PNG" alt="" fill sizes="(min-width: 1024px) 30vw, 90vw" className="object-cover" />
+            {/* Portrait phones already show this photo in the hero, a screen above. */}
+            <div className="relative aspect-[4/5] w-full max-w-sm overflow-hidden rounded-sm max-xl:portrait:hidden">
+              <ProfilePhoto alt="" sizes="(min-width: 1024px) 30vw, 90vw" className="absolute inset-0 h-full w-full object-cover" />
             </div>
           </Reveal>
 
@@ -278,14 +285,14 @@ function titleCase(value: string): string {
   return value.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function Experience() {
+export function Experience({ idPrefix = "" }: SectionProps) {
   return (
-    <section data-nav-tone="light" id="experience" aria-labelledby="experience-heading" className="scroll-mt-16 bg-[#efe9d9] text-stone-900">
+    <section data-nav-tone="light" id={`${idPrefix}experience`} aria-labelledby={`${idPrefix}experience-heading`} className="scroll-mt-16 bg-[#efe9d9] text-stone-900">
       <div className="mx-auto max-w-7xl px-6 py-24 sm:px-10 lg:py-32">
         <Reveal>
           <SectionLabel index="02" label="Experience" />
           <h2
-            id="experience-heading"
+            id={`${idPrefix}experience-heading`}
             className="mt-6 font-[family-name:var(--font-display)] text-[clamp(2.4rem,6vw,4.5rem)] leading-none"
           >
             Where I&apos;ve worked
@@ -380,16 +387,16 @@ function ProjectCard({ project, index }: { project: Project; index: number }) {
   );
 }
 
-function Projects() {
+export function Projects({ idPrefix = "" }: SectionProps) {
   return (
-    <section data-nav-tone="dark" id="projects" aria-labelledby="projects-heading" className="scroll-mt-16 bg-[#14110f] text-stone-100">
+    <section data-nav-tone="dark" id={`${idPrefix}projects`} aria-labelledby={`${idPrefix}projects-heading`} className="scroll-mt-16 bg-[#14110f] text-stone-100">
       <div className="mx-auto max-w-7xl px-6 py-24 sm:px-10 lg:py-32">
         <Reveal>
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div>
               <SectionLabel index="03" label="Selected projects" tone="light" />
               <h2
-                id="projects-heading"
+                id={`${idPrefix}projects-heading`}
                 className="mt-6 font-[family-name:var(--font-display)] text-[clamp(2.4rem,6vw,4.5rem)] leading-none"
               >
                 Things I&apos;ve built
@@ -416,16 +423,16 @@ function Projects() {
   );
 }
 
-function Contact() {
+export function Contact({ idPrefix = "" }: SectionProps) {
   const linkClass =
     "focus-ring border-b border-[#fbf3ea]/40 pb-1 transition hover:border-[#fbf3ea]";
   return (
-    <section data-nav-tone="accent" id="contact" aria-labelledby="contact-heading" className="scroll-mt-16 bg-[#a8492a] text-[#fbf3ea]">
+    <section data-nav-tone="accent" id={`${idPrefix}contact`} aria-labelledby={`${idPrefix}contact-heading`} className="scroll-mt-16 bg-[#a8492a] text-[#fbf3ea]">
       <div className="mx-auto max-w-7xl px-6 py-24 sm:px-10 lg:py-32">
         <Reveal>
           <SectionLabel index="04" label="Contact" tone="light" />
           <h2
-            id="contact-heading"
+            id={`${idPrefix}contact-heading`}
             className="mt-6 max-w-4xl font-[family-name:var(--font-display)] text-[clamp(2.6rem,7vw,5.5rem)] leading-[0.95]"
           >
             Let&apos;s talk shop on <em className="text-[#ffc3a6]">systems</em>, AI and engineering craft.
@@ -467,7 +474,7 @@ export function TerracottaHome() {
     // the column, and negative margins to cancel main's top and bottom padding
     // (pt-24 sits under the fixed nav, which the hero now does on purpose).
     <div
-      className={`${display.variable} ${body.variable} ${mono.variable} relative left-1/2 -mb-16 -mt-24 w-screen -translate-x-1/2 font-[family-name:var(--font-body)]`}
+      className={`${editorialFontVariables} relative left-1/2 -mb-16 -mt-24 w-screen -translate-x-1/2 font-[family-name:var(--font-body)]`}
     >
       <Hero />
       <About />

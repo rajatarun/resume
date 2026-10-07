@@ -7,13 +7,13 @@ export function SiteFooter() {
       <div className="mx-auto flex w-full max-w-6xl flex-col justify-between gap-3 px-4 text-sm text-slate-500 sm:px-6 md:flex-row lg:px-8">
         <p>© {new Date().getFullYear()} Tarun Raja. Building practical cloud &amp; GenAI systems.</p>
         <div className="flex flex-wrap items-center gap-4">
-          <a href={githubUrl} className="focus-ring text-sky-600 hover:text-sky-700 dark:text-sky-400" target="_blank" rel="noopener noreferrer">
+          <a href={githubUrl} className="focus-ring text-sky-700 hover:text-sky-800 dark:text-sky-400" target="_blank" rel="noopener noreferrer">
             GitHub – Tarun Raja
           </a>
-          <a href={linkedInUrl} className="focus-ring text-sky-600 hover:text-sky-700 dark:text-sky-400" target="_blank" rel="noopener noreferrer">
+          <a href={linkedInUrl} className="focus-ring text-sky-700 hover:text-sky-800 dark:text-sky-400" target="_blank" rel="noopener noreferrer">
             LinkedIn – Tarun Raja
           </a>
-          <Link href="/appointment" className="focus-ring text-sky-600 hover:text-sky-700 dark:text-sky-400">
+          <Link href="/appointment" className="focus-ring text-sky-700 hover:text-sky-800 dark:text-sky-400">
             Let&apos;s talk
           </Link>
         </div>
