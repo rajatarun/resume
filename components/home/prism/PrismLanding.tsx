@@ -184,7 +184,7 @@ export function PrismLanding() {
                       0{index + 1}
                     </span>
                     <span
-                      className={`font-[family-name:var(--font-display)] leading-[1.02] transition-all duration-500 text-[clamp(2.1rem,7.2vh,4.75rem)] ${
+                      className={`font-[family-name:var(--font-display)] leading-[1.02] transition-all duration-500 whitespace-nowrap text-[clamp(1.75rem,min(7.2vh,9vw),4.75rem)] ${
                         isActive ? "text-[#fbf3ea] italic" : "text-[#fbf3ea]/50 group-hover:text-[#fbf3ea]/80"
                       }`}
                     >

@@ -6,7 +6,7 @@ import { About, Contact, Experience, Projects } from "@/components/home/terracot
  * "prism": one person, four sides. A full-screen "Know Tarun as…" landing
  * where the avatar walks from desk to camera to books to café (PrismLanding),
  * then terracotta's About / Experience / Projects / Contact, which is where
- * "Architect" leads. Ids are prefixed so they never collide with terracotta's
+ * "Software Architect" leads. Ids are prefixed so they never collide with terracotta's
  * hidden copies on the same page.
  * Screenshots: docs/home-designs/README.md#prism
  */

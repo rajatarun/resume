@@ -64,7 +64,7 @@ Prod     → AWS RDS PostgreSQL 16 (db.t4g.micro in private VPC)
 | `components/admin/HomeDesignSettings.tsx` | Admin → Content → Settings picker; saves via `PATCH /admin/settings` |
 | `components/home/terracotta/` | **`terracotta`** (default) — editorial redesign: desk-scene video hero, numbered sections; `TopNav` becomes a liquid-glass pill for it |
 | `components/home/midnight/` | **`midnight`** — the original homepage: dark navy gradient hero card |
-| `components/home/prism/`, `lib/prismStations.ts` | **`prism`** — "Know Tarun as…": avatar walk video (desk → camera → books → café) lighting up Architect / Photographer / Researcher / Traveller; stop timings and links in `prismStations.ts` |
+| `components/home/prism/`, `lib/prismStations.ts` | **`prism`** — "Know Tarun as…": avatar walk video (desk → camera → books → café) lighting up Software Architect / Photographer / Researcher / Traveller; stop timings and links in `prismStations.ts` |
 | `docs/home-designs/README.md` | Every homepage design with its flag value and desktop/mobile screenshots, and how to switch or add one |
 | `app/chat/page.tsx` | AI chat UI — streams from `NEXT_PUBLIC_CHAT_API` |
 | `app/labs/page.tsx` | AI Labs / Agent Studio UI |

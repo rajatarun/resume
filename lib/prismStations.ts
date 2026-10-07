@@ -27,7 +27,7 @@ export interface PrismStation {
 export const PRISM_STATIONS: readonly PrismStation[] = [
   {
     key: 'architect',
-    label: 'Architect',
+    label: 'Software Architect',
     scene: 'At his standing desk, coding on two monitors',
     blurb: 'A decade designing payment platforms at JP Morgan Chase: cloud-native, fault-tolerant, shipped by teams he leads.',
     href: '#prism-about',

@@ -1,5 +1,5 @@
 /**
- * The prism landing lights up "Architect", "Photographer", "Researcher" or
+ * The prism landing lights up "Software Architect", "Photographer", "Researcher" or
  * "Traveller" in step with the walk video, and jumps the video when one is
  * picked. These hold the timings to the shape that needs: four stops, in
  * walk order, covering the whole loop with no gap or overlap, each jump
@@ -9,7 +9,7 @@ import { PRISM_LOOP_SECONDS, PRISM_STATIONS, stationIndexAt, stationProgressAt }
 
 describe('prism stations', () => {
   it('are the four sides of Tarun, in the order he walks past them', () => {
-    expect(PRISM_STATIONS.map((s) => s.label)).toEqual(['Architect', 'Photographer', 'Researcher', 'Traveller']);
+    expect(PRISM_STATIONS.map((s) => s.label)).toEqual(['Software Architect', 'Photographer', 'Researcher', 'Traveller']);
   });
 
   it('tile the loop exactly: no gaps, no overlaps', () => {
