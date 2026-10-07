@@ -6,6 +6,49 @@ import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useAccount } from "wagmi";
 import { Web3NavControls } from "@/components/web3/Web3NavControls";
+import { homeVariant } from "@/lib/featureFlags";
+
+type NavTone = "hero" | "light" | "dark" | "accent";
+
+/**
+ * On the terracotta homepage the nav is a floating glass pill whose tint follows the
+ * section beneath it. Sections declare their tone with data-nav-tone; this
+ * reads which one sits under the pill's centre line on every scroll frame.
+ * It starts at "hero" so the first paint matches the hero without a flash.
+ */
+function useNavTone(enabled: boolean): NavTone {
+  const [tone, setTone] = useState<NavTone>("hero");
+
+  useEffect(() => {
+    if (!enabled) return;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const probe = 40; // the pill's vertical centre: 12px offset + half its height
+      let next: NavTone = "light";
+      document.querySelectorAll<HTMLElement>("[data-nav-tone]").forEach((section) => {
+        const rect = section.getBoundingClientRect();
+        if (rect.top <= probe && rect.bottom > probe) next = section.dataset.navTone as NavTone;
+      });
+      setTone(next);
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, [enabled]);
+
+  return tone;
+}
+
+const glassLink = "focus-ring rounded-full px-3 py-1.5 text-sm font-medium transition hover:bg-[var(--nav-hover)]";
 
 type InternalHref = Route;
 type ExternalHref = `http${"s" | ""}://${string}`;
@@ -85,7 +128,7 @@ function NavLink({ item, className, onClick, currentPathname }: NavLinkProps) {
   );
 }
 
-function DesktopDropdown({ label, items, currentPathname }: NavGroup & { currentPathname: string }) {
+function DesktopDropdown({ label, items, currentPathname, glass }: NavGroup & { currentPathname: string; glass: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -114,7 +157,11 @@ function DesktopDropdown({ label, items, currentPathname }: NavGroup & { current
         aria-expanded={isOpen}
         aria-haspopup="true"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="focus-ring flex cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white"
+        className={
+          glass
+            ? `${glassLink} flex cursor-pointer items-center gap-1`
+            : "focus-ring flex cursor-pointer items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white"
+        }
       >
         {label}
         <span aria-hidden="true" className="text-xs">
@@ -122,13 +169,23 @@ function DesktopDropdown({ label, items, currentPathname }: NavGroup & { current
         </span>
       </button>
       {isOpen && (
-        <div className="absolute left-0 top-full z-50 mt-2 min-w-44 rounded-xl border border-slate-200 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+        <div
+          className={
+            glass
+              ? "liquid-glass liquid-menu absolute left-0 top-full z-50 mt-3 min-w-44 rounded-2xl p-2"
+              : "absolute left-0 top-full z-50 mt-2 min-w-44 rounded-xl border border-slate-200 bg-white p-2 shadow-lg dark:border-slate-700 dark:bg-slate-900"
+          }
+        >
           {items.map((item) => (
             <NavLink
               key={`${item.label}-${item.href}`}
               item={item}
               currentPathname={currentPathname}
-              className="focus-ring block rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+              className={
+                glass
+                  ? "focus-ring relative block rounded-xl px-3 py-2 text-sm transition hover:bg-[var(--nav-hover)]"
+                  : "focus-ring block rounded-lg px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+              }
               onClick={() => setIsOpen(false)}
             />
           ))}
@@ -142,16 +199,37 @@ export function TopNav() {
   const [isOpen, setIsOpen] = useState(false);
   const { isConnected } = useAccount();
   const pathname = usePathname();
+  // The glass pill belongs to the terracotta homepage; other designs and
+  // every other page keep the standard bar.
+  const isHome = pathname === "/" && homeVariant === "terracotta";
+  const tone = useNavTone(isHome);
 
   const primaryNavItems = isConnected
     ? [...primaryLinks, { href: "/admin" as Route, label: "Admin" }]
     : primaryLinks;
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/85">
-      <div className="mx-auto w-full max-w-6xl px-4 py-3 sm:px-6 lg:px-8">
+    <header
+      data-tone={isHome ? (isOpen ? "light" : tone) : undefined}
+      className={
+        isHome
+          ? "liquid-nav fixed inset-x-0 top-3 z-40 px-3 sm:px-6"
+          : "fixed left-0 right-0 top-0 z-40 border-b border-slate-200 bg-white/90 backdrop-blur dark:border-slate-800 dark:bg-slate-950/85"
+      }
+    >
+      <div
+        className={
+          isHome
+            ? `relative mx-auto w-full max-w-6xl px-4 py-2 sm:px-5 ${isOpen ? "rounded-[28px]" : "rounded-full"}`
+            : "mx-auto w-full max-w-6xl px-4 py-3 sm:px-6 lg:px-8"
+        }
+      >
+        {isHome && (
+          <div aria-hidden="true" className={`liquid-glass absolute inset-0 rounded-[inherit] ${isOpen ? "liquid-menu" : ""}`} />
+        )}
+        <div className={isHome ? "relative" : undefined}>
         <div className="flex items-center justify-between gap-3">
-          <Link href="/" className="focus-ring text-lg font-semibold tracking-tight">
+          <Link href="/" className={`focus-ring text-lg font-semibold tracking-tight ${isHome ? "rounded-full px-2" : ""}`}>
             Tarun Raja
           </Link>
 
@@ -161,7 +239,11 @@ export function TopNav() {
             aria-expanded={isOpen}
             aria-controls="mobile-nav"
             onClick={() => setIsOpen((prev) => !prev)}
-            className="focus-ring rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 md:hidden dark:border-slate-700 dark:text-slate-200"
+            className={
+              isHome
+                ? "focus-ring rounded-full border border-[var(--nav-rim)] px-4 py-1.5 text-sm font-medium transition hover:bg-[var(--nav-hover)] md:hidden"
+                : "focus-ring rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 md:hidden dark:border-slate-700 dark:text-slate-200"
+            }
           >
             Menu
           </button>
@@ -172,15 +254,19 @@ export function TopNav() {
                 key={`${item.label}-${item.href}`}
                 item={item}
                 currentPathname={pathname}
-                className="focus-ring rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white"
+                className={
+                  isHome
+                    ? glassLink
+                    : "focus-ring rounded-lg px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-white"
+                }
               />
             ))}
             {dropdownGroups.map((group) => (
-              <DesktopDropdown key={group.label} {...group} currentPathname={pathname} />
+              <DesktopDropdown key={group.label} {...group} currentPathname={pathname} glass={isHome} />
             ))}
           </nav>
           <div className="hidden md:block">
-            <Web3NavControls />
+            <Web3NavControls glass={isHome} />
           </div>
         </div>
 
@@ -218,10 +304,11 @@ export function TopNav() {
               </div>
             ))}
             <div className="pt-1">
-              <Web3NavControls />
+              <Web3NavControls glass={isHome} />
             </div>
           </nav>
         )}
+        </div>
       </div>
     </header>
   );

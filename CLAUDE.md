@@ -57,6 +57,11 @@ Prod     → AWS RDS PostgreSQL 16 (db.t4g.micro in private VPC)
 | Path | Role |
 |------|------|
 | `app/` | Next.js App Router pages and layouts |
+| `app/page.tsx` | Homepage — renders the design picked by the `NEXT_PUBLIC_HOME_VARIANT` flag |
+| `lib/featureFlags.ts` | Build-time flags; `HOME_VARIANTS` lists the swappable homepage designs by name |
+| `components/home/terracotta/` | **`terracotta`** (default) — editorial redesign: desk-scene video hero, numbered sections; `TopNav` becomes a liquid-glass pill for it |
+| `components/home/midnight/` | **`midnight`** — the original homepage: dark navy gradient hero card |
+| `docs/home-designs/README.md` | Every homepage design with its flag value and desktop/mobile screenshots |
 | `app/chat/page.tsx` | AI chat UI — streams from `NEXT_PUBLIC_CHAT_API` |
 | `app/labs/page.tsx` | AI Labs / Agent Studio UI |
 | `app/admin/` | Admin dashboard — wallet-gated, calls `NEXT_PUBLIC_ADMIN_API_BASE` |
@@ -132,6 +137,11 @@ Copy `.env.example` → `.env.local` before running locally.
 | `GITHUB_TOKEN` | Fine-grained PAT with read-only repo metadata access |
 | `GITHUB_USER` | GitHub username for project sync |
 
+### Feature flags (build time)
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_HOME_VARIANT` | Homepage design: `terracotta` (default) or `midnight` — see `docs/home-designs/README.md`. Unset or unknown values fall back to `terracotta`. Change it in Amplify and redeploy to swap |
+
 ### AWS
 | Variable | Description |
 |----------|-------------|
@@ -178,4 +188,12 @@ Copy `.env.example` → `.env.local` before running locally.
     which handle **both** shapes and are tested against both; a fifth
     hand-rolled `?? data.teams` is how this recurs.
 
-12. **Terraform RDS is publicly accessible**: `publicly_accessible = true` in `infra/terraform/main.tf` — intended for development convenience. Lock this down before production use.
+12. **The homepage flag is read at build time, not per request.** The site is
+    a static export, so `NEXT_PUBLIC_HOME_VARIANT` is baked into `out/` when
+    `next build` runs; flipping it in Amplify does nothing until a redeploy.
+    To add a design, add its name to `HOME_VARIANTS` in `lib/featureFlags.ts`
+    its component to the `homes` record in `app/page.tsx` (the record is typed
+    over every variant, so forgetting that fails typecheck), and an entry with
+    screenshots to `docs/home-designs/README.md`.
+
+13. **Terraform RDS is publicly accessible**: `publicly_accessible = true` in `infra/terraform/main.tf` — intended for development convenience. Lock this down before production use.
