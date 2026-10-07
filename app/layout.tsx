@@ -6,6 +6,7 @@ import { Web3Provider } from "@/components/web3/Web3Provider";
 import { SkipLink } from "@/components/SkipLink";
 import { StructuredData } from "@/src/components/StructuredData";
 import { baseUrl, githubUrl, linkedInUrl, routeMetadata } from "@/src/seo/seo.config";
+import { homeDesignBootScript, homeDesignCss } from "@/lib/homeDesignBoot";
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
@@ -34,6 +35,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      {/* Picks the homepage design, and the nav that goes with it, before
+          anything paints (lib/homeDesignBoot.ts). It sets data-home on <html>,
+          which is why <html> suppresses hydration warnings. Matches nothing
+          on other pages. */}
+      <head>
+        <style dangerouslySetInnerHTML={{ __html: homeDesignCss() }} />
+        <script dangerouslySetInnerHTML={{ __html: homeDesignBootScript() }} />
+      </head>
       {/* flex column + a growing <main> so the footer sits at the bottom of
           the viewport on short pages. min-h-screen alone only made the body
           tall; nothing pushed the footer down, so /admin and /contact ended

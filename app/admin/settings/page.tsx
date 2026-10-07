@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/components/admin/ToastProvider";
+import { HomeDesignSettings } from "@/components/admin/HomeDesignSettings";
 
 type Settings = { defaultHashtags: string; voiceRules: string };
 const KEY = "admin-settings";
@@ -23,20 +24,24 @@ export default function SettingsPage() {
   }, [reset]);
 
   return (
-    <form
-      className="space-y-3"
-      onSubmit={handleSubmit((values) => {
-        localStorage.setItem(KEY, JSON.stringify(values));
-        toast.success("Settings saved locally.");
-      })}
-    >
-      <input className="w-full rounded border p-2" placeholder="Default hashtags (comma separated)" {...register("defaultHashtags")} />
-      <textarea className="min-h-32 w-full rounded border p-2" placeholder="Voice rules" {...register("voiceRules")} />
-      <div className="rounded border bg-slate-50 p-3 text-sm dark:bg-slate-900">
-        <p className="font-medium">Schedule placeholders</p>
-        <p className="text-slate-500">Next send window: every Tuesday 9:00 AM ET (placeholder)</p>
-      </div>
-      <button className="rounded bg-slate-900 px-3 py-2 text-white" type="submit">Save</button>
-    </form>
+    <div className="space-y-6">
+      <HomeDesignSettings />
+      <form
+        className="space-y-3"
+        aria-label="Content defaults (saved in this browser only)"
+        onSubmit={handleSubmit((values) => {
+          localStorage.setItem(KEY, JSON.stringify(values));
+          toast.success("Settings saved locally.");
+        })}
+      >
+        <input className="w-full rounded border p-2" placeholder="Default hashtags (comma separated)" {...register("defaultHashtags")} />
+        <textarea className="min-h-32 w-full rounded border p-2" placeholder="Voice rules" {...register("voiceRules")} />
+        <div className="rounded border bg-slate-50 p-3 text-sm dark:bg-slate-900">
+          <p className="font-medium">Schedule placeholders</p>
+          <p className="text-slate-500">Next send window: every Tuesday 9:00 AM ET (placeholder)</p>
+        </div>
+        <button className="rounded bg-slate-900 px-3 py-2 text-white" type="submit">Save</button>
+      </form>
+    </div>
   );
 }

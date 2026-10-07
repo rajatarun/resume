@@ -57,11 +57,14 @@ Prod     → AWS RDS PostgreSQL 16 (db.t4g.micro in private VPC)
 | Path | Role |
 |------|------|
 | `app/` | Next.js App Router pages and layouts |
-| `app/page.tsx` | Homepage — renders the design picked by the `NEXT_PUBLIC_HOME_VARIANT` flag |
-| `lib/featureFlags.ts` | Build-time flags; `HOME_VARIANTS` lists the swappable homepage designs by name |
+| `app/page.tsx` | Homepage — renders every design; the live one is chosen in admin at runtime |
+| `lib/featureFlags.ts` | `HOME_DESIGNS`: the swappable homepage designs (name, label, thumbnail, nav style) |
+| `lib/homeDesignBoot.ts` | Inline `<head>` script + CSS that pick the design and its nav before first paint |
+| `lib/homeDesign.ts`, `components/home/HomeDesignSync.tsx` | Runtime: read `GET /site/settings`, apply it, remember it per browser |
+| `components/admin/HomeDesignSettings.tsx` | Admin → Content → Settings picker; saves via `PATCH /admin/settings` |
 | `components/home/terracotta/` | **`terracotta`** (default) — editorial redesign: desk-scene video hero, numbered sections; `TopNav` becomes a liquid-glass pill for it |
 | `components/home/midnight/` | **`midnight`** — the original homepage: dark navy gradient hero card |
-| `docs/home-designs/README.md` | Every homepage design with its flag value and desktop/mobile screenshots |
+| `docs/home-designs/README.md` | Every homepage design with its flag value and desktop/mobile screenshots, and how to switch or add one |
 | `app/chat/page.tsx` | AI chat UI — streams from `NEXT_PUBLIC_CHAT_API` |
 | `app/labs/page.tsx` | AI Labs / Agent Studio UI |
 | `app/admin/` | Admin dashboard — wallet-gated, calls `NEXT_PUBLIC_ADMIN_API_BASE` |
@@ -137,10 +140,10 @@ Copy `.env.example` → `.env.local` before running locally.
 | `GITHUB_TOKEN` | Fine-grained PAT with read-only repo metadata access |
 | `GITHUB_USER` | GitHub username for project sync |
 
-### Feature flags (build time)
+### Feature flags
 | Variable | Description |
 |----------|-------------|
-| `NEXT_PUBLIC_HOME_VARIANT` | Homepage design: `terracotta` (default) or `midnight` — see `docs/home-designs/README.md`. Unset or unknown values fall back to `terracotta`. Change it in Amplify and redeploy to swap |
+| `NEXT_PUBLIC_HOME_VARIANT` | Fallback homepage design, used only when none is saved in admin or the content API is unreachable. `terracotta` (default) or `midnight`; see `docs/home-designs/README.md` |
 
 ### AWS
 | Variable | Description |
@@ -188,12 +191,15 @@ Copy `.env.example` → `.env.local` before running locally.
     which handle **both** shapes and are tested against both; a fifth
     hand-rolled `?? data.teams` is how this recurs.
 
-12. **The homepage flag is read at build time, not per request.** The site is
-    a static export, so `NEXT_PUBLIC_HOME_VARIANT` is baked into `out/` when
-    `next build` runs; flipping it in Amplify does nothing until a redeploy.
-    To add a design, add its name to `HOME_VARIANTS` in `lib/featureFlags.ts`
-    its component to the `homes` record in `app/page.tsx` (the record is typed
-    over every variant, so forgetting that fails typecheck), and an entry with
-    screenshots to `docs/home-designs/README.md`.
+12. **The homepage design is a runtime setting, not a build flag.** Admin
+    saves it with `PATCH /admin/settings` on the content API
+    (rajatarun/ai-content-orchestrator, `NEXT_PUBLIC_ADMIN_API_BASE`); the
+    homepage reads `GET /site/settings` (`NEXT_PUBLIC_API_BASE_URL`) on every
+    load. Every design is in the HTML, so anything one design does on mount
+    runs for all of them: gate design-only side effects on
+    `useActiveHomeDesign()` (and heavy ones on `useHomeDesignSettled()`), as
+    `HeroVideo` does. `TopNav` renders both nav styles on `/` and the `<head>`
+    CSS shows the one the live design declares. `NEXT_PUBLIC_HOME_VARIANT` is
+    only the fallback. Adding a design is in `docs/home-designs/README.md`.
 
 13. **Terraform RDS is publicly accessible**: `publicly_accessible = true` in `infra/terraform/main.tf` — intended for development convenience. Lock this down before production use.

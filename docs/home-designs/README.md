@@ -1,7 +1,7 @@
 # Homepage designs
 
-The homepage at `/` can be any of the designs below. Which one is live is a
-single setting, `NEXT_PUBLIC_HOME_VARIANT`, set to the design's **flag value**.
+The homepage at `/` can be any of the designs below. Which one is live is
+chosen in the admin UI and takes effect on the next page load, with no redeploy.
 
 | Design | Flag value | In one line |
 |--------|------------|-------------|
@@ -10,23 +10,40 @@ single setting, `NEXT_PUBLIC_HOME_VARIANT`, set to the design's **flag value**.
 
 ## How to switch
 
-1. In Amplify: **App settings → Environment variables**, set
-   `NEXT_PUBLIC_HOME_VARIANT` to a flag value from the table.
-2. Redeploy. The site is a static export, so the value is read when it builds.
+**Admin → Content → Settings → Homepage design.** Pick a design and press
+**Make … live**. It saves through the content API (`PATCH /admin/settings` in
+rajatarun/ai-content-orchestrator, behind the API key and wallet sign-in), and
+the homepage reads it from `GET /site/settings` on every load.
 
-Unset, misspelled or unknown values fall back to `terracotta`
-(`lib/featureFlags.ts`, covered by `__tests__/featureFlags.test.ts`).
+**Preview without saving:** `/?home=<flag value>` (for example `/?home=midnight`)
+shows that design in that tab only. Each card in the admin picker links to it.
 
-Locally: `NEXT_PUBLIC_HOME_VARIANT=midnight npm run dev`.
+**Fallback:** `NEXT_PUBLIC_HOME_VARIANT` (a build-time env var, default
+`terracotta`) is used only when nothing has been saved or the content API
+can't be reached. Unknown names fall back to `terracotta`.
+
+How it avoids a flash: every design is in the homepage HTML. A script in the
+page `<head>` (`lib/homeDesignBoot.ts`) picks the design this browser last
+saw before anything paints, and CSS shows only that design and its nav.
+`components/home/HomeDesignSync.tsx` then applies the saved setting. Only a
+visitor's first load after a change shows the old design briefly. The hero
+video waits for the saved setting, so a design about to be swapped out never
+starts downloading it.
 
 ## Adding a design
 
 1. Build it as a component under `components/home/<name>/`.
-2. Add `<name>` to `HOME_VARIANTS` in `lib/featureFlags.ts`.
+2. Add it to `HOME_DESIGNS` in `lib/featureFlags.ts`: name, label, summary,
+   thumbnail and which nav it uses (`standard` or `glass`). The admin picker
+   lists whatever is there.
 3. Add it to the `homes` record in `app/page.tsx`. That record is typed over
-   every variant, so skipping this step fails `npm run typecheck`.
-4. Add a section here with screenshots (desktop 1440×900, full page, and
-   mobile 390×844), taken from a production build with the flag set.
+   every design, so skipping this step fails `npm run typecheck`.
+4. Add a 640×400 thumbnail at `public/home-designs/<name>.jpg` and a section
+   here with screenshots (desktop 1440×900, full page, and mobile 390×844),
+   taken with `/?home=<name>`.
+
+The content API only checks a name's shape, so a new design needs no backend
+change.
 
 ---
 

@@ -6,7 +6,7 @@ import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useAccount } from "wagmi";
 import { Web3NavControls } from "@/components/web3/Web3NavControls";
-import { homeVariant } from "@/lib/featureFlags";
+import { HOME_NAV_STYLES } from "@/lib/featureFlags";
 
 type NavTone = "hero" | "light" | "dark" | "accent";
 
@@ -195,13 +195,32 @@ function DesktopDropdown({ label, items, currentPathname, glass }: NavGroup & { 
   );
 }
 
+/**
+ * On the homepage both bars are rendered and the CSS inlined in <head>
+ * (lib/homeDesignBoot.ts) shows the one the live design declares. That is
+ * decided before first paint, so a design never shows with the other
+ * design's nav while the page's scripts load. Elsewhere: the standard bar.
+ */
 export function TopNav() {
+  const pathname = usePathname();
+  if (pathname !== "/") return <NavBar glass={false} />;
+  return (
+    <>
+      {HOME_NAV_STYLES.map((style) => (
+        <div key={style} data-home-nav={style}>
+          <NavBar glass={style === "glass"} />
+        </div>
+      ))}
+    </>
+  );
+}
+
+function NavBar({ glass }: { glass: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
   const { isConnected } = useAccount();
   const pathname = usePathname();
-  // The glass pill belongs to the terracotta homepage; other designs and
-  // every other page keep the standard bar.
-  const isHome = pathname === "/" && homeVariant === "terracotta";
+  // The floating glass pill, for homepage designs that declare it.
+  const isHome = glass;
   const tone = useNavTone(isHome);
 
   const primaryNavItems = isConnected

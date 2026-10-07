@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { useActiveHomeDesign, useHomeDesignSettled } from "@/lib/homeDesign";
 
 /** Fades and lifts its children in once they scroll into view. */
 export function Reveal({ children, delay = 0, className }: { children: ReactNode; delay?: number; className?: string }) {
@@ -74,9 +75,9 @@ function useMediaQuery(query: string): boolean {
 }
 
 /**
- * The looping desk scene behind the hero, on wide screens only. Narrower
- * screens show the photo instead, and since this renders nothing there, they
- * never download the video. It never autoplays for visitors who ask for
+ * The looping desk scene behind the hero, on wide screens only, and only
+ * while terracotta is the design showing. Narrower screens show the photo
+ * instead, and since this renders nothing there, they never download the video. It never autoplays for visitors who ask for
  * reduced motion (they get the poster), and it can always be paused: WCAG
  * 2.2.2 requires that for anything moving for more than five seconds.
  * Playback starts from an effect rather than the autoPlay attribute so the
@@ -86,6 +87,11 @@ export function HeroVideo({ className }: { className?: string }) {
   const ref = useRef<HTMLVideoElement>(null);
   const reduce = useReducedMotion();
   const wide = useMediaQuery("(min-width: 1280px)");
+  // Every design is in the page; a hidden terracotta must not fetch the video,
+  // and neither should one that is about to be swapped for the saved design.
+  const active = useActiveHomeDesign();
+  const settled = useHomeDesignSettled();
+  const shown = active === "terracotta" && settled;
   const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
@@ -95,7 +101,7 @@ export function HeroVideo({ className }: { className?: string }) {
       () => setPlaying(true),
       () => setPlaying(false)
     );
-  }, [reduce, wide]);
+  }, [reduce, wide, shown]);
 
   function toggle() {
     const video = ref.current;
@@ -108,7 +114,7 @@ export function HeroVideo({ className }: { className?: string }) {
     }
   }
 
-  if (!wide) return null;
+  if (!wide || !shown) return null;
 
   return (
     <div className={className}>
