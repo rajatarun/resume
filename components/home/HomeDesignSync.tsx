@@ -19,11 +19,10 @@ import {
 /**
  * Brings the homepage in line with the design saved in admin. Renders nothing.
  *
- * A preview (?home=<name>) is left alone. When it is done (fetched, failed or
- * a preview) it marks the page settled, which is what the hero video waits for. Otherwise the saved setting wins; an
- * unset or unknown one means the build fallback. If the API cannot be reached
- * the page keeps whatever it is showing — the last design this browser saw,
- * or the fallback — rather than switching to something nobody chose.
+ * A preview (?home=<name>) is left alone. Otherwise the saved setting wins;
+ * an unset or unknown one means the build fallback, and so does an API that
+ * cannot be reached. When it is done (fetched, failed or a preview) it marks
+ * the page settled, which is what the hero videos wait for.
  */
 export function HomeDesignSync() {
   useEffect(() => {
@@ -55,7 +54,11 @@ export function HomeDesignSync() {
         applyHomeDesign(resolveHomeVariant(settings.homeVariant, fallbackHomeVariant)),
       )
       .catch(() => {
-        // Unreachable or not configured: keep showing what is already on screen.
+        // Unreachable or not configured: the build's fallback, not whatever this
+        // browser remembered. The memory only exists to paint the first frame;
+        // keeping it here meant a returning visitor never saw a new default,
+        // e.g. stayed on terracotta after prism became the default.
+        applyHomeDesign(fallbackHomeVariant);
       })
       .finally(() => {
         if (!controller.signal.aborted) root.setAttribute(HOME_SETTLED_ATTR, '');
