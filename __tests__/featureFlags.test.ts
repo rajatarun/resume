@@ -18,11 +18,11 @@ import {
 import { homeDesignBootScript, homeDesignCss } from '../lib/homeDesignBoot';
 
 describe('resolveHomeVariant', () => {
-  it('defaults to terracotta', () => {
-    expect(DEFAULT_HOME_VARIANT).toBe('terracotta');
-    expect(resolveHomeVariant(undefined)).toBe('terracotta');
-    expect(resolveHomeVariant(null)).toBe('terracotta');
-    expect(resolveHomeVariant('')).toBe('terracotta');
+  it('defaults to prism', () => {
+    expect(DEFAULT_HOME_VARIANT).toBe('prism');
+    expect(resolveHomeVariant(undefined)).toBe('prism');
+    expect(resolveHomeVariant(null)).toBe('prism');
+    expect(resolveHomeVariant('')).toBe('prism');
   });
 
   it('selects each registered design by name', () => {
@@ -35,7 +35,7 @@ describe('resolveHomeVariant', () => {
   });
 
   it('falls back for anything unrecognised, to the fallback it is given', () => {
-    expect(resolveHomeVariant('midnite')).toBe('terracotta');
+    expect(resolveHomeVariant('midnite')).toBe('prism');
     expect(resolveHomeVariant('retired-design', 'midnight')).toBe('midnight');
     expect(isHomeVariant('classic')).toBe(false);
   });

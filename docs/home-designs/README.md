@@ -5,9 +5,9 @@ chosen in the admin UI and takes effect on the next page load, with no redeploy.
 
 | Design | Flag value | In one line |
 |--------|------------|-------------|
-| [Terracotta](#terracotta) | `terracotta` | **Default.** Editorial: terracotta hero with the animated desk scene, glass nav |
+| [Terracotta](#terracotta) | `terracotta` | Editorial: terracotta hero with the animated desk scene, glass nav |
 | [Midnight](#midnight) | `midnight` | The original: dark navy gradient hero card with portrait and expertise cards |
-| [Prism](#prism) | `prism` | "Know Tarun as…": the avatar walks desk → camera → books → café; Software Architect, Photographer, AI Researcher, Traveller |
+| [Prism](#prism) | `prism` | **Default.** "Know Tarun as…": the avatar walks desk → camera → books → café; Software Architect, Photographer, AI Researcher, Traveller |
 
 ## How to switch
 
@@ -20,8 +20,8 @@ the homepage reads it from `GET /site/settings` on every load.
 shows that design in that tab only. Each card in the admin picker links to it.
 
 **Fallback:** `NEXT_PUBLIC_HOME_VARIANT` (a build-time env var, default
-`terracotta`) is used only when nothing has been saved or the content API
-can't be reached. Unknown names fall back to `terracotta`.
+`prism`) is used only when nothing has been saved or the content API
+can't be reached. Unknown names fall back to `prism`.
 
 How it avoids a flash: every design is in the homepage HTML. A script in the
 page `<head>` (`lib/homeDesignBoot.ts`) picks the design this browser last
@@ -50,7 +50,7 @@ change.
 
 ## Terracotta
 
-**Flag value:** `terracotta` (default) · **Code:** `components/home/terracotta/`
+**Flag value:** `terracotta` · **Code:** `components/home/terracotta/`
 
 An editorial portfolio in the style of a designer's showreel. It uses serif
 display type (Instrument Serif) with monospace labels (JetBrains Mono).
@@ -81,7 +81,7 @@ display type (Instrument Serif) with monospace labels (JetBrains Mono).
 
 ## Prism
 
-**Flag value:** `prism` · **Code:** `components/home/prism/` · **Preview:** `/?home=prism`
+**Flag value:** `prism` (default) · **Code:** `components/home/prism/` · **Preview:** `/?home=prism`
 
 One person, four sides. A full-screen landing reads "Know Tarun as", over a
 video of the avatar walking through one long loft: from his standing desk,

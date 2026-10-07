@@ -62,9 +62,9 @@ Prod     → AWS RDS PostgreSQL 16 (db.t4g.micro in private VPC)
 | `lib/homeDesignBoot.ts` | Inline `<head>` script + CSS that pick the design and its nav before first paint |
 | `lib/homeDesign.ts`, `components/home/HomeDesignSync.tsx` | Runtime: read `GET /site/settings`, apply it, remember it per browser |
 | `components/admin/HomeDesignSettings.tsx` | Admin → Content → Settings picker; saves via `PATCH /admin/settings` |
-| `components/home/terracotta/` | **`terracotta`** (default) — editorial redesign: desk-scene video hero, numbered sections; `TopNav` becomes a liquid-glass pill for it |
+| `components/home/terracotta/` | **`terracotta`** — editorial redesign: desk-scene video hero, numbered sections; `TopNav` becomes a liquid-glass pill for it |
 | `components/home/midnight/` | **`midnight`** — the original homepage: dark navy gradient hero card |
-| `components/home/prism/`, `lib/prismStations.ts` | **`prism`** — "Know Tarun as…": avatar walk video (desk → camera → books → café) lighting up Software Architect / Photographer / AI Researcher / Traveller; stop timings and links in `prismStations.ts` |
+| `components/home/prism/`, `lib/prismStations.ts` | **`prism`** (default) — "Know Tarun as…": avatar walk video (desk → camera → books → café) lighting up Software Architect / Photographer / AI Researcher / Traveller; stop timings and links in `prismStations.ts` |
 | `docs/home-designs/README.md` | Every homepage design with its flag value and desktop/mobile screenshots, and how to switch or add one |
 | `app/chat/page.tsx` | AI chat UI — streams from `NEXT_PUBLIC_CHAT_API` |
 | `app/labs/page.tsx` | AI Labs / Agent Studio UI |
@@ -144,7 +144,7 @@ Copy `.env.example` → `.env.local` before running locally.
 ### Feature flags
 | Variable | Description |
 |----------|-------------|
-| `NEXT_PUBLIC_HOME_VARIANT` | Fallback homepage design, used only when none is saved in admin or the content API is unreachable. `terracotta` (default) or `midnight`; see `docs/home-designs/README.md` |
+| `NEXT_PUBLIC_HOME_VARIANT` | Fallback homepage design, used only when none is saved in admin or the content API is unreachable. `prism` (default), `terracotta` or `midnight`; see `docs/home-designs/README.md` |
 
 ### AWS
 | Variable | Description |
@@ -203,4 +203,18 @@ Copy `.env.example` → `.env.local` before running locally.
     CSS shows the one the live design declares. `NEXT_PUBLIC_HOME_VARIANT` is
     only the fallback. Adding a design is in `docs/home-designs/README.md`.
 
-13. **Terraform RDS is publicly accessible**: `publicly_accessible = true` in `infra/terraform/main.tf` — intended for development convenience. Lock this down before production use.
+13. **Keep heavy code off the shared bundle; Lighthouse mobile was 64 because of it.**
+    Three things kept every page slow, and each is easy to reintroduce:
+    `lib/authToken.ts` imports Node `crypto`, which Next replaces with a
+    ~190 KB gzipped polyfill in the browser, though signing only runs at
+    build time (`next.config.js` now aliases `crypto` to an empty module
+    client-side; keep it). `siwe` drags in ethers (~190 KB), so it is
+    `await import("siwe")` at sign-in in `SiweButton` and `siweClient`, and a
+    static import of it anywhere on the nav's path undoes that. And
+    above-the-fold content must not start at opacity 0 waiting for
+    framer-motion to hydrate (use `Reveal onMount`, which is CSS); that alone
+    held the homepage's Largest Contentful Paint at ~12s. Images on the
+    homepage go through `ProfilePhoto` (responsive WebP), not `next/image`
+    with `priority`, whose preload fires even for hidden designs.
+
+14. **Terraform RDS is publicly accessible**: `publicly_accessible = true` in `infra/terraform/main.tf` — intended for development convenience. Lock this down before production use.
