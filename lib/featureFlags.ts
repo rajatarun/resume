@@ -34,7 +34,7 @@ export const HOME_DESIGNS = [
     name: 'prism',
     label: 'Prism',
     summary:
-      '"Know Tarun as…": the avatar walks from desk to camera to books to café, lighting up Software Architect, Photographer, Researcher and Traveller.',
+      '"Know Tarun as…": the avatar walks from desk to camera to books to café, lighting up Software Architect, Photographer, AI Researcher and Traveller.',
     thumbnail: '/home-designs/prism.jpg',
     nav: 'glass',
   },

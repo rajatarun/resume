@@ -49,7 +49,7 @@ export const PRISM_STATIONS: readonly PrismStation[] = [
   },
   {
     key: 'researcher',
-    label: 'Researcher',
+    label: 'AI Researcher',
     scene: 'Reaching for a book on the shelf',
     blurb: 'Preprints on how AI systems behave in production, published on Zenodo.',
     href: '/publications',

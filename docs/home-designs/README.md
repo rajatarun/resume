@@ -7,7 +7,7 @@ chosen in the admin UI and takes effect on the next page load, with no redeploy.
 |--------|------------|-------------|
 | [Terracotta](#terracotta) | `terracotta` | **Default.** Editorial: terracotta hero with the animated desk scene, glass nav |
 | [Midnight](#midnight) | `midnight` | The original: dark navy gradient hero card with portrait and expertise cards |
-| [Prism](#prism) | `prism` | "Know Tarun as…": the avatar walks desk → camera → books → café; Software Architect, Photographer, Researcher, Traveller |
+| [Prism](#prism) | `prism` | "Know Tarun as…": the avatar walks desk → camera → books → café; Software Architect, Photographer, AI Researcher, Traveller |
 
 ## How to switch
 
@@ -88,12 +88,12 @@ video of the avatar walking through one long loft: from his standing desk,
 past his camera on its tripod, past the bookshelf (he reaches for a book), to
 a café table with a coffee.
 
-- **The four stops** are Software Architect, Photographer, Researcher and Traveller,
+- **The four stops** are Software Architect, Photographer, AI Researcher and Traveller,
   in the order he walks past them. The one he is at lights up as he reaches
   it, with a line showing progress through that stop. Tapping one jumps the
   walk there; while paused it shows that stop's still.
 - **Where they lead:** Software Architect → the About / Experience / Projects /
-  Contact sections below (shared with terracotta); Researcher →
+  Contact sections below (shared with terracotta); AI Researcher →
   `/publications`. Photographer and Traveller say "coming soon" until those
   pages exist. All of this, and the timings, live in `lib/prismStations.ts`
   (tested in `__tests__/prismStations.test.ts`).
