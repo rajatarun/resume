@@ -30,6 +30,14 @@ export const HOME_DESIGNS = [
     thumbnail: '/home-designs/midnight.jpg',
     nav: 'standard',
   },
+  {
+    name: 'prism',
+    label: 'Prism',
+    summary:
+      '"Know Tarun as…": the avatar walks from desk to camera to books to café, lighting up Architect, Photographer, Researcher and Traveller.',
+    thumbnail: '/home-designs/prism.jpg',
+    nav: 'glass',
+  },
 ] as const;
 
 export type HomeVariant = (typeof HOME_DESIGNS)[number]['name'];

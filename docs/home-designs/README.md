@@ -7,6 +7,7 @@ chosen in the admin UI and takes effect on the next page load, with no redeploy.
 |--------|------------|-------------|
 | [Terracotta](#terracotta) | `terracotta` | **Default.** Editorial: terracotta hero with the animated desk scene, glass nav |
 | [Midnight](#midnight) | `midnight` | The original: dark navy gradient hero card with portrait and expertise cards |
+| [Prism](#prism) | `prism` | "Know Tarun as…": the avatar walks desk → camera → books → café; Architect, Photographer, Researcher, Traveller |
 
 ## How to switch
 
@@ -75,6 +76,44 @@ display type (Instrument Serif) with monospace labels (JetBrains Mono).
 <summary>Full page, desktop</summary>
 
 ![Terracotta, full page](terracotta/desktop-full.jpg)
+
+</details>
+
+## Prism
+
+**Flag value:** `prism` · **Code:** `components/home/prism/` · **Preview:** `/?home=prism`
+
+One person, four sides. A full-screen landing reads "Know Tarun as", over a
+video of the avatar walking through one long loft: from his standing desk,
+past his camera on its tripod, past the bookshelf (he reaches for a book), to
+a café table with a coffee.
+
+- **The four stops** are Architect, Photographer, Researcher and Traveller,
+  in the order he walks past them. The one he is at lights up as he reaches
+  it, with a line showing progress through that stop. Tapping one jumps the
+  walk there; while paused it shows that stop's still.
+- **Where they lead:** Architect → the About / Experience / Projects /
+  Contact sections below (shared with terracotta); Researcher →
+  `/publications`. Photographer and Traveller say "coming soon" until those
+  pages exist. All of this, and the timings, live in `lib/prismStations.ts`
+  (tested in `__tests__/prismStations.test.ts`).
+- **Video:** `public/prism/walk-{landscape,portrait}.{webm,mp4}`: one 8s Flow
+  render, looped by dipping to dark at the join. Portrait screens get a
+  9:16 cut cropped around him, landscape the full frame; turning the phone
+  swaps the file and keeps the place in the walk. Each screen downloads only
+  its own poster and video (about 1.3 MB landscape, 0.8 MB portrait), and
+  nothing while prism is not the live design. Reduced motion gets the still,
+  and there is always a Pause button.
+- Uses the glass nav, tinted dark over the video.
+
+| Desktop | Mobile |
+|---------|--------|
+| ![Prism, desktop](prism/desktop.jpg) | ![Prism, mobile](prism/mobile.jpg) |
+
+<details>
+<summary>Full page, desktop</summary>
+
+![Prism, full page](prism/desktop-full.jpg)
 
 </details>
 

@@ -26,7 +26,7 @@ describe('resolveHomeVariant', () => {
   });
 
   it('selects each registered design by name', () => {
-    expect(HOME_VARIANTS).toEqual(['terracotta', 'midnight']);
+    expect(HOME_VARIANTS).toEqual(['terracotta', 'midnight', 'prism']);
     for (const variant of HOME_VARIANTS) expect(resolveHomeVariant(variant)).toBe(variant);
   });
 

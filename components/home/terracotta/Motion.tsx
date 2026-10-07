@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useActiveHomeDesign, useHomeDesignSettled } from "@/lib/homeDesign";
 
 /**
@@ -76,19 +77,6 @@ export function BarChart({ bars, highlight }: { bars: number[]; highlight: numbe
       ))}
     </div>
   );
-}
-
-/** Tracks a media query; false until mounted, so the server render never includes what it gates. */
-function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false);
-  useEffect(() => {
-    const mql = window.matchMedia(query);
-    setMatches(mql.matches);
-    const onChange = (event: MediaQueryListEvent) => setMatches(event.matches);
-    mql.addEventListener("change", onChange);
-    return () => mql.removeEventListener("change", onChange);
-  }, [query]);
-  return matches;
 }
 
 /**
