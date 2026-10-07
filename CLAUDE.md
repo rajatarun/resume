@@ -65,6 +65,7 @@ Prod     → AWS RDS PostgreSQL 16 (db.t4g.micro in private VPC)
 | `components/home/terracotta/` | **`terracotta`** — editorial redesign: desk-scene video hero, numbered sections; `TopNav` becomes a liquid-glass pill for it |
 | `components/home/midnight/` | **`midnight`** — the original homepage: dark navy gradient hero card |
 | `components/home/prism/`, `lib/prismStations.ts` | **`prism`** (default) — "Know Tarun as…": avatar walk video (desk → camera → books → café) lighting up Software Architect / Photographer / AI Researcher / Traveller; stop timings and links in `prismStations.ts` |
+| `app/site-health-ea96ed/`, `components/siteHealth/`, `lib/siteHealth.ts` | **Unlisted** site-health page: live Lighthouse audits of the deployed site via Google PageSpeed Insights (performance, accessibility/ADA, best practices, SEO, Core Web Vitals, real-user field data, what to fix), per page or all pages. `noindex`, not linked, not in the sitemaps |
 | `docs/home-designs/README.md` | Every homepage design with its flag value and desktop/mobile screenshots, and how to switch or add one |
 | `app/chat/page.tsx` | AI chat UI — streams from `NEXT_PUBLIC_CHAT_API` |
 | `app/labs/page.tsx` | AI Labs / Agent Studio UI |
@@ -145,6 +146,11 @@ Copy `.env.example` → `.env.local` before running locally.
 | Variable | Description |
 |----------|-------------|
 | `NEXT_PUBLIC_HOME_VARIANT` | Fallback homepage design, used only when none is saved in admin or the content API is unreachable. `prism` (default), `terracotta` or `midnight`; see `docs/home-designs/README.md` |
+
+### Site health page
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_PAGESPEED_API_KEY` | Google PageSpeed Insights API key for `/site-health-ea96ed`. Optional, but anonymous audits are heavily rate-limited (often a 429 straight away). Free from Google Cloud; restrict it to the PageSpeed API and the site's referrer, since it ships to the browser |
 
 ### AWS
 | Variable | Description |
