@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { usePlayWhileVisible } from "@/hooks/usePlayWhileVisible";
 import { useActiveHomeDesign, useHomeDesignSettled } from "@/lib/homeDesign";
 import { PRISM_STATIONS, stationIndexAt, stationProgressAt } from "@/lib/prismStations";
 
@@ -27,6 +28,7 @@ const SOURCES = {
  */
 export function PrismLanding() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   const progressRef = useRef<HTMLSpanElement>(null);
   const timeRef = useRef(0);
   const userPausedRef = useRef(false);
@@ -39,6 +41,16 @@ export function PrismLanding() {
   const settled = useHomeDesignSettled();
   const shown = activeDesign === "prism" && settled;
   const source = portrait ? SOURCES.portrait : SOURCES.landscape;
+
+  // Resume after the browser pauses it off screen (scrolling past, another tab).
+  usePlayWhileVisible({
+    videoRef,
+    containerRef: headerRef,
+    enabled: shown && !reduce,
+    userPausedRef,
+    onPlayingChange: setPlaying,
+    deps: [portrait]
+  });
 
   // Follow the video: which stop it is at, and how far through it.
   useEffect(() => {
@@ -105,6 +117,7 @@ export function PrismLanding() {
 
   return (
     <header
+      ref={headerRef}
       data-nav-tone="dark"
       className="relative h-[100svh] min-h-[540px] overflow-hidden bg-[#1c120e] text-[#fbf3ea] landscape:min-h-[360px]"
     >
