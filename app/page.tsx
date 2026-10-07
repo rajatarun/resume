@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Instrument_Serif, JetBrains_Mono, Newsreader } from "next/font/google";
 import { resume } from "@/lib/resume";
 import { githubUrl, linkedInUrl, routeMetadata } from "@/src/seo/seo.config";
-import { BarChart, HeroParallax, Reveal } from "@/components/home/Motion";
+import { BarChart, HeroParallax, HeroVideo, Reveal } from "@/components/home/Motion";
 
 export const metadata: Metadata = routeMetadata["/"];
 
@@ -87,20 +87,18 @@ function SectionLabel({ index, label, tone = "dark" }: { index: string; label: s
 
 function Hero() {
   return (
-    <header className="relative overflow-hidden bg-[#a8492a] text-[#fbf3ea]">
-      {/* Warm studio wash — the light falls from the upper right, like the reference. */}
+    <header className="relative overflow-hidden bg-[#76301a] text-[#fbf3ea]">
+      {/* Matched to the video's backdrop where its left edge fades out, so the
+          scene sits in the page instead of on a panel. Sampled from the clip:
+          darker at the top, warmer toward the lit floor. */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-[radial-gradient(ellipse_at_75%_20%,#d27a52_0%,#b8562f_35%,#8e3a1d_100%)]"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#6f2a14]/60 to-transparent"
+        className="absolute inset-0 bg-[linear-gradient(180deg,#622410_0%,#76301a_50%,#8c4224_100%)]"
       />
 
       <HeroParallax className="relative">
-        <div className="mx-auto grid min-h-[100svh] max-w-7xl items-center gap-10 px-6 pb-36 pt-32 sm:px-10 sm:pb-28 lg:grid-cols-[1.15fr_1fr] lg:pt-28">
-          <div>
+        <div className="mx-auto grid min-h-[100svh] max-w-7xl content-center gap-12 px-6 pb-36 pt-32 sm:px-10 sm:pb-28 lg:pt-28">
+          <div className="relative z-10 xl:max-w-[34rem]">
             <Reveal>
               <p className="font-[family-name:var(--font-mono)] text-[11px] uppercase tracking-[0.3em] text-[#f7c9b0]">
                 {"// Senior Lead Software Engineer"}
@@ -137,35 +135,19 @@ function Hero() {
             </Reveal>
           </div>
 
-          <Reveal delay={0.2} className="relative mx-auto w-full max-w-md lg:max-w-none">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-t-[999px] rounded-b-2xl shadow-[0_40px_80px_-30px_rgba(60,15,0,0.7)]">
-              <Image
-                src="/profile-photo.PNG"
-                alt="Tarun Raja"
-                fill
-                priority
-                sizes="(min-width: 1024px) 40vw, 90vw"
-                className="object-cover object-top"
-              />
-              <div aria-hidden="true" className="absolute inset-0 bg-[#b8562f]/25 mix-blend-multiply" />
-            </div>
-            {/* The "monitor" — a nod to the desk in the reference scene. */}
-            <div
-              aria-hidden="true"
-              className="absolute -bottom-6 -left-4 w-60 rounded-lg border border-white/10 bg-[#1b1310]/90 p-4 font-[family-name:var(--font-mono)] text-[10px] leading-5 text-stone-300 shadow-2xl backdrop-blur sm:-left-10 sm:w-72"
-            >
-              <div className="mb-2 flex gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-[#f0714a]" />
-                <span className="h-2 w-2 rounded-full bg-stone-500" />
-                <span className="h-2 w-2 rounded-full bg-stone-600" />
-              </div>
-              <p><span className="text-[#f0714a]">$</span> kubectl rollout status deploy/payments</p>
-              <p className="text-stone-500">deployment &quot;payments&quot; successfully rolled out</p>
-              <p><span className="text-[#f0714a]">$</span> npm test</p>
-              <p className="text-emerald-400">✓ all suites passed</p>
-            </div>
-          </Reveal>
+          {/* One element, two layouts: a card under the text on small screens,
+              and from 1280px the scene behind the hero's right side, below the
+              fixed nav, its left and top edges masked into the background so
+              the headline stays clear. Narrower than that, the character would
+              stand under the text. */}
+          <HeroVideo className="hero-video relative aspect-video w-full overflow-hidden rounded-2xl shadow-[0_30px_60px_-30px_rgba(40,10,0,0.8)] xl:absolute xl:bottom-0 xl:right-0 xl:top-20 xl:aspect-auto xl:w-[68%] xl:rounded-none xl:shadow-none" />
         </div>
+
+        {/* Keeps the bottom row legible over the brightly lit floor. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 hidden h-48 bg-gradient-to-t from-[#4a1a0a]/85 to-transparent xl:block"
+        />
 
         <div className="absolute inset-x-0 bottom-0 mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 pb-8 font-[family-name:var(--font-mono)] text-[10px] uppercase tracking-[0.3em] text-[#f7c9b0] sm:px-10">
           <p className="flex flex-wrap gap-x-6 gap-y-1">

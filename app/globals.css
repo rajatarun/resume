@@ -22,3 +22,14 @@ body {
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-slate-950;
   }
 }
+
+/* Homepage hero video (wide screens): fade its left and top edges into the
+   hero background. Two gradients intersected, so a corner fades on both axes. */
+@media (min-width: 1280px) {
+  .hero-video {
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 24%), linear-gradient(to bottom, transparent 0%, #000 14%);
+    -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(to right, transparent 0%, #000 24%), linear-gradient(to bottom, transparent 0%, #000 14%);
+    mask-composite: intersect;
+  }
+}
