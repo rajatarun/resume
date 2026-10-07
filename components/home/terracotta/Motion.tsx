@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { usePlayWhileVisible } from "@/hooks/usePlayWhileVisible";
 import { useActiveHomeDesign, useHomeDesignSettled } from "@/lib/homeDesign";
 
 /**
@@ -106,6 +107,8 @@ export function BarChart({ bars, highlight }: { bars: number[]; highlight: numbe
  */
 export function HeroVideo({ className, cardClassName }: { className?: string; cardClassName?: string }) {
   const ref = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const userPausedRef = useRef(false);
   const reduce = useReducedMotion();
   const wide = useMediaQuery("(min-width: 1280px)");
   const landscape = useMediaQuery("(orientation: landscape)");
@@ -117,9 +120,19 @@ export function HeroVideo({ className, cardClassName }: { className?: string; ca
   const shown = active === "terracotta" && settled;
   const [playing, setPlaying] = useState(false);
 
+  // Resume after the browser pauses it off screen (scrolling past, another tab).
+  usePlayWhileVisible({
+    videoRef: ref,
+    containerRef,
+    enabled: shown && !reduce,
+    userPausedRef,
+    onPlayingChange: setPlaying,
+    deps: [layout]
+  });
+
   useEffect(() => {
     const video = ref.current;
-    if (!video || reduce) return;
+    if (!video || reduce || userPausedRef.current) return;
     video.play().then(
       () => setPlaying(true),
       () => setPlaying(false)
@@ -130,8 +143,10 @@ export function HeroVideo({ className, cardClassName }: { className?: string; ca
     const video = ref.current;
     if (!video) return;
     if (video.paused) {
+      userPausedRef.current = false;
       void video.play().then(() => setPlaying(true));
     } else {
+      userPausedRef.current = true;
       video.pause();
       setPlaying(false);
     }
@@ -140,7 +155,7 @@ export function HeroVideo({ className, cardClassName }: { className?: string; ca
   if (!layout || !shown) return null;
 
   return (
-    <div className={layout === "wide" ? className : cardClassName}>
+    <div ref={containerRef} className={layout === "wide" ? className : cardClassName}>
       <video
         ref={ref}
         aria-hidden="true"
