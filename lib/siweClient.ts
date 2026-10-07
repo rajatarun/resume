@@ -1,6 +1,6 @@
 import { buildAuthorizationHeaderForUri } from '@/lib/authToken';
 import { setSiweSessionNonce } from '@/lib/web3/siweNonce';
-import { SiweMessage } from "siwe";
+import type { SiweMessage } from "siwe";
 
 export type SiweNonceResponse = {
   sessionId: string;
@@ -41,16 +41,22 @@ function normalizeSiweMessage(input: unknown): string {
     .trim();
 }
 
-export function assertValidSiweMessage(body: SiweVerifyBody) {
+/**
+ * Async because `siwe` is imported on demand: it pulls in ethers (~190 KB
+ * gzipped), and this module is reached from the nav on every page through
+ * siweClientSession, while parsing a message only happens at sign-in.
+ */
+export async function assertValidSiweMessage(body: SiweVerifyBody) {
   const message = normalizeSiweMessage(body.message);
 
   if (!message) {
     throw new Error("Missing SIWE message");
   }
 
+  const { SiweMessage: SiweMessageClass } = await import("siwe");
   let parsed: SiweMessage;
   try {
-    parsed = new SiweMessage(message);
+    parsed = new SiweMessageClass(message);
   } catch (e) {
     console.error("[siweVerify] Failed to parse SIWE message", { message, body, e });
     throw new Error("Invalid SIWE message (cannot be parsed).");
@@ -119,7 +125,7 @@ export async function siweVerify(payload: SiweVerifyPayload) {
     throw new Error("SIWE verify payload must include sessionId, preparedMessage, and signature.");
   }
 
-  const { message, parsed } = assertValidSiweMessage({ message: payload.preparedMessage });
+  const { message, parsed } = await assertValidSiweMessage({ message: payload.preparedMessage });
   setSiweSessionNonce(parsed.nonce);
 
   const body = {

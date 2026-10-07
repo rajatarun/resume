@@ -60,6 +60,12 @@ const createJwtToken = (payload: AuthPayload, secret: string): string => {
     exp: now + ONE_HOUR_SECONDS
   };
 
+  // Server-only: the browser bundle gets an empty `crypto` (next.config.js),
+  // and buildAuthorizationToken never calls this from a browser anyway.
+  if (typeof createHmac !== 'function') {
+    throw new Error('JWT signing is only available on the server.');
+  }
+
   const encodedHeader = toBase64Url(JSON.stringify(header));
   const encodedPayload = toBase64Url(JSON.stringify(body));
   const signature = createHmac('sha256', secret)

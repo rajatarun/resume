@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { ProfilePhoto } from "@/components/ProfilePhoto";
 import Link from "next/link";
 import { resume } from "@/lib/resume";
 import { githubUrl, linkedInUrl } from "@/src/seo/seo.config";
@@ -129,7 +129,7 @@ function Hero() {
                 <Link href="/appointment" className="focus-ring border-b border-[#fbf3ea]/50 pb-1 transition hover:border-[#fbf3ea]">
                   Let&apos;s talk →
                 </Link>
-                <Link href="/labs" className="focus-ring border-b border-[#fbf3ea]/50 pb-1 transition hover:border-[#fbf3ea]">
+                <Link href="/labs" prefetch={false} className="focus-ring border-b border-[#fbf3ea]/50 pb-1 transition hover:border-[#fbf3ea]">
                   AI Lab →
                 </Link>
               </div>
@@ -139,13 +139,11 @@ function Hero() {
           {/* Portrait, below 1280px (phones held upright): the photo, under the text. */}
           <Reveal onMount delay={0.2} className="mx-auto w-full max-w-sm landscape:hidden xl:hidden">
             <div className="relative aspect-[4/5] overflow-hidden rounded-b-2xl rounded-t-[999px] shadow-[0_30px_60px_-30px_rgba(40,10,0,0.8)]">
-              <Image
-                src="/profile-photo.PNG"
+              <ProfilePhoto
                 alt="Tarun Raja"
-                fill
-                priority
+                eager
                 sizes="(min-width: 640px) 384px, 90vw"
-                className="object-cover object-top"
+                className="absolute inset-0 h-full w-full object-cover object-top"
               />
             </div>
           </Reveal>
@@ -207,7 +205,7 @@ export function About({ idPrefix = "" }: SectionProps) {
           <Reveal>
             {/* Portrait phones already show this photo in the hero, a screen above. */}
             <div className="relative aspect-[4/5] w-full max-w-sm overflow-hidden rounded-sm max-xl:portrait:hidden">
-              <Image src="/profile-photo.PNG" alt="" fill sizes="(min-width: 1024px) 30vw, 90vw" className="object-cover" />
+              <ProfilePhoto alt="" sizes="(min-width: 1024px) 30vw, 90vw" className="absolute inset-0 h-full w-full object-cover" />
             </div>
           </Reveal>
 

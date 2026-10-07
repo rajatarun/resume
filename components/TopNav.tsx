@@ -99,6 +99,15 @@ type NavLinkProps = {
   currentPathname?: string;
 };
 
+/**
+ * Routes too heavy to prefetch from every page. Next prefetches any link in
+ * the viewport, and for /labs that means downloading and parsing its charting
+ * library (recharts, ~115 KB) on pages that never draw a chart; it showed up
+ * in Lighthouse as a 134 ms main-thread task on the homepage. They still load
+ * on click.
+ */
+export const NO_PREFETCH_ROUTES: ReadonlySet<string> = new Set(["/labs", "/admin"]);
+
 function NavLink({ item, className, onClick, currentPathname }: NavLinkProps) {
   const isCurrent = !item.external && currentPathname === item.href;
 
@@ -119,6 +128,7 @@ function NavLink({ item, className, onClick, currentPathname }: NavLinkProps) {
   return (
     <Link
       href={item.href}
+      prefetch={NO_PREFETCH_ROUTES.has(item.href) ? false : undefined}
       className={className}
       onClick={onClick}
       aria-current={isCurrent ? "page" : undefined}

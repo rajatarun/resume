@@ -109,26 +109,22 @@ export function PrismLanding() {
       className="relative h-[100svh] min-h-[540px] overflow-hidden bg-[#1c120e] text-[#fbf3ea] landscape:min-h-[360px]"
     >
       {/* Poster: correct before any script runs, and all reduced motion gets.
-          One <img> the browser picks by orientation, so only one downloads;
-          lazy, so it is not fetched at all while prism is a hidden design. */}
-      <picture>
-        <source media="(orientation: portrait)" srcSet="/prism/walk-portrait-poster.jpg" />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/prism/walk-landscape-poster.jpg"
-          alt=""
-          loading="lazy"
-          decoding="async"
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-      </picture>
+          A CSS background rather than an <img>: the browser fetches only the
+          one matching the orientation, nothing at all while prism is a hidden
+          design (display:none), and, being the largest thing on screen, it is
+          what Lighthouse times as the Largest Contentful Paint instead of the
+          station text that changes every couple of seconds. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-cover bg-center bg-[url('/prism/walk-landscape-poster.webp')] portrait:bg-[url('/prism/walk-portrait-poster.webp')]"
+      />
       {shown && (
         <video
           key={portrait ? "portrait" : "landscape"}
           ref={videoRef}
           aria-hidden="true"
           className="absolute inset-0 h-full w-full object-cover"
-          poster={portrait ? "/prism/walk-portrait-poster.jpg" : "/prism/walk-landscape-poster.jpg"}
+          poster={portrait ? "/prism/walk-portrait-poster.webp" : "/prism/walk-landscape-poster.webp"}
           muted
           loop
           playsInline

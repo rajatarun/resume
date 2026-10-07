@@ -6,10 +6,16 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useActiveHomeDesign, useHomeDesignSettled } from "@/lib/homeDesign";
 
 /**
- * Fades and lifts its children in once they scroll into view. `onMount`
- * plays it on load instead: for content that starts on screen, like the hero.
- * A scroll trigger there can miss entirely: on a short landscape phone the
- * hero's lower lines sit inside the -80px margin and never count as in view.
+ * Fades and lifts its children in once they scroll into view.
+ *
+ * `onMount` is for content that starts on screen, like the hero. It plays as
+ * a pure CSS animation (`.reveal-up` in globals.css) instead of through
+ * framer-motion: the motion version renders at opacity 0 and stays invisible
+ * until the JavaScript has downloaded and hydrated, which on a throttled
+ * phone kept the hero blank for ~10s and made it the slowest Largest
+ * Contentful Paint on the site. CSS starts on first paint. (A scroll trigger
+ * there could also miss entirely: on a short landscape phone the hero's lower
+ * lines sit inside the -80px margin and never count as in view.)
  */
 export function Reveal({
   children,
@@ -23,13 +29,18 @@ export function Reveal({
   onMount?: boolean;
 }) {
   const reduce = useReducedMotion();
-  const shown = { opacity: 1, y: 0 };
+  if (onMount) {
+    return (
+      <div className={`reveal-up ${className ?? ""}`} style={{ animationDelay: `${delay}s` }}>
+        {children}
+      </div>
+    );
+  }
   return (
     <motion.div
       className={className}
       initial={reduce ? false : { opacity: 0, y: 28 }}
-      animate={onMount ? shown : undefined}
-      whileInView={onMount ? undefined : shown}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-80px" }}
       transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
     >
