@@ -12,6 +12,9 @@ html {
 
 body {
   font-feature-settings: "rlig" 1, "calt" 1;
+  /* The homepage's full-bleed sections are w-screen, and 100vw includes the
+     vertical scrollbar; clip (not hidden) so no scroll container is created. */
+  overflow-x: clip;
 }
 
 @layer utilities {
