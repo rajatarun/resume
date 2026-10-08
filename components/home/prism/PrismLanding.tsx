@@ -228,6 +228,9 @@ export function PrismLanding() {
               ) : (
                 <Link
                   href={station.href as "/publications"}
+                  // /traveller carries its whole map in the page (~240 KB);
+                  // fetch it on click, not whenever its stop lights up.
+                  prefetch={false}
                   className="focus-ring border-b border-[#fbf3ea]/50 pb-0.5 hover:border-[#fbf3ea]"
                 >
                   {station.hrefLabel} →

@@ -65,6 +65,10 @@ Prod     → AWS RDS PostgreSQL 16 (db.t4g.micro in private VPC)
 | `components/home/terracotta/` | **`terracotta`** — editorial redesign: desk-scene video hero, numbered sections; `TopNav` becomes a liquid-glass pill for it |
 | `components/home/midnight/` | **`midnight`** — the original homepage: dark navy gradient hero card |
 | `components/home/prism/`, `lib/prismStations.ts` | **`prism`** (default) — "Know Tarun as…": avatar walk video (desk → camera → books → café) lighting up Software Architect / Photographer / AI Researcher / Traveller; stop timings and links in `prismStations.ts` |
+| `app/traveller/`, `components/traveller/TravelMap.tsx` | **`/traveller`** — where Tarun has been: map with a country filter (US by default, then each country with pins, then World), the same places as a list, the trips (no dates), and cafés & restaurants. Prism's Traveller stop links here. Themed by the live homepage design (`app/traveller/traveller.css`: prism, terracotta, midnight light/dark), nav included; preview with `/traveller?home=<name>` |
+| `data/travel/places.json`, `scripts/sync-travel.mjs` | The traveller data. `places.json` (in repo) is the baseline of places; the travel journal and cafés/restaurants live in the content API and `sync-travel.mjs` fetches `GET /site/travel` (journal **without dates**, cafés **without visit counts**) into `data/travel/generated/` (gitignored) in `prebuild`. See `data/travel/README.md` |
+| `lib/travel/model.ts`, `lib/travel/load.ts`, `lib/travelMap.ts` | Merge it into pins (a trip place within 30 km of a pin is that pin; cafés go on their city's or metro's pin), validate at build (places.json errors fail the build; a bad fetched entry is dropped and logged), and project every view to SVG paths at build time (d3-geo + world-atlas/us-atlas, simplified). None of it ships to the browser |
+| `components/admin/TravelDataSettings.tsx` | Admin → Settings → Travel data: upload the Ask Photos journal (`POST /admin/travel`, upserts by trip id) and the card-export cafés (`POST /admin/dining`, replaces); shows the full journal with dates and what the café filter left out |
 | `app/site-health-ea96ed/`, `components/siteHealth/`, `lib/siteHealth.ts` | **Unlisted** site-health page: live Lighthouse audits of the deployed site via Google PageSpeed Insights (performance, accessibility/ADA, best practices, SEO, Core Web Vitals, real-user field data, what to fix), per page or all pages. `noindex`, not linked, not in the sitemaps |
 | `docs/home-designs/README.md` | Every homepage design with its flag value and desktop/mobile screenshots, and how to switch or add one |
 | `app/chat/page.tsx` | AI chat UI — streams from `NEXT_PUBLIC_CHAT_API` |
@@ -134,7 +138,7 @@ Copy `.env.example` → `.env.local` before running locally.
 |----------|-------------|
 | `NEXT_PUBLIC_ADMIN_API_BASE` | API Gateway base URL for admin endpoints |
 | `NEXT_PUBLIC_AGENT_MANAGEMENT_API_BASE` | API Gateway base URL for agent management |
-| `NEXT_PUBLIC_API_BASE_URL` | Base URL for blog API (`/site/posts`) |
+| `NEXT_PUBLIC_API_BASE_URL` | Base URL of the content API: blog (`/site/posts`), homepage design (`/site/settings`), and `/traveller` data (`/site/travel`, fetched at build time) |
 
 ### Build-time only (Amplify env vars)
 | Variable | Description |
@@ -206,8 +210,10 @@ Copy `.env.example` → `.env.local` before running locally.
     runs for all of them: gate design-only side effects on
     `useActiveHomeDesign()` (and heavy ones on `useHomeDesignSettled()`), as
     `HeroVideo` does. `TopNav` renders both nav styles on `/` and the `<head>`
-    CSS shows the one the live design declares. `NEXT_PUBLIC_HOME_VARIANT` is
-    only the fallback. Adding a design is in `docs/home-designs/README.md`.
+    CSS shows the one the live design declares. `/traveller` follows the
+    design too (`DESIGN_THEMED_ROUTES`, `traveller.css`), so a new design
+    needs a block there. `NEXT_PUBLIC_HOME_VARIANT` is only the fallback.
+    Adding a design is in `docs/home-designs/README.md`.
 
 13. **Keep heavy code off the shared bundle; Lighthouse mobile was 64 because of it.**
     Three things kept every page slow, and each is easy to reintroduce:

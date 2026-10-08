@@ -2,7 +2,9 @@
  * The inline script and CSS the root layout puts in <head>, so the homepage
  * design (and the nav that goes with it) is decided before anything paints.
  * Plain strings, built here so they can be tested without rendering anything.
- * On pages other than the homepage they match nothing and do nothing.
+ * The attribute is set on every page, so pages themed by the design
+ * (/traveller) can follow it too; the CSS matches nothing where no design or
+ * nav is rendered.
  */
 import {
   HOME_DESIGN_STORAGE_KEY,
