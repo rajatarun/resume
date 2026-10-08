@@ -464,9 +464,22 @@ function Chapter({
         <Review key={spot.name} spot={spot} />
       ))}
 
-      {chapter.stops.length > 0 && (
+      {chapter.stops.some((spot) => spot.note) && (
+        <div className="mt-6">
+          <p className="tv-label text-[11px] uppercase tracking-[0.2em] text-[var(--tv-faint)]">
+            Where I ate
+          </p>
+          {chapter.stops
+            .filter((spot) => spot.note)
+            .map((spot) => (
+              <Noted key={spot.name} spot={spot} />
+            ))}
+        </div>
+      )}
+      {chapter.stops.some((spot) => !spot.note) && (
         <p className="mt-4 text-[var(--tv-muted)]">
-          I also ate at {joinNames(chapter.stops.map((spot) => spot.name))}.
+          I also ate at{' '}
+          {joinNames(chapter.stops.filter((spot) => !spot.note).map((spot) => spot.name))}.
         </p>
       )}
 
@@ -533,6 +546,24 @@ function Review({ spot }: { spot: DiningSpot }) {
   );
 }
 
+/**
+ * A described place: its name, a public score (plain text, never stars: it is
+ * not my rating) and one line on what it is.
+ */
+function Noted({ spot }: { spot: DiningSpot }) {
+  return (
+    <p className="mt-3 leading-relaxed text-[var(--tv-ink)]">
+      <span className="tv-title text-lg">{spot.name}</span>
+      {spot.score && (
+        <span className="ml-2 text-xs text-[var(--tv-faint)]">
+          {spot.score.toFixed(1)}/5<span className="sr-only"> public score</span>
+        </span>
+      )}
+      {spot.note && <span className="text-[var(--tv-muted)]"> — {spot.note}</span>}
+    </p>
+  );
+}
+
 /** The reviews no place on the map claims, as a chapter of their own. */
 function ReviewChapter({
   id,
@@ -554,9 +585,23 @@ function ReviewChapter({
       </p>
       <h3 className="tv-title mt-2 text-3xl leading-tight sm:text-4xl">{title}</h3>
       <p className="mt-4 text-[17px] leading-relaxed text-[var(--tv-muted)]">{intro}</p>
-      {spots.map((spot) => (
-        <Review key={spot.name} spot={spot} />
-      ))}
+      {spots
+        .filter((spot) => spot.review)
+        .map((spot) => (
+          <Review key={spot.name} spot={spot} />
+        ))}
+      {spots.some((spot) => !spot.review) && (
+        <div className="mt-8">
+          <p className="tv-label text-[11px] uppercase tracking-[0.2em] text-[var(--tv-faint)]">
+            More worth a stop
+          </p>
+          {spots
+            .filter((spot) => !spot.review)
+            .map((spot) => (
+              <Noted key={spot.name} spot={spot} />
+            ))}
+        </div>
+      )}
     </article>
   );
 }

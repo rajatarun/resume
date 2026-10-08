@@ -79,6 +79,8 @@ export const diningSchema: z.ZodType<DiningPlace, z.ZodTypeDef, unknown> = z.obj
   region: nullableString,
   rating: z.number().int().min(1).max(5).nullish(),
   review: z.string().trim().max(2000).nullish(),
+  note: z.string().trim().max(500).nullish(),
+  score: z.number().min(1).max(5).nullish(),
 });
 
 export const TRAVEL_DIR = join(process.cwd(), 'data', 'travel');

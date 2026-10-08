@@ -442,6 +442,15 @@
       "lng": -147.7164,
       "kind": "nature",
       "radiusKm": 450
+    },
+    {
+      "city": "Galveston",
+      "region": "Texas",
+      "country": "United States",
+      "countryCode": "US",
+      "lat": 29.3013,
+      "lng": -94.7977,
+      "kind": "nature"
     }
   ]
 }

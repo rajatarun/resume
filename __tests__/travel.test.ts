@@ -269,6 +269,8 @@ describe('cafés and restaurants', () => {
         pinId: 'us-detroit',
         rating: null,
         review: null,
+        note: null,
+        score: null,
       },
     ]);
     expect(skipped[0]).toMatch(/^dining place 1: category:/);
@@ -310,6 +312,8 @@ describe('the story', () => {
     pinId: null,
     rating: 5,
     review: text,
+    note: null,
+    score: null,
   });
   const story = buildStory(
     places,
@@ -354,6 +358,39 @@ describe('the story', () => {
   it('only reads a place name as a whole word', () => {
     expect(pinFromText('Classic Parisian charm', places)).toBeNull();
     expect(pinFromText('Best tacos in LA, honestly', places)?.name).toBe('Los Angeles');
+  });
+
+  it('gives a described place a chapter, and sets cityless ones with the cafés', () => {
+    const spot = (
+      name: string,
+      city: string | null,
+      pinId: string | null,
+      category: 'cafe' | 'restaurant',
+    ) => ({
+      name,
+      category,
+      city,
+      pinId,
+      rating: null,
+      review: null,
+      note: 'Worth the stop.',
+      score: 4.5,
+    });
+    const noted = buildStory(
+      places,
+      trips,
+      [
+        spot('Dock Diner', 'Boston', 'us-boston', 'restaurant'),
+        spot('Lantern Grill', 'Portland', 'us-portland', 'restaurant'),
+        spot('Bean Lab', null, null, 'cafe'),
+      ],
+      name,
+    );
+    const stopsAt = (title: string) =>
+      noted.chapters.find((c) => c.title === title)!.stops.map((s) => s.name);
+    expect(stopsAt('Portland')).toEqual(['Lantern Grill']);
+    expect(stopsAt('Boston')).toEqual(['Dock Diner']);
+    expect(noted.cafes.map((s) => s.name)).toEqual(['Bean Lab']);
   });
 
   it('joins names the way a sentence does', () => {

@@ -322,6 +322,9 @@ export interface DiningPlace {
   /** Tarun's own rating, 1-5, when he reviewed it. */
   rating?: number | null;
   review?: string | null;
+  /** A one-line description, and a public score out of 5 (not his rating). */
+  note?: string | null;
+  score?: number | null;
 }
 
 /** A café or restaurant as the page shows it: on a pin when its city is one. */
@@ -332,6 +335,8 @@ export interface DiningSpot {
   pinId: string | null;
   rating: number | null;
   review: string | null;
+  note: string | null;
+  score: number | null;
 }
 
 /**
@@ -395,6 +400,7 @@ const METRO_TOWNS: Record<string, readonly string[]> = {
     'cupertino',
   ],
   'New York City': ['new york', 'brooklyn', 'manhattan', 'queens', 'jersey city', 'hoboken'],
+  Miami: ['miami beach', 'south beach', 'coral gables', 'wynwood', 'key biscayne'],
 };
 
 const US_STATE_CODES: Record<string, string> = {
@@ -479,6 +485,8 @@ export function placeDining(
     pinId: pinForCity(spot.city, spot.region, places)?.id ?? null,
     rating: spot.rating ?? null,
     review: spot.review ?? null,
+    note: spot.note ?? null,
+    score: spot.score ?? null,
   }));
 }
 
@@ -626,9 +634,16 @@ export function buildStory(
   for (const spot of dining) {
     const pinId = spot.pinId ?? pinFromText(spot.review, places)?.id ?? null;
     const chapterId = pinId ? chapterOfPin[pinId] : undefined;
+    const pinCountry = pinId ? byId.get(pinId)!.country : '';
     if (spot.review) {
-      if (pinId) chapterFor(pinId, byId.get(pinId)!.country).reviews.push(spot);
+      if (pinId) chapterFor(pinId, pinCountry).reviews.push(spot);
       else (spot.category === 'restaurant' ? tables : cafes).push(spot);
+    } else if (spot.note) {
+      // A described place is enough for a chapter of its own.
+      if (pinId) {
+        const chapter = chapterId ? chapters.get(chapterId)! : chapterFor(pinId, pinCountry);
+        chapter.stops.push(spot);
+      } else (spot.category === 'restaurant' ? tables : cafes).push(spot);
     } else if (chapterId) {
       chapters.get(chapterId)!.stops.push(spot);
     }

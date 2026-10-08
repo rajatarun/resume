@@ -35,6 +35,7 @@ interface AdminDining {
   kept: AdminDiningEntry[];
   excluded: AdminDiningEntry[];
   reviews?: AdminReview[];
+  notes?: Omit<AdminReview, 'rating'>[];
   updatedAt: string | null;
 }
 
@@ -78,8 +79,30 @@ export function TravelDataSettings() {
   const [trips, setTrips] = useState<AdminTrip[] | null>(null);
   const [dining, setDining] = useState<AdminDining | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [busy, setBusy] = useState<'journal' | 'dining' | 'reviews' | null>(null);
+  const [busy, setBusy] = useState<'journal' | 'dining' | 'reviews' | 'notes' | null>(null);
   const [reviewsText, setReviewsText] = useState('');
+  const [notesText, setNotesText] = useState('');
+
+  async function saveNotes() {
+    setBusy('notes');
+    try {
+      const saved = await fetchJson<AdminDining & { rebuild: string }>('/admin/dining/notes', {
+        method: 'POST',
+        body: { text: notesText },
+      });
+      setDining(saved);
+      setNotesText('');
+      const notes = saved.notes ?? [];
+      const shown = notes.filter((note) => note.public).length;
+      toast.success(
+        `Saved ${notes.length} notes; ${shown} public, ${notes.length - shown} hidden by the filters. ${REBUILD_NOTE[saved.rebuild] ?? 'The site rebuild could not be started.'}`,
+      );
+    } catch (error) {
+      toast.error(messageOf(error));
+    } finally {
+      setBusy(null);
+    }
+  }
 
   async function saveReviews() {
     setBusy('reviews');
@@ -289,6 +312,59 @@ export function TravelDataSettings() {
                   </span>
                   <span className="shrink-0 text-xs text-slate-500">
                     {review.public ? 'public' : `hidden: ${review.hiddenBecause.join(', ')}`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
+      </div>
+
+      <div className="space-y-3 border-t pt-5">
+        <h3 className="font-medium">Notes</h3>
+        <p className="text-sm text-slate-600 dark:text-slate-400">
+          Places with an address, a score and a line on what they are:{' '}
+          <code>* Name (address) – 4.5/5. What it is.</code> Only the city and state are kept. Each
+          note lands on the place it names (or adds one) and gives it a city, so home-area places
+          are caught. Scores show as plain text, never as your stars. Saving replaces all notes.
+        </p>
+        <label className="block">
+          <span className="sr-only">Notes</span>
+          <textarea
+            value={notesText}
+            onChange={(event) => setNotesText(event.target.value)}
+            rows={8}
+            placeholder={
+              'Out-of-State Dining (Travel)\n * Some Place (City, ST) – 4.6/5. What it is.'
+            }
+            className="w-full rounded border p-2 font-mono text-sm dark:bg-slate-900"
+          />
+        </label>
+        <button
+          type="button"
+          onClick={saveNotes}
+          disabled={busy !== null || !notesText.trim()}
+          className="rounded bg-slate-900 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:opacity-50 dark:bg-slate-100 dark:text-slate-900"
+        >
+          {busy === 'notes' ? 'Saving…' : 'Save notes'}
+        </button>
+        {dining?.notes && dining.notes.length > 0 && (
+          <details className="rounded border p-3 text-sm">
+            <summary className="cursor-pointer font-medium">
+              {dining.notes.filter((note) => note.public).length} of {dining.notes.length} notes
+              public
+            </summary>
+            <ul className="mt-2 max-h-80 space-y-1 overflow-y-auto">
+              {dining.notes.map((note) => (
+                <li key={note.name} className="flex justify-between gap-3">
+                  <span>
+                    {note.name}
+                    {note.matched.length === 0 && (
+                      <span className="text-slate-500"> (new place)</span>
+                    )}
+                  </span>
+                  <span className="shrink-0 text-xs text-slate-500">
+                    {note.public ? 'public' : `hidden: ${note.hiddenBecause.join(', ')}`}
                   </span>
                 </li>
               ))}

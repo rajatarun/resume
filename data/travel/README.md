@@ -30,7 +30,9 @@ other countries. A trip is told at the first place it pinned; its other places
 point back to it. A review sits in the chapter of the place its city or its own
 words name ("a stylish LA atmosphere" goes to Los Angeles; `PLACE_WORDS` in
 `lib/travel/model.ts`); the rest close the page as two chapters, cafés and
-restaurants. Places with no story yet end it in a sentence.
+restaurants. Notes (a place's one-line description and public score, with the
+city from its address) put a place in its city's chapter under "Where I ate"; the
+score shows as plain text, never as stars, since it is not Tarun's rating. Places with no story yet end it in a sentence.
 
 ## How it lands on the map
 
