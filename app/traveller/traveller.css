@@ -1,0 +1,141 @@
+/*
+ * /traveller follows the homepage design that is live (data-home on <html>,
+ * set before first paint by lib/homeDesignBoot.ts on every page), so the
+ * map looks like the site the visitor just came from. Every colour and font
+ * on the page is one of these tokens; components/traveller/ never names a
+ * colour itself.
+ *
+ *   midnight   - the site's own slate look; follows the light/dark toggle.
+ *   prism      - the walk's warm dark: always dark, serif display, mono labels.
+ *   terracotta - a rust hero band over cream paper, serif display, mono labels.
+ *
+ * Map colours: a pin must stand 3:1 off both the land and the visited fill
+ * (WCAG 1.4.11), and "visited" is never colour alone - the pins and the
+ * list say it too.
+ */
+.traveller {
+  /* midnight, light (also the no-attribute fallback) */
+  --tv-bg: #f8fafc;
+  --tv-ink: #0f172a;
+  --tv-muted: #475569;
+  --tv-faint: #64748b;
+  --tv-surface: #ffffff;
+  --tv-border: #e2e8f0;
+  --tv-hero-bg: linear-gradient(135deg, #020617 0%, #0f172a 55%, #082f49 100%);
+  --tv-hero-ink: #ffffff;
+  --tv-hero-muted: #cbd5e1;
+  --tv-kicker: #7dd3fc;
+  --tv-sea: #f0f9ff;
+  --tv-land: #e2e8f0;
+  --tv-edge: #ffffff;
+  --tv-visited: #bae6fd;
+  --tv-pin: #0369a1;
+  --tv-pin-ring: #ffffff;
+  --tv-chip-bg: #ffffff;
+  --tv-chip-border: #cbd5e1;
+  --tv-chip-on-bg: #0f172a;
+  --tv-chip-on-ink: #ffffff;
+  --tv-row-active: #e0f2fe;
+  --tv-row-hover: #f1f5f9;
+  --tv-tip-bg: #ffffff;
+  --tv-display: inherit;
+  --tv-body: inherit;
+  --tv-label: inherit;
+  --tv-title-weight: 600;
+  background: var(--tv-bg);
+  color: var(--tv-ink);
+  font-family: var(--tv-body);
+}
+
+.dark .traveller {
+  --tv-bg: #020617;
+  --tv-ink: #f1f5f9;
+  --tv-muted: #cbd5e1;
+  --tv-faint: #94a3b8;
+  --tv-surface: #0f172a;
+  --tv-border: #1e293b;
+  --tv-sea: #111c33;
+  --tv-land: #334155;
+  --tv-edge: #0f172a;
+  --tv-visited: #0c4a6e;
+  --tv-pin: #38bdf8;
+  --tv-pin-ring: #0f172a;
+  --tv-chip-bg: #0f172a;
+  --tv-chip-border: #334155;
+  --tv-chip-on-bg: #f1f5f9;
+  --tv-chip-on-ink: #0f172a;
+  --tv-row-active: #0c4a6e;
+  --tv-row-hover: #1e293b;
+  --tv-tip-bg: #1e293b;
+}
+
+/* prism: always dark, whatever the site toggle says, like its landing. */
+html[data-home='prism'] .traveller {
+  --tv-bg: #1c120e;
+  --tv-ink: #fbf3ea;
+  --tv-muted: #e9d3c4;
+  --tv-faint: #bfa797;
+  --tv-surface: #251813;
+  --tv-border: #3d2a21;
+  --tv-hero-bg: radial-gradient(120% 140% at 85% 0%, #4a1a0a 0%, #1c120e 60%);
+  --tv-hero-ink: #fbe3d4;
+  --tv-hero-muted: #e9d3c4;
+  --tv-kicker: #f7c9b0;
+  --tv-sea: #1f140f;
+  --tv-land: #3b2a21;
+  --tv-edge: #251813;
+  --tv-visited: #6a301c;
+  --tv-pin: #f0714a;
+  --tv-pin-ring: #1c120e;
+  --tv-chip-bg: transparent;
+  --tv-chip-border: rgba(251, 243, 234, 0.3);
+  --tv-chip-on-bg: #fbf3ea;
+  --tv-chip-on-ink: #1c120e;
+  --tv-row-active: #4a2416;
+  --tv-row-hover: #2e1e17;
+  --tv-tip-bg: #2e1e17;
+  --tv-display: var(--font-display), Georgia, serif;
+  --tv-body: var(--font-body), Georgia, serif;
+  --tv-label: var(--font-mono), ui-monospace, monospace;
+  --tv-title-weight: 400;
+}
+
+/* terracotta: the hero's rust band, then its cream paper. Light only, like its homepage. */
+html[data-home='terracotta'] .traveller {
+  --tv-bg: #f6f2ea;
+  --tv-ink: #1c1917;
+  --tv-muted: #44403c;
+  --tv-faint: #78716c;
+  --tv-surface: #fbf8f2;
+  --tv-border: #ddd3c3;
+  --tv-hero-bg: linear-gradient(180deg, #622410 0%, #76301a 50%, #8c4224 100%);
+  --tv-hero-ink: #fbf3ea;
+  --tv-hero-muted: #fbe3d4;
+  --tv-kicker: #f7c9b0;
+  --tv-sea: #efe9d9;
+  --tv-land: #e2d8c6;
+  --tv-edge: #fbf8f2;
+  --tv-visited: #f2c4ab;
+  --tv-pin: #a8492a;
+  --tv-pin-ring: #fbf8f2;
+  --tv-chip-bg: transparent;
+  --tv-chip-border: #c9bba5;
+  --tv-chip-on-bg: #1c1917;
+  --tv-chip-on-ink: #fbf3ea;
+  --tv-row-active: #f2dccd;
+  --tv-row-hover: #efe7da;
+  --tv-tip-bg: #fbf8f2;
+  --tv-display: var(--font-display), Georgia, serif;
+  --tv-body: var(--font-body), Georgia, serif;
+  --tv-label: var(--font-mono), ui-monospace, monospace;
+  --tv-title-weight: 400;
+}
+
+/* Headings and the big numbers: the design's display face at its own weight. */
+.traveller .tv-title {
+  font-family: var(--tv-display);
+  font-weight: var(--tv-title-weight);
+}
+.traveller .tv-label {
+  font-family: var(--tv-label);
+}

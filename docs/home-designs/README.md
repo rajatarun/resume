@@ -42,6 +42,16 @@ starts downloading it.
 4. Add a 640×400 thumbnail at `public/home-designs/<name>.jpg` and a section
    here with screenshots (desktop 1440×900, full page, and mobile 390×844),
    taken with `/?home=<name>`.
+5. Give `/traveller` its look: a `html[data-home='<name>'] .traveller { … }`
+   block in `app/traveller/traveller.css` setting every colour token, and its
+   nav tones in `NAV_TONES` (`components/traveller/TravellerFrame.tsx`, typed
+   over every design). `__tests__/travellerTheme.test.ts` fails until the
+   block exists. Check it with `/traveller?home=<name>`.
+
+**Pages that follow the design.** `/traveller` is themed by the live design
+too, nav included (`DESIGN_THEMED_ROUTES` in `components/TopNav.tsx`): warm
+dark for prism, a rust band over cream for terracotta, the slate site look
+(light or dark) for midnight.
 
 The content API only checks a name's shape, so a new design needs no backend
 change.

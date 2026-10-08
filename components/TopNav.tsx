@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { useAccount } from "wagmi";
 import { Web3NavControls } from "@/components/web3/Web3NavControls";
 import { HOME_NAV_STYLES } from "@/lib/featureFlags";
+import { useActiveHomeDesign } from "@/lib/homeDesign";
 
 type NavTone = "hero" | "light" | "dark" | "accent";
 
@@ -18,6 +19,9 @@ type NavTone = "hero" | "light" | "dark" | "accent";
  */
 function useNavTone(enabled: boolean): NavTone {
   const [tone, setTone] = useState<NavTone>("hero");
+  // A page themed by the design (/traveller) changes its sections' tones when
+  // the saved design arrives; re-read them then, not only on the next scroll.
+  const design = useActiveHomeDesign();
 
   useEffect(() => {
     if (!enabled) return;
@@ -43,7 +47,7 @@ function useNavTone(enabled: boolean): NavTone {
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
     };
-  }, [enabled]);
+  }, [enabled, design]);
 
   return tone;
 }
@@ -206,14 +210,20 @@ function DesktopDropdown({ label, items, currentPathname, glass }: NavGroup & { 
 }
 
 /**
- * On the homepage both bars are rendered and the CSS inlined in <head>
+ * Pages that take the live homepage design's look, nav included: the
+ * homepage, and /traveller (app/traveller/traveller.css).
+ */
+export const DESIGN_THEMED_ROUTES: ReadonlySet<string> = new Set(["/", "/traveller"]);
+
+/**
+ * On those pages both bars are rendered and the CSS inlined in <head>
  * (lib/homeDesignBoot.ts) shows the one the live design declares. That is
  * decided before first paint, so a design never shows with the other
  * design's nav while the page's scripts load. Elsewhere: the standard bar.
  */
 export function TopNav() {
   const pathname = usePathname();
-  if (pathname !== "/") return <NavBar glass={false} />;
+  if (!DESIGN_THEMED_ROUTES.has(pathname)) return <NavBar glass={false} />;
   return (
     <>
       {HOME_NAV_STYLES.map((style) => (

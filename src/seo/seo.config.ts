@@ -12,7 +12,7 @@ export const baseUrl = "https://tarunraja.info";
 export const githubUrl = `https://github.com/${process.env.GITHUB_USER}`;
 export const linkedInUrl = `https://www.linkedin.com/in/${process.env.LINKEDIN_USER}`;
 
-export const seoRoutes = ["/", "/resume", "/portfolio", "/about", "/labs", "/blog", "/contact", "/publications"] as const;
+export const seoRoutes = ["/", "/resume", "/portfolio", "/about", "/labs", "/blog", "/contact", "/publications", "/traveller"] as const;
 
 const sharedImages = [{ url: "/profile-photo.PNG", width: 1200, height: 630, alt: "Tarun Raja" }];
 
@@ -153,6 +153,23 @@ export const routeMetadata: Record<(typeof seoRoutes)[number], Metadata> = {
       card: "summary_large_image",
       title: "Tarun Raja — Publications",
       description: "Zenodo preprints by Tarun Raja, with author, DOI, and record links for each preprint.",
+      images: ["/profile-photo.PNG"]
+    }
+  },
+  "/traveller": {
+    title: "Tarun Raja — Traveller",
+    description: "Places Tarun Raja has travelled to, pinned on a map: cities and national parks across the United States, filterable by country.",
+    alternates: { canonical: "/traveller" },
+    openGraph: {
+      title: "Tarun Raja — Traveller",
+      description: "Places Tarun Raja has travelled to, pinned on a map: cities and national parks across the United States, filterable by country.",
+      url: "/traveller",
+      images: sharedImages
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Tarun Raja — Traveller",
+      description: "Places Tarun Raja has travelled to, pinned on a map: cities and national parks across the United States, filterable by country.",
       images: ["/profile-photo.PNG"]
     }
   }

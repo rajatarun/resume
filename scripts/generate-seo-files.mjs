@@ -9,7 +9,7 @@ for (const key of requiredEnv) {
 }
 
 const baseUrl = "https://main.d1082kyye5hmz4.amplifyapp.com";
-const routes = ["/", "/resume", "/portfolio", "/recruiter", "/labs", "/blog", "/contact", "/publications"];
+const routes = ["/", "/resume", "/portfolio", "/recruiter", "/labs", "/blog", "/contact", "/publications", "/traveller"];
 
 const urlTag = (route) => `  <url>\n    <loc>${baseUrl}${route}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>${route === "/" ? "1.0" : "0.8"}</priority>\n  </url>`;
 

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/components/admin/ToastProvider";
 import { HomeDesignSettings } from "@/components/admin/HomeDesignSettings";
+import { TravelDataSettings } from "@/components/admin/TravelDataSettings";
 
 type Settings = { defaultHashtags: string; voiceRules: string };
 const KEY = "admin-settings";
@@ -26,6 +27,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <HomeDesignSettings />
+      <TravelDataSettings />
       <form
         className="space-y-3"
         aria-label="Content defaults (saved in this browser only)"

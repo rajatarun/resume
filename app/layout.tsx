@@ -37,8 +37,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       {/* Picks the homepage design, and the nav that goes with it, before
           anything paints (lib/homeDesignBoot.ts). It sets data-home on <html>,
-          which is why <html> suppresses hydration warnings. Matches nothing
-          on other pages. */}
+          which is why <html> suppresses hydration warnings. /traveller is
+          themed from it too; elsewhere it matches nothing. */}
       <head>
         <style dangerouslySetInnerHTML={{ __html: homeDesignCss() }} />
         <script dangerouslySetInnerHTML={{ __html: homeDesignBootScript() }} />
