@@ -517,7 +517,7 @@ export interface TravelStory {
   chapters: StoryChapter[];
   /** Map pin -> the chapter that tells it (its own, or the trip's that folded it in). */
   chapterOfPin: Record<string, string>;
-  /** Reviewed places no text ties to a pin, as two closing chapters. */
+  /** Places no city or text ties to a pin, as two closing chapters. */
   cafes: DiningSpot[];
   tables: DiningSpot[];
   /** Pins with no story yet, by country, for the closing paragraph. */
@@ -633,19 +633,18 @@ export function buildStory(
   const tables: DiningSpot[] = [];
   for (const spot of dining) {
     const pinId = spot.pinId ?? pinFromText(spot.review, places)?.id ?? null;
-    const chapterId = pinId ? chapterOfPin[pinId] : undefined;
-    const pinCountry = pinId ? byId.get(pinId)!.country : '';
-    if (spot.review) {
-      if (pinId) chapterFor(pinId, pinCountry).reviews.push(spot);
-      else (spot.category === 'restaurant' ? tables : cafes).push(spot);
-    } else if (spot.note) {
-      // A described place is enough for a chapter of its own.
-      if (pinId) {
-        const chapter = chapterId ? chapters.get(chapterId)! : chapterFor(pinId, pinCountry);
-        chapter.stops.push(spot);
-      } else (spot.category === 'restaurant' ? tables : cafes).push(spot);
-    } else if (chapterId) {
-      chapters.get(chapterId)!.stops.push(spot);
+    // Every place is told somewhere: a review in its pin's own chapter, any
+    // other place in the chapter that tells its pin (or one of its own), and
+    // a place no city or text pins in the closing cafés or tables. Most of
+    // the card export has no city, so dropping those would drop most of it.
+    if (!pinId) (spot.category === 'restaurant' ? tables : cafes).push(spot);
+    else if (spot.review) chapterFor(pinId, byId.get(pinId)!.country).reviews.push(spot);
+    else {
+      const chapterId = chapterOfPin[pinId];
+      const chapter = chapterId
+        ? chapters.get(chapterId)!
+        : chapterFor(pinId, byId.get(pinId)!.country);
+      chapter.stops.push(spot);
     }
   }
   for (const pinId of Object.keys(chapterOfPin)) {

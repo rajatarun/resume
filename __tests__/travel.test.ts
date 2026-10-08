@@ -393,6 +393,37 @@ describe('the story', () => {
     expect(noted.cafes.map((s) => s.name)).toEqual(['Bean Lab']);
   });
 
+  it('keeps every place: bare ones go to their pin or the closing chapters', () => {
+    const bare = (name: string, pinId: string | null, category: 'cafe' | 'restaurant') => ({
+      name,
+      category,
+      city: null,
+      pinId,
+      rating: null,
+      review: null,
+      note: null,
+      score: null,
+    });
+    const told = buildStory(
+      places,
+      trips,
+      [
+        bare('Harbor Fry', 'us-boston', 'restaurant'),
+        bare('Valley Diner', 'us-los-angeles', 'restaurant'),
+        bare('Morning Cup', null, 'cafe'),
+        bare('Tin Plate', null, 'restaurant'),
+      ],
+      name,
+    );
+    const stopsAt = (title: string) =>
+      told.chapters.find((c) => c.title === title)!.stops.map((s) => s.name);
+    expect(stopsAt('Boston')).toEqual(['Harbor Fry']);
+    // No trip came here, and the place alone still earns the pin a chapter.
+    expect(stopsAt('Los Angeles')).toEqual(['Valley Diner']);
+    expect(told.cafes.map((s) => s.name)).toEqual(['Morning Cup']);
+    expect(told.tables.map((s) => s.name)).toEqual(['Tin Plate']);
+  });
+
   it('joins names the way a sentence does', () => {
     expect(joinNames(['A'])).toBe('A');
     expect(joinNames(['A', 'B'])).toBe('A and B');

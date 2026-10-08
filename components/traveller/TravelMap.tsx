@@ -349,6 +349,7 @@ export function TravelMap({
               kicker="Wherever I am"
               title="Coffee, wherever I am"
               intro="The cafés and bakeries I keep going back to, in my own words."
+              plainIntro="And the others I have stopped at:"
               spots={story.cafes}
             />
           )}
@@ -358,6 +359,7 @@ export function TravelMap({
               kicker="Wherever I am"
               title="Tables I come back to"
               intro="And the restaurants, for when coffee turns into a meal."
+              plainIntro="I have also eaten at"
               spots={story.tables}
             />
           )}
@@ -564,18 +566,21 @@ function Noted({ spot }: { spot: DiningSpot }) {
   );
 }
 
-/** The reviews no place on the map claims, as a chapter of their own. */
+/** The places no pin on the map claims, as a chapter of their own. */
 function ReviewChapter({
   id,
   kicker,
   title,
   intro,
+  plainIntro,
   spots,
 }: {
   id: string;
   kicker: string;
   title: string;
   intro: string;
+  /** Leads into the list of places with no words of their own yet. */
+  plainIntro: string;
   spots: DiningSpot[];
 }) {
   return (
@@ -590,17 +595,23 @@ function ReviewChapter({
         .map((spot) => (
           <Review key={spot.name} spot={spot} />
         ))}
-      {spots.some((spot) => !spot.review) && (
+      {spots.some((spot) => !spot.review && spot.note) && (
         <div className="mt-8">
           <p className="tv-label text-[11px] uppercase tracking-[0.2em] text-[var(--tv-faint)]">
             More worth a stop
           </p>
           {spots
-            .filter((spot) => !spot.review)
+            .filter((spot) => !spot.review && spot.note)
             .map((spot) => (
               <Noted key={spot.name} spot={spot} />
             ))}
         </div>
+      )}
+      {spots.some((spot) => !spot.review && !spot.note) && (
+        <p className="mt-6 leading-relaxed text-[var(--tv-muted)]">
+          {plainIntro}{' '}
+          {joinNames(spots.filter((spot) => !spot.review && !spot.note).map((spot) => spot.name))}.
+        </p>
       )}
     </article>
   );
