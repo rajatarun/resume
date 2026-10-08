@@ -481,3 +481,199 @@ export function placeDining(
     review: spot.review ?? null,
   }));
 }
+
+// -- the story ---------------------------------------------------------------
+
+/** One chapter of /traveller: a place, and everything that happened there. */
+export interface StoryChapter {
+  /** The element id, for links and the map. */
+  id: string;
+  /** The pin it is about; null for "elsewhere in a country". */
+  pinId: string | null;
+  country: string;
+  title: string;
+  /** "Oregon · United States". */
+  where: string;
+  /** Trips told here: this is the first place each one pinned. */
+  trips: JournalTrip[];
+  /** Pins those trips also passed through that have no chapter of their own. */
+  withPins: string[];
+  /** Trips told in another chapter that also came here. */
+  alsoIn: { trip: JournalTrip; chapterId: string }[];
+  reviews: DiningSpot[];
+  /** Cafés and restaurants here with no review. */
+  stops: DiningSpot[];
+}
+
+export interface TravelStory {
+  chapters: StoryChapter[];
+  /** Map pin -> the chapter that tells it (its own, or the trip's that folded it in). */
+  chapterOfPin: Record<string, string>;
+  /** Reviewed places no text ties to a pin, as two closing chapters. */
+  cafes: DiningSpot[];
+  tables: DiningSpot[];
+  /** Pins with no story yet, by country, for the closing paragraph. */
+  passedThrough: { country: string; pinIds: string[] }[];
+}
+
+/**
+ * Words in a review that place it, besides pin names themselves ("a stylish
+ * LA atmosphere", "an Upper Peninsula tavern"). Keys are pin names.
+ */
+const PLACE_WORDS: Record<string, readonly string[]> = {
+  'Los Angeles': ['LA', 'L.A.', 'Los Angeles'],
+  'Mackinac Island': ['Upper Peninsula', 'Mackinac'],
+  'New York City': ['NYC', 'Manhattan', 'Brooklyn', 'New York City'],
+  'San Francisco Bay Area': ['San Francisco', 'Bay Area'],
+};
+
+/** The pin a review's own words place it at, if they name one. */
+export function pinFromText(
+  text: string | null,
+  places: readonly TravelPlace[],
+): TravelPlace | null {
+  if (!text) return null;
+  const says = (phrase: string) =>
+    new RegExp(`(^|[^A-Za-z])${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^A-Za-z]|$)`).test(
+      text,
+    );
+  for (const place of places) {
+    const words = PLACE_WORDS[place.name] ?? [];
+    if ([place.name, ...words].some(says)) return place;
+  }
+  return null;
+}
+
+const US_REGION_ORDER = [
+  'Pacific Northwest & Rockies',
+  'California & the Southwest',
+  'Texas & the Gulf',
+  'Midwest & Mid-South',
+  'Northeast',
+  'Southeast',
+];
+
+/**
+ * Every place as a chapter, in the order of a journey rather than a calendar
+ * (there are no dates to follow): the United States first, west to east
+ * region by region, then each other country west to east.
+ */
+export function buildStory(
+  places: readonly TravelPlace[],
+  trips: readonly JournalTrip[],
+  dining: readonly DiningSpot[],
+  countryName: (code: string) => string,
+): TravelStory {
+  const byId = new Map(places.map((place) => [place.id, place]));
+  const chapters = new Map<string, StoryChapter>();
+  const chapterOfPin: Record<string, string> = {};
+
+  const chapterFor = (pinId: string | null, country: string): StoryChapter => {
+    const id = pinId ? `story-${pinId}` : `story-elsewhere-${country.toLowerCase()}`;
+    let chapter = chapters.get(id);
+    if (!chapter) {
+      const pin = pinId ? byId.get(pinId) : undefined;
+      chapter = {
+        id,
+        pinId,
+        country,
+        title: pin
+          ? pin.name
+          : `Elsewhere in ${country === 'US' ? 'the ' : ''}${countryName(country)}`,
+        where: pin
+          ? [pin.region && pin.region !== pin.name ? pin.region : null, countryName(country)]
+              .filter(Boolean)
+              .join(' · ')
+          : countryName(country),
+        trips: [],
+        withPins: [],
+        alsoIn: [],
+        reviews: [],
+        stops: [],
+      };
+      chapters.set(id, chapter);
+      if (pinId) chapterOfPin[pinId] = id;
+    }
+    return chapter;
+  };
+
+  // A trip is told at the first place it pinned.
+  for (const trip of trips) {
+    const first = trip.placeIds[0];
+    const country = first ? byId.get(first)!.country : (trip.countries[0] ?? 'US');
+    chapterFor(first ?? null, country).trips.push(trip);
+  }
+  // Its other places: a line in their own chapter if they have one, else
+  // folded into this one.
+  for (const trip of trips) {
+    const home = trip.placeIds[0] ? chapterOfPin[trip.placeIds[0]] : undefined;
+    if (!home) continue;
+    for (const pinId of trip.placeIds.slice(1)) {
+      const own = chapterOfPin[pinId];
+      if (own && own !== home) chapters.get(own)!.alsoIn.push({ trip, chapterId: home });
+      else if (!own) {
+        const chapter = chapters.get(home)!;
+        if (!chapter.withPins.includes(pinId)) chapter.withPins.push(pinId);
+      }
+    }
+  }
+  for (const chapter of chapters.values()) {
+    for (const pinId of chapter.withPins) chapterOfPin[pinId] ??= chapter.id;
+  }
+
+  const cafes: DiningSpot[] = [];
+  const tables: DiningSpot[] = [];
+  for (const spot of dining) {
+    const pinId = spot.pinId ?? pinFromText(spot.review, places)?.id ?? null;
+    const chapterId = pinId ? chapterOfPin[pinId] : undefined;
+    if (spot.review) {
+      if (pinId) chapterFor(pinId, byId.get(pinId)!.country).reviews.push(spot);
+      else (spot.category === 'restaurant' ? tables : cafes).push(spot);
+    } else if (chapterId) {
+      chapters.get(chapterId)!.stops.push(spot);
+    }
+  }
+  for (const pinId of Object.keys(chapterOfPin)) {
+    // A review may have made a chapter for a pin a trip had folded elsewhere.
+    if (chapters.has(`story-${pinId}`)) chapterOfPin[pinId] = `story-${pinId}`;
+  }
+
+  const regionRank = (pin: TravelPlace | undefined) =>
+    pin ? US_REGION_ORDER.indexOf(listGroupOf(pin, countryName)) : 99;
+  const countryRank = (code: string) => (code === 'US' ? '' : countryName(code));
+  const ordered = Array.from(chapters.values()).sort((a, b) => {
+    const pa = a.pinId ? byId.get(a.pinId) : undefined;
+    const pb = b.pinId ? byId.get(b.pinId) : undefined;
+    return (
+      countryRank(a.country).localeCompare(countryRank(b.country)) ||
+      Number(!pa) - Number(!pb) ||
+      (a.country === 'US' ? regionRank(pa) - regionRank(pb) : 0) ||
+      (pa?.lng ?? 0) - (pb?.lng ?? 0)
+    );
+  });
+
+  const told = new Set(Object.keys(chapterOfPin));
+  const passed = new Map<string, string[]>();
+  for (const place of places) {
+    if (told.has(place.id)) continue;
+    passed.set(place.country, [...(passed.get(place.country) ?? []), place.id]);
+  }
+
+  return {
+    chapters: ordered,
+    chapterOfPin,
+    cafes: cafes.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0) || a.name.localeCompare(b.name)),
+    tables: tables.sort(
+      (a, b) => (b.rating ?? 0) - (a.rating ?? 0) || a.name.localeCompare(b.name),
+    ),
+    passedThrough: Array.from(passed, ([country, pinIds]) => ({ country, pinIds })).sort((a, b) =>
+      countryRank(a.country).localeCompare(countryRank(b.country)),
+    ),
+  };
+}
+
+/** "a", "a and b", "a, b and c". */
+export function joinNames(names: readonly string[]): string {
+  if (names.length <= 1) return names[0] ?? '';
+  return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+}

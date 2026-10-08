@@ -14,7 +14,10 @@ import { loadTravelData } from '../lib/travel/load';
 import {
   groupPlaces,
   isInstagramPost,
+  buildStory,
+  joinNames,
   mergeTravelData,
+  pinFromText,
   pinForCity,
   placeDining,
   travelStats,
@@ -269,5 +272,93 @@ describe('cafés and restaurants', () => {
       },
     ]);
     expect(skipped[0]).toMatch(/^dining place 1: category:/);
+  });
+});
+
+describe('the story', () => {
+  const base: RawPlace[] = [
+    { city: 'Seattle', region: 'Washington', countryCode: 'US', lat: 47.6, lng: -122.3 },
+    { city: 'Portland', region: 'Oregon', countryCode: 'US', lat: 45.5, lng: -122.7 },
+    { city: 'Los Angeles', region: 'California', countryCode: 'US', lat: 34.05, lng: -118.24 },
+    { city: 'Boston', region: 'Massachusetts', countryCode: 'US', lat: 42.36, lng: -71.06 },
+    { city: 'Mackinac Island', region: 'Michigan', countryCode: 'US', lat: 45.85, lng: -84.62 },
+  ];
+  const loop = trip({
+    key: 'loop',
+    title: 'Coast Loop',
+    places: [
+      { city: 'Portland', countryCode: 'US', lat: 45.5, lng: -122.7 },
+      { city: 'Seattle', countryCode: 'US', lat: 47.6, lng: -122.3 },
+    ],
+  });
+  const seattleOnly = trip({
+    key: 'rain',
+    title: 'Rainy Weekend',
+    places: [{ city: 'Seattle', countryCode: 'US', lat: 47.6, lng: -122.3 }],
+  });
+  const east = trip({
+    key: 'east',
+    title: 'Harbor Days',
+    places: [{ city: 'Boston', countryCode: 'US', lat: 42.36, lng: -71.06 }],
+  });
+  const nowhere = trip({ key: 'lost', title: 'Somewhere Quiet', places: [{ countryCode: 'US' }] });
+  const { places, trips } = mergeTravelData(base, [east, loop, seattleOnly, nowhere]);
+  const review = (name: string, text: string, category: 'cafe' | 'restaurant' = 'restaurant') => ({
+    name,
+    category,
+    city: null,
+    pinId: null,
+    rating: 5,
+    review: text,
+  });
+  const story = buildStory(
+    places,
+    trips,
+    [
+      review('Sunset Table', 'A stylish LA room with great wine.'),
+      review('Pine Tavern', 'A real Upper Peninsula tavern.'),
+      review('Corner Bean', 'Great pour-overs.', 'cafe'),
+      review('Night Market', 'Noodles until late.'),
+    ],
+    name,
+  );
+  const chapter = (title: string) => story.chapters.find((c) => c.title === title)!;
+
+  it('tells a trip at its first place, and points back to it from the others', () => {
+    expect(chapter('Portland').trips.map((t) => t.title)).toEqual(['Coast Loop']);
+    expect(chapter('Seattle').trips.map((t) => t.title)).toEqual(['Rainy Weekend']);
+    expect(chapter('Seattle').alsoIn).toEqual([
+      { trip: expect.objectContaining({ key: 'loop' }), chapterId: 'story-us-portland' },
+    ]);
+  });
+
+  it('runs west to east, with an "elsewhere" chapter for trips no pin holds', () => {
+    expect(story.chapters.map((c) => c.title)).toEqual([
+      'Portland',
+      'Seattle',
+      'Los Angeles',
+      'Mackinac Island',
+      'Boston',
+      'Elsewhere in the United States',
+    ]);
+  });
+
+  it('places a review where its words do, and gathers the rest by kind', () => {
+    expect(chapter('Los Angeles').reviews.map((r) => r.name)).toEqual(['Sunset Table']);
+    expect(chapter('Mackinac Island').reviews.map((r) => r.name)).toEqual(['Pine Tavern']);
+    expect(story.cafes.map((r) => r.name)).toEqual(['Corner Bean']);
+    expect(story.tables.map((r) => r.name)).toEqual(['Night Market']);
+    expect(story.chapterOfPin['us-mackinac-island']).toBe('story-us-mackinac-island');
+  });
+
+  it('only reads a place name as a whole word', () => {
+    expect(pinFromText('Classic Parisian charm', places)).toBeNull();
+    expect(pinFromText('Best tacos in LA, honestly', places)?.name).toBe('Los Angeles');
+  });
+
+  it('joins names the way a sentence does', () => {
+    expect(joinNames(['A'])).toBe('A');
+    expect(joinNames(['A', 'B'])).toBe('A and B');
+    expect(joinNames(['A', 'B', 'C'])).toBe('A, B and C');
   });
 });

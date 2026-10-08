@@ -23,6 +23,15 @@ the content API, and what the site gets from it has been cut down there.
 - **Instagram links** to the photos in the journal, post and reel URLs only.
   Instagram shows each post's own date; that is Instagram's page, not this one.
 
+## How it reads
+
+The page is a story, not a list: one chapter per place, west to east, then
+other countries. A trip is told at the first place it pinned; its other places
+point back to it. A review sits in the chapter of the place its city or its own
+words name ("a stylish LA atmosphere" goes to Los Angeles; `PLACE_WORDS` in
+`lib/travel/model.ts`); the rest close the page as two chapters, cafés and
+restaurants. Places with no story yet end it in a sentence.
+
 ## How it lands on the map
 
 - A trip's place within 30 km of a pin in the same country _is_ that pin
