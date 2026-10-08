@@ -531,8 +531,11 @@ export interface TravelStory {
 const PLACE_WORDS: Record<string, readonly string[]> = {
   'Los Angeles': ['LA', 'L.A.', 'Los Angeles'],
   'Mackinac Island': ['Upper Peninsula', 'Mackinac'],
+  Miami: ['South Beach', 'Miami Beach'],
   'New York City': ['NYC', 'Manhattan', 'Brooklyn', 'New York City'],
+  Orlando: ['Islands of Adventure', 'Universal Orlando'],
   'San Francisco Bay Area': ['San Francisco', 'Bay Area'],
+  Washington: ['DC', 'D.C.'],
 };
 
 /** The pin a review's own words place it at, if they name one. */

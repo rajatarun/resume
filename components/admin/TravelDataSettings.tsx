@@ -81,6 +81,7 @@ export function TravelDataSettings() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<'journal' | 'dining' | 'reviews' | 'notes' | null>(null);
   const [reviewsText, setReviewsText] = useState('');
+  const [replaceReviews, setReplaceReviews] = useState(false);
   const [notesText, setNotesText] = useState('');
 
   async function saveNotes() {
@@ -109,14 +110,15 @@ export function TravelDataSettings() {
     try {
       const saved = await fetchJson<AdminDining & { rebuild: string }>('/admin/dining/reviews', {
         method: 'POST',
-        body: { text: reviewsText },
+        body: { text: reviewsText, replace: replaceReviews },
       });
       setDining(saved);
       setReviewsText('');
+      setReplaceReviews(false);
       const reviews = saved.reviews ?? [];
       const shown = reviews.filter((review) => review.public).length;
       toast.success(
-        `Saved ${reviews.length} reviews; ${shown} public, ${reviews.length - shown} hidden by the filters. ${REBUILD_NOTE[saved.rebuild] ?? 'The site rebuild could not be started.'}`,
+        `${reviews.length} reviews saved in all; ${shown} public, ${reviews.length - shown} hidden by the filters. ${REBUILD_NOTE[saved.rebuild] ?? 'The site rebuild could not be started.'}`,
       );
     } catch (error) {
       toast.error(messageOf(error));
@@ -274,8 +276,10 @@ export function TravelDataSettings() {
         <h3 className="font-medium">Reviews</h3>
         <p className="text-sm text-slate-600 dark:text-slate-400">
           Paste your reviews as you write them: section headings, then <code>Name — 4★</code> and a
-          paragraph. Each lands on the place it names (or adds one). Saving replaces all reviews. A
-          reviewed fast-food or home-area place stays off the public page.
+          paragraph. Each lands on the place it names (or adds one). Saving adds to the reviews
+          already saved; a place reviewed again takes the new review. A reviewed fast-food or
+          home-area place stays off the public page, and so does anything under a “Local DFW”
+          heading.
         </p>
         <label className="block">
           <span className="sr-only">Reviews</span>
@@ -286,6 +290,14 @@ export function TravelDataSettings() {
             placeholder={'Coffee Shops, Bakeries & Cafés\n\nSome Café — 5★\nWhat I like about it…'}
             className="w-full rounded border p-2 font-mono text-sm dark:bg-slate-900"
           />
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={replaceReviews}
+            onChange={(event) => setReplaceReviews(event.target.checked)}
+          />
+          Replace all saved reviews with these
         </label>
         <button
           type="button"
