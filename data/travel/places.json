@@ -451,6 +451,15 @@
       "lat": 29.3013,
       "lng": -94.7977,
       "kind": "nature"
+    },
+    {
+      "city": "Bengaluru",
+      "region": "Karnataka",
+      "country": "India",
+      "countryCode": "IN",
+      "lat": 12.9716,
+      "lng": 77.5946,
+      "kind": "city"
     }
   ]
 }
