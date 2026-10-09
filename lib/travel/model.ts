@@ -635,7 +635,11 @@ export function buildStory(
   const cafes: DiningSpot[] = [];
   const tables: DiningSpot[] = [];
   for (const spot of dining) {
-    const pinId = spot.pinId ?? pinFromText(spot.review, places)?.id ?? null;
+    // A review's own name is not where it is: "Paris Baguette" is a bakery chain.
+    const pinId =
+      spot.pinId ??
+      pinFromText(spot.review?.split(spot.name).join(' ') ?? null, places)?.id ??
+      null;
     // Every place is told somewhere: a review in its pin's own chapter, any
     // other place in the chapter that tells its pin (or one of its own), and
     // a place no city or text pins in the closing cafés or tables. Most of

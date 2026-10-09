@@ -355,6 +355,17 @@ describe('the story', () => {
     expect(story.chapterOfPin['us-mackinac-island']).toBe('story-us-mackinac-island');
   });
 
+  it('does not place a review by the place name in its own name', () => {
+    const named = buildStory(
+      places,
+      trips,
+      [review('Los Angeles Bakery', 'The Los Angeles Bakery near my office has great rolls.')],
+      name,
+    );
+    expect(named.tables.map((r) => r.name)).toEqual(['Los Angeles Bakery']);
+    expect(named.chapters.find((c) => c.title === 'Los Angeles')?.reviews ?? []).toEqual([]);
+  });
+
   it('only reads a place name as a whole word', () => {
     expect(pinFromText('Classic Parisian charm', places)).toBeNull();
     expect(pinFromText('Best tacos in LA, honestly', places)?.name).toBe('Los Angeles');
