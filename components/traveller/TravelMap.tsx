@@ -11,6 +11,11 @@ import {
   type TravelPlace,
 } from '@/lib/travel/model';
 import type { MapView } from '@/lib/travelMap';
+import {
+  POSTCARD_BY_PIN,
+  postcardSrc,
+  type Postcard as PostcardClip,
+} from '@/lib/travel/postcards';
 
 const MAP_WIDTH = 975;
 
@@ -444,6 +449,9 @@ function Chapter({
           and on to {joinNames(chapter.withPins.map(nameOf))}
         </p>
       )}
+      {chapter.pinId && POSTCARD_BY_PIN.has(chapter.pinId) && (
+        <Postcard card={POSTCARD_BY_PIN.get(chapter.pinId)!} />
+      )}
 
       {chapter.trips.map((trip) => (
         <TripStory key={trip.key} trip={trip} />
@@ -495,6 +503,51 @@ function Chapter({
         </button>
       )}
     </article>
+  );
+}
+
+/**
+ * A living postcard: one of my photos, animated. Nothing loads until it is
+ * nearly on screen (the poster is a small still), it plays only while in view,
+ * and with reduced motion it stays the still.
+ */
+function Postcard({ card }: { card: PostcardClip }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const video = ref.current;
+    if (!video || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          if (!video.getAttribute('src')) video.src = postcardSrc(card, 'mp4');
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      },
+      { threshold: 0.35 },
+    );
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, [card]);
+  return (
+    <figure className="mt-5">
+      <video
+        ref={ref}
+        poster={postcardSrc(card, 'webp')}
+        width={card.width}
+        height={card.height}
+        muted
+        loop
+        playsInline
+        preload="none"
+        aria-label={card.alt}
+        className="block h-auto w-full rounded-sm bg-[var(--tv-chip-border)]"
+      />
+      <figcaption className="tv-label mt-2 text-[11px] uppercase tracking-[0.15em] text-[var(--tv-faint)]">
+        {card.label} · from my photo, animated with Veo
+      </figcaption>
+    </figure>
   );
 }
 
