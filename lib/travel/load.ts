@@ -47,6 +47,76 @@ export const placeSchema: z.ZodType<RawPlace, z.ZodTypeDef, unknown> = z.object(
   radiusKm: z.number().positive().max(1000).nullish(),
 });
 
+const visitSchema = z.object({
+  name: z.string().trim().min(1),
+  note: nullableString.transform((v) => v ?? null),
+});
+const foodSchema = z.object({
+  name: z.string().trim().min(1),
+  category: z.enum(['cafe', 'restaurant', 'other dining']).catch('restaurant'),
+  rating: z
+    .number()
+    .int()
+    .min(1)
+    .max(5)
+    .nullish()
+    .transform((v) => v ?? null),
+  review: z
+    .string()
+    .trim()
+    .max(2000)
+    .nullish()
+    .transform((v) => v ?? null),
+  note: z
+    .string()
+    .trim()
+    .max(500)
+    .nullish()
+    .transform((v) => v ?? null),
+  score: z
+    .number()
+    .min(1)
+    .max(5)
+    .nullish()
+    .transform((v) => v ?? null),
+});
+const staySchema = z.object({
+  name: nullableString.transform((v) => v ?? null),
+  type: z.enum(['airbnb', 'hotel', 'other']).catch('other'),
+  rating: z
+    .number()
+    .int()
+    .min(1)
+    .max(5)
+    .nullish()
+    .transform((v) => v ?? null),
+  review: z
+    .string()
+    .trim()
+    .max(2000)
+    .nullish()
+    .transform((v) => v ?? null),
+});
+
+/** A trip's place: a map place, plus what I saw, ate and where I stayed there. */
+const tripPlaceSchema: z.ZodType<RawPlace, z.ZodTypeDef, unknown> = z.intersection(
+  placeSchema,
+  z.object({
+    visited: z
+      .array(visitSchema)
+      .nullish()
+      .transform((v) => v ?? []),
+    food: z
+      .array(foodSchema)
+      .nullish()
+      .transform((v) => v ?? []),
+    stays: z
+      .array(staySchema)
+      .nullish()
+      .transform((v) => v ?? []),
+  }),
+);
+
 export const placesFileSchema = z.object({
   source: z.string().optional(),
   places: z.array(placeSchema),
@@ -59,7 +129,7 @@ export const publicTripSchema: z.ZodType<PublicTrip, z.ZodTypeDef, unknown> = z.
   tripType: nullableString,
   summary: nullableString,
   highlights: z.array(z.string()).nullish(),
-  places: z.array(placeSchema).default([]),
+  places: z.array(tripPlaceSchema).default([]),
   posts: z
     .array(
       z.object({

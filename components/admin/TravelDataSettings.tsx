@@ -3,6 +3,7 @@
 import { useEffect, useState, type ChangeEvent } from 'react';
 import { useToast } from '@/components/admin/ToastProvider';
 import { ApiError, fetchJson } from '@/lib/admin/api';
+import { TripEditor } from '@/components/admin/trips/TripEditor';
 
 interface AdminTrip {
   id: string;
@@ -83,6 +84,8 @@ export function TravelDataSettings() {
   const [reviewsText, setReviewsText] = useState('');
   const [replaceReviews, setReplaceReviews] = useState(false);
   const [notesText, setNotesText] = useState('');
+  // Bumped after a journal upload, so the trip editor reloads its list.
+  const [journalVersion, setJournalVersion] = useState(0);
 
   async function saveNotes() {
     setBusy('notes');
@@ -149,6 +152,7 @@ export function TravelDataSettings() {
       );
       const journal = await fetchJson<{ trips: AdminTrip[] }>('/admin/travel');
       setTrips(journal.trips);
+      setJournalVersion((v) => v + 1);
       toast.success(
         `Saved ${saved.saved} trips (${saved.total} in the journal). ${REBUILD_NOTE[saved.rebuild] ?? 'The site rebuild could not be started.'}`,
       );
@@ -199,12 +203,15 @@ export function TravelDataSettings() {
         </p>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <TripEditor key={journalVersion} />
+
+      <div className="grid gap-6 border-t pt-5 lg:grid-cols-2">
         <div className="space-y-3">
-          <h3 className="font-medium">Travel journal</h3>
+          <h3 className="font-medium">Many trips at once</h3>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             The Ask Photos JSON, as it comes: one year, several, or just trips. Trips with an id
-            already here are replaced, so you can upload it in pieces.
+            already here are replaced, so you can upload it in pieces.{' '}
+            {trips && `${trips.length} trips stored.`}
           </p>
           <label className="inline-flex cursor-pointer items-center rounded bg-slate-900 px-3 py-2 text-sm text-white focus-within:ring-2 focus-within:ring-sky-500 dark:bg-slate-100 dark:text-slate-900">
             {busy === 'journal' ? 'Uploading…' : 'Upload journal JSON'}
@@ -216,23 +223,6 @@ export function TravelDataSettings() {
               onChange={uploadJournal}
             />
           </label>
-          {trips && (
-            <details className="rounded border p-3 text-sm">
-              <summary className="cursor-pointer font-medium">
-                {trips.length} trips stored (admin only: with dates)
-              </summary>
-              <ul className="mt-2 max-h-80 space-y-1 overflow-y-auto">
-                {trips.map((trip) => (
-                  <li key={trip.id} className="flex justify-between gap-3">
-                    <span>{trip.title ?? trip.id}</span>
-                    <span className="shrink-0 text-xs text-slate-500">
-                      {trip.startDate ?? 'no date'}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </details>
-          )}
         </div>
 
         <div className="space-y-3">

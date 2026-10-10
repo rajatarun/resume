@@ -36,6 +36,45 @@ export interface RawPlace {
    * when that is more than MERGE_KM. Fairbanks takes every Alaska trip.
    */
   radiusKm?: number | null;
+  /** Trip places only: what I saw, ate and where I stayed there. */
+  visited?: TripVisit[] | null;
+  food?: TripFood[] | null;
+  stays?: TripStay[] | null;
+}
+
+/** Somewhere I went on a trip: a sight, a hike, a museum. */
+export interface TripVisit {
+  name: string;
+  note: string | null;
+}
+
+/** Somewhere I ate on a trip. The same fields a café review or note has. */
+export interface TripFood {
+  name: string;
+  category: 'cafe' | 'restaurant' | 'other dining';
+  rating: number | null;
+  review: string | null;
+  note: string | null;
+  score: number | null;
+}
+
+/** Where I stayed on a trip. No dates or nights: the API never sends them. */
+export interface TripStay {
+  name: string | null;
+  type: 'airbnb' | 'hotel' | 'other';
+  rating: number | null;
+  review: string | null;
+}
+
+/** One town of a trip and everything that happened there. */
+export interface TripStop {
+  /** The town (or region) as the trip names it. */
+  name: string;
+  /** Its pin, when it has one. */
+  pinId: string | null;
+  visited: TripVisit[];
+  food: TripFood[];
+  stays: TripStay[];
 }
 
 /** One trip from GET /site/travel. No dates: the API never sends them. */
@@ -61,6 +100,8 @@ export interface JournalTrip {
   placeIds: string[];
   /** Every country it names, pinned or not, so the country filter finds it. */
   countries: string[];
+  /** Its towns that have something to tell (sights, food, stays), in its own order. */
+  stops: TripStop[];
   /** Instagram posts for its photos, cover first. Only well-formed post links. */
   posts: { url: string; description: string; isCover: boolean }[];
 }
@@ -181,20 +222,34 @@ export function mergeTravelData(
     const title = trip.title ?? trip.places.find((p) => p.city)?.city ?? 'A trip';
     const kind = NATURE_TRIP_TYPES.has(trip.tripType ?? '') ? 'nature' : 'city';
     const placeIds: string[] = [];
+    const stops: TripStop[] = [];
     for (const place of trip.places) {
       const label = place.city ?? place.region ?? 'a place';
+      const story = {
+        visited: place.visited ?? [],
+        food: place.food ?? [],
+        stays: place.stays ?? [],
+      };
+      const hasStory = story.visited.length + story.food.length + story.stays.length > 0;
+      // What happened somewhere is told even when the map cannot pin it.
+      const stop = (pinId: string | null) =>
+        hasStory &&
+        stops.push({ name: place.city ?? place.region ?? 'Along the way', pinId, ...story });
       if (!located(place)) {
         skipped.push(`"${title}": ${label} has no country code or coordinates`);
+        stop(null);
         continue;
       }
       const name = place.city ?? place.region;
       const pin = nearestPin(place) ?? (name ? create(place, name, kind) : null);
       if (!pin) {
         skipped.push(`"${title}": a place with no city or region is too vague to pin`);
+        stop(null);
         continue;
       }
       if (!pin.tripKeys.includes(trip.key)) pin.tripKeys.push(trip.key);
       if (!placeIds.includes(pin.id)) placeIds.push(pin.id);
+      stop(pin.id);
     }
     trips.push({
       key: trip.key,
@@ -203,6 +258,7 @@ export function mergeTravelData(
       summary: trip.summary ?? null,
       highlights: trip.highlights ?? [],
       placeIds,
+      stops,
       countries: Array.from(
         new Set(trip.places.flatMap((p) => (p.countryCode ? [p.countryCode] : []))),
       ),
@@ -634,7 +690,15 @@ export function buildStory(
 
   const cafes: DiningSpot[] = [];
   const tables: DiningSpot[] = [];
+  // A place a trip tells is told there, not again in the café lists.
+  const plain = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const toldInTrips = new Set(
+    trips.flatMap((trip) =>
+      trip.stops.flatMap((stop) => stop.food.map((spot) => plain(spot.name))),
+    ),
+  );
   for (const spot of dining) {
+    if (toldInTrips.has(plain(spot.name))) continue;
     // A review's own name is not where it is: "Paris Baguette" is a bakery chain.
     const pinId =
       spot.pinId ??

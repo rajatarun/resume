@@ -200,6 +200,59 @@ describe('loading the fetched journal', () => {
     ).toEqual([]);
   });
 
+  it('reads what I saw, ate and where I stayed in each town of a trip', () => {
+    const story = trip({
+      key: 'lake1',
+      title: 'Lake Weekend',
+      places: [
+        {
+          city: 'Lakeview',
+          region: 'Oregon',
+          countryCode: 'US',
+          lat: 42.19,
+          lng: -120.35,
+          visited: [{ name: 'Old Mill Trail', note: 'Wildflowers by the creek.' }],
+          food: [
+            {
+              name: 'Dockside Grill',
+              category: 'restaurant',
+              rating: 5,
+              review: 'Trout.',
+              note: null,
+              score: null,
+            },
+          ],
+          stays: [{ name: null, type: 'airbnb', rating: 4, review: 'Quiet.' }],
+        },
+        {
+          city: 'Nowhere Town',
+          region: null,
+          countryCode: null,
+          lat: null,
+          lng: null,
+          visited: [{ name: 'Roadside Diner Sign', note: null }],
+        },
+        { city: 'Plain Stop', countryCode: 'US', lat: 43.0, lng: -121.0 },
+      ],
+    });
+    const dir = fixture({
+      'places.json': places,
+      'generated/site-travel.json': { trips: [story] },
+    });
+    const [told] = loadTravelData(dir).trips;
+    expect(told.stops.map((s) => [s.name, s.pinId !== null])).toEqual([
+      ['Lakeview', true],
+      ['Nowhere Town', false], // told though the map cannot pin it
+    ]);
+    expect(told.stops[0].stays[0]).toEqual({
+      name: null,
+      type: 'airbnb',
+      rating: 4,
+      review: 'Quiet.',
+    });
+    expect(told.stops[0].food[0].name).toBe('Dockside Grill');
+  });
+
   it('fails the build, naming the file, when places.json is wrong', () => {
     const dir = fixture({ 'places.json': { places: [{ city: 'X', countryCode: 'USA' }] } });
     expect(() => loadTravelData(dir)).toThrow(/places\.json: places\.0\.countryCode/);
@@ -433,6 +486,63 @@ describe('the story', () => {
     expect(stopsAt('Los Angeles')).toEqual(['Valley Diner']);
     expect(told.cafes.map((s) => s.name)).toEqual(['Morning Cup']);
     expect(told.tables.map((s) => s.name)).toEqual(['Tin Plate']);
+  });
+
+  it('does not tell a café twice when a trip already tells it', () => {
+    const withFood = trips.map((t) =>
+      t.key === 'east'
+        ? {
+            ...t,
+            stops: [
+              {
+                name: 'Boston',
+                pinId: 'us-boston',
+                visited: [],
+                stays: [],
+                food: [
+                  {
+                    name: 'Night Market',
+                    category: 'restaurant' as const,
+                    rating: 5,
+                    review: 'Late.',
+                    note: null,
+                    score: null,
+                  },
+                ],
+              },
+            ],
+          }
+        : t,
+    );
+    const again = buildStory(
+      places,
+      withFood,
+      [
+        {
+          name: 'Night Market',
+          category: 'restaurant',
+          city: null,
+          pinId: null,
+          rating: 5,
+          review: 'Late.',
+          note: null,
+          score: null,
+        },
+        {
+          name: 'Corner Bean',
+          category: 'cafe',
+          city: null,
+          pinId: null,
+          rating: 5,
+          review: 'Good.',
+          note: null,
+          score: null,
+        },
+      ],
+      name,
+    );
+    expect(again.tables.map((s) => s.name)).toEqual([]);
+    expect(again.cafes.map((s) => s.name)).toEqual(['Corner Bean']);
   });
 
   it('joins names the way a sentence does', () => {
