@@ -21,14 +21,11 @@ import { z } from 'zod';
 import {
   mergeTravelData,
   placeDining,
-  placeStays,
   type DiningPlace,
   type DiningSpot,
   type JournalTrip,
   type PublicTrip,
   type RawPlace,
-  type StayPlace,
-  type StaySpot,
   type TravelPlace,
 } from './model';
 
@@ -86,29 +83,6 @@ export const diningSchema: z.ZodType<DiningPlace, z.ZodTypeDef, unknown> = z.obj
   score: z.number().min(1).max(5).nullish(),
 });
 
-/** One Airbnb or hotel of GET /site/travel's `stays`. No dates: its trip is an opaque key. */
-export const staySchema: z.ZodType<StayPlace, z.ZodTypeDef, unknown> = z.object({
-  name: nullableString.transform((v) => v ?? null),
-  type: z.enum(['airbnb', 'hotel', 'other']),
-  city: nullableString.transform((v) => v ?? null),
-  region: nullableString.transform((v) => v ?? null),
-  countryCode: nullableString.transform((v) => v?.toUpperCase() ?? null),
-  rating: z
-    .number()
-    .int()
-    .min(1)
-    .max(5)
-    .nullish()
-    .transform((v) => v ?? null),
-  review: z
-    .string()
-    .trim()
-    .max(2000)
-    .nullish()
-    .transform((v) => v ?? null),
-  tripKey: nullableString.transform((v) => v ?? null),
-});
-
 export const TRAVEL_DIR = join(process.cwd(), 'data', 'travel');
 
 function parseJson(path: string): unknown {
@@ -144,24 +118,22 @@ function each<T>(
 function readJournal(path: string): {
   trips: PublicTrip[];
   dining: DiningPlace[];
-  stays: StayPlace[];
   dropped: string[];
 } {
   const dropped: string[] = [];
-  if (!existsSync(path)) return { trips: [], dining: [], stays: [], dropped };
-  let json: { trips?: unknown; dining?: unknown; stays?: unknown } | null;
+  if (!existsSync(path)) return { trips: [], dining: [], dropped };
+  let json: { trips?: unknown; dining?: unknown } | null;
   try {
     json = parseJson(path) as typeof json;
   } catch (error) {
-    return { trips: [], dining: [], stays: [], dropped: [(error as Error).message] };
+    return { trips: [], dining: [], dropped: [(error as Error).message] };
   }
   if (!json || !Array.isArray(json.trips)) {
-    return { trips: [], dining: [], stays: [], dropped: [`${path}: no trips list`] };
+    return { trips: [], dining: [], dropped: [`${path}: no trips list`] };
   }
   return {
     trips: each(json.trips, publicTripSchema, 'journal trip', dropped),
     dining: each(json.dining, diningSchema, 'dining place', dropped),
-    stays: each(json.stays, staySchema, 'stay', dropped),
     dropped,
   };
 }
@@ -170,7 +142,6 @@ export function loadTravelData(dir = TRAVEL_DIR): {
   places: TravelPlace[];
   trips: JournalTrip[];
   dining: DiningSpot[];
-  stays: StaySpot[];
   skipped: string[];
 } {
   const placesPath = join(dir, 'places.json');
@@ -185,7 +156,6 @@ export function loadTravelData(dir = TRAVEL_DIR): {
     places,
     trips,
     dining: placeDining(journal.dining, places),
-    stays: placeStays(journal.stays, places),
     skipped: [...journal.dropped, ...skipped],
   };
 }
