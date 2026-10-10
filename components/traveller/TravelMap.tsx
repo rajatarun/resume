@@ -8,6 +8,8 @@ import {
   type DiningSpot,
   type JournalTrip,
   type StoryChapter,
+  type TripStay,
+  type TripStop,
   type TravelPlace,
 } from '@/lib/travel/model';
 import type { MapView } from '@/lib/travelMap';
@@ -584,12 +586,83 @@ function TripStory({ trip }: { trip: JournalTrip }) {
           {trip.posts.length > 3 && ` and ${trip.posts.length - 3} more on Instagram`}.
         </p>
       )}
+      {trip.stops.map((stop, i) => (
+        // eslint-disable-next-line react/no-array-index-key -- a trip may name a town twice; order is the identity
+        <TripStopStory key={`${stop.name}-${i}`} stop={stop} named={trip.stops.length > 1} />
+      ))}
+    </div>
+  );
+}
+
+/** One town of a trip: what I saw, where I stayed and where I ate there. */
+function TripStopStory({ stop, named }: { stop: TripStop; named: boolean }) {
+  const label = 'tv-label text-[11px] uppercase tracking-[0.2em] text-[var(--tv-faint)]';
+  return (
+    <div className="mt-5">
+      {named && <p className="tv-title text-lg">In {stop.name}</p>}
+      {stop.visited.length > 0 && (
+        <div className="mt-2">
+          <p className={label}>What I saw</p>
+          <ul className="mt-1 space-y-1">
+            {stop.visited.map((visit) => (
+              <li key={visit.name} className="leading-relaxed text-[var(--tv-ink)]">
+                <span className="font-medium">{visit.name}</span>
+                {visit.note && <span className="text-[var(--tv-muted)]"> — {visit.note}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {stop.stays.length > 0 && (
+        <div className="mt-3">
+          <p className={label}>Where I stayed</p>
+          {stop.stays.map((stay, i) => (
+            // eslint-disable-next-line react/no-array-index-key -- unnamed stays repeat; order is the identity
+            <Stay key={`${stay.name}-${i}`} stay={stay} town={stop.name} />
+          ))}
+        </div>
+      )}
+      {stop.food.length > 0 && (
+        <div className="mt-3">
+          <p className={label}>Where I ate</p>
+          {stop.food.map((spot) =>
+            spot.review ? (
+              <Review key={spot.name} spot={spot} />
+            ) : (
+              <Noted key={spot.name} spot={spot} />
+            ),
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** A place I stayed: its name (or what kind of place, when I never noted it), my stars and words. */
+function Stay({ stay, town }: { stay: TripStay; town: string }) {
+  const kind = stay.type === 'hotel' ? 'Hotel' : stay.type === 'airbnb' ? 'Airbnb' : 'Stay';
+  const unnamed =
+    stay.type === 'hotel' ? 'A hotel' : stay.type === 'airbnb' ? 'An Airbnb' : 'A stay';
+  return (
+    <div className="mt-2">
+      <p className="flex flex-wrap items-baseline gap-x-3">
+        <span className="tv-title text-lg">{stay.name ?? `${unnamed} in ${town}`}</span>
+        {stay.name && (
+          <span className="tv-label text-[11px] uppercase tracking-[0.15em] text-[var(--tv-faint)]">
+            {kind}
+          </span>
+        )}
+        {stay.rating && <Stars rating={stay.rating} />}
+      </p>
+      {stay.review && <p className="mt-1 leading-relaxed text-[var(--tv-muted)]">{stay.review}</p>}
     </div>
   );
 }
 
 /** A review, set like a quotation: the place and my stars, then my words. */
-function Review({ spot }: { spot: DiningSpot }) {
+type ReviewedSpot = Pick<DiningSpot, 'name' | 'rating' | 'review' | 'note' | 'score'>;
+
+function Review({ spot }: { spot: ReviewedSpot }) {
   return (
     <blockquote className="mt-6 border-l-2 border-[var(--tv-pin)] pl-4 forced-colors:border-[CanvasText]">
       <p className="flex flex-wrap items-baseline gap-x-3">
@@ -605,7 +678,7 @@ function Review({ spot }: { spot: DiningSpot }) {
  * A described place: its name, a public score (plain text, never stars: it is
  * not my rating) and one line on what it is.
  */
-function Noted({ spot }: { spot: DiningSpot }) {
+function Noted({ spot }: { spot: ReviewedSpot }) {
   return (
     <p className="mt-3 leading-relaxed text-[var(--tv-ink)]">
       <span className="tv-title text-lg">{spot.name}</span>
