@@ -18,6 +18,7 @@ import {
   joinNames,
   mergeTravelData,
   pinFromText,
+  type StaySpot,
   pinForCity,
   placeDining,
   travelStats,
@@ -433,6 +434,36 @@ describe('the story', () => {
     expect(stopsAt('Los Angeles')).toEqual(['Valley Diner']);
     expect(told.cafes.map((s) => s.name)).toEqual(['Morning Cup']);
     expect(told.tables.map((s) => s.name)).toEqual(['Tin Plate']);
+  });
+
+  it('tells a stay under its trip, else in its town, else at the end', () => {
+    const stay = (over: Partial<StaySpot>): StaySpot => ({
+      id: `stay-${over.name}`,
+      name: null,
+      type: 'airbnb',
+      city: null,
+      region: null,
+      countryCode: 'US',
+      rating: null,
+      review: null,
+      tripKey: null,
+      pinId: null,
+      ...over,
+    });
+    const told = buildStory(places, trips, [], name, [
+      stay({ name: 'Rain Room', tripKey: 'rain', city: 'Seattle', pinId: 'us-seattle' }),
+      stay({ name: 'Harbor Loft', city: 'Boston', pinId: 'us-boston' }),
+      stay({ name: 'Canyon Cabin', city: 'Los Angeles', pinId: 'us-los-angeles' }),
+      stay({ name: 'Roadside Inn', type: 'hotel' }),
+      stay({ name: 'Gone Trip', tripKey: 'no-such-trip' }),
+    ]);
+    expect(told.staysByTrip.rain.map((s) => s.name)).toEqual(['Rain Room']);
+    const at = (title: string) =>
+      told.chapters.find((c) => c.title === title)!.stays.map((s) => s.name);
+    expect(at('Seattle')).toEqual([]); // told under its trip, not twice
+    expect(at('Boston')).toEqual(['Harbor Loft']);
+    expect(at('Los Angeles')).toEqual(['Canyon Cabin']); // no trip there: a chapter of its own
+    expect(told.otherStays.map((s) => s.name)).toEqual(['Roadside Inn', 'Gone Trip']);
   });
 
   it('joins names the way a sentence does', () => {

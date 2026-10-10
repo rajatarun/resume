@@ -7,6 +7,7 @@ import {
   travelStats,
   type DiningSpot,
   type JournalTrip,
+  type StaySpot,
   type StoryChapter,
   type TravelPlace,
 } from '@/lib/travel/model';
@@ -46,6 +47,7 @@ export function TravelMap({
   countryNames,
   trips,
   dining,
+  stays = [],
   defaultView,
 }: {
   views: MapView[];
@@ -53,6 +55,7 @@ export function TravelMap({
   countryNames: Record<string, string>;
   trips: readonly JournalTrip[];
   dining: readonly DiningSpot[];
+  stays?: readonly StaySpot[];
   defaultView: string;
 }) {
   const [viewKey, setViewKey] = useState(
@@ -79,8 +82,8 @@ export function TravelMap({
   const activePoint = active ? view.points.find((point) => point.id === active.id) : undefined;
   const regionLabel = view.key === 'US' ? 'states' : 'regions';
   const story = useMemo(
-    () => buildStory(places, trips, dining, (code) => countryNames[code] ?? code),
-    [places, trips, dining, countryNames],
+    () => buildStory(places, trips, dining, (code) => countryNames[code] ?? code, stays),
+    [places, trips, dining, countryNames, stays],
   );
   const chaptersShown = story.chapters.filter((chapter) => isWorld || chapter.country === view.key);
   const showDiningChapters = isWorld || view.key === 'US';
@@ -343,6 +346,7 @@ export function TravelMap({
               key={chapter.id}
               number={index + 1}
               chapter={chapter}
+              staysByTrip={story.staysByTrip}
               pinsById={byId}
               onShowPin={showPin}
             />
@@ -367,6 +371,25 @@ export function TravelMap({
               plainIntro="I have also eaten at"
               spots={story.tables}
             />
+          )}
+
+          {story.otherStays.some((stay) => isWorld || stay.countryCode === view.key) && (
+            <article id="story-other-stays" data-pin="" className="scroll-mt-28">
+              <p className="tv-label text-[11px] uppercase tracking-[0.25em] text-[var(--tv-faint)]">
+                Wherever I am
+              </p>
+              <h3 className="tv-title mt-2 text-3xl leading-tight sm:text-4xl">
+                Other places I stayed
+              </h3>
+              <p className="mt-4 text-[17px] leading-relaxed text-[var(--tv-muted)]">
+                Nights on the way somewhere, and stays I have not tied to a trip yet.
+              </p>
+              {story.otherStays
+                .filter((stay) => isWorld || stay.countryCode === view.key)
+                .map((stay) => (
+                  <Stay key={stay.id} stay={stay} />
+                ))}
+            </article>
           )}
 
           {story.passedThrough
@@ -429,11 +452,13 @@ function Stars({ rating }: { rating: number }) {
 function Chapter({
   number,
   chapter,
+  staysByTrip,
   pinsById,
   onShowPin,
 }: {
   number: number;
   chapter: StoryChapter;
+  staysByTrip: Record<string, StaySpot[]>;
   pinsById: Map<string, TravelPlace>;
   onShowPin: (id: string) => void;
 }) {
@@ -454,7 +479,7 @@ function Chapter({
       )}
 
       {chapter.trips.map((trip) => (
-        <TripStory key={trip.key} trip={trip} />
+        <TripStory key={trip.key} trip={trip} stays={staysByTrip[trip.key] ?? []} />
       ))}
 
       {chapter.alsoIn.map(({ trip, chapterId }) => (
@@ -469,6 +494,17 @@ function Chapter({
           .
         </p>
       ))}
+
+      {chapter.stays.length > 0 && (
+        <div className="mt-6">
+          <p className="tv-label text-[11px] uppercase tracking-[0.2em] text-[var(--tv-faint)]">
+            Where I stayed
+          </p>
+          {chapter.stays.map((stay) => (
+            <Stay key={stay.id} stay={stay} />
+          ))}
+        </div>
+      )}
 
       {chapter.reviews.map((spot) => (
         <Review key={spot.name} spot={spot} />
@@ -552,7 +588,7 @@ function Postcard({ card }: { card: PostcardClip }) {
 }
 
 /** One trip at a place: its title leads into the story, then what stayed with me and the photos. */
-function TripStory({ trip }: { trip: JournalTrip }) {
+function TripStory({ trip, stays }: { trip: JournalTrip; stays: StaySpot[] }) {
   return (
     <div className="mt-5">
       <p className="text-[17px] leading-relaxed text-[var(--tv-ink)]">
@@ -584,6 +620,42 @@ function TripStory({ trip }: { trip: JournalTrip }) {
           {trip.posts.length > 3 && ` and ${trip.posts.length - 3} more on Instagram`}.
         </p>
       )}
+      {stays.length > 0 && (
+        <div className="mt-3">
+          <p className="tv-label text-[11px] uppercase tracking-[0.2em] text-[var(--tv-faint)]">
+            Where I stayed
+          </p>
+          {stays.map((stay) => (
+            <Stay key={stay.id} stay={stay} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Where I stayed: the listing's name (or what kind of place, when I never
+ * noted it), the town, my stars and my words. No dates: the API never sends them.
+ */
+function Stay({ stay }: { stay: StaySpot }) {
+  const kind = stay.type === 'hotel' ? 'Hotel' : stay.type === 'airbnb' ? 'Airbnb' : 'Stay';
+  const unnamed =
+    stay.type === 'hotel' ? 'A hotel' : stay.type === 'airbnb' ? 'An Airbnb' : 'A stay';
+  const title = stay.name ?? (stay.city ? `${unnamed} in ${stay.city}` : unnamed);
+  const meta = stay.name ? [kind, stay.city].filter(Boolean).join(' · ') : null;
+  return (
+    <div className="mt-3">
+      <p className="flex flex-wrap items-baseline gap-x-3">
+        <span className="tv-title text-lg">{title}</span>
+        {meta && (
+          <span className="tv-label text-[11px] uppercase tracking-[0.15em] text-[var(--tv-faint)]">
+            {meta}
+          </span>
+        )}
+        {stay.rating && <Stars rating={stay.rating} />}
+      </p>
+      {stay.review && <p className="mt-1 leading-relaxed text-[var(--tv-muted)]">{stay.review}</p>}
     </div>
   );
 }

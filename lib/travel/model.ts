@@ -474,6 +474,38 @@ export function pinForCity(
 }
 
 /** Every café and restaurant, on its pin where the city allows. */
+/** An Airbnb or hotel from GET /site/travel's `stays`: no dates, and its trip by opaque key. */
+export interface StayPlace {
+  name: string | null;
+  type: 'airbnb' | 'hotel' | 'other';
+  city: string | null;
+  region: string | null;
+  countryCode: string | null;
+  rating: number | null;
+  review: string | null;
+  /** The `key` of the trip it belongs to, if any. */
+  tripKey: string | null;
+}
+
+export interface StaySpot extends StayPlace {
+  /** Stable for a build: its place in the list the API sent. */
+  id: string;
+  /** Its town's pin, or the metro area's, when the map has one. */
+  pinId: string | null;
+}
+
+/** Every stay, on its town's pin where the map has one. */
+export function placeStays(
+  stays: readonly StayPlace[],
+  places: readonly TravelPlace[],
+): StaySpot[] {
+  return stays.map((stay, index) => ({
+    ...stay,
+    id: `stay-${index}`,
+    pinId: pinForCity(stay.city, stay.region, places)?.id ?? null,
+  }));
+}
+
 export function placeDining(
   dining: readonly DiningPlace[],
   places: readonly TravelPlace[],
@@ -511,6 +543,8 @@ export interface StoryChapter {
   reviews: DiningSpot[];
   /** Cafés and restaurants here with no review. */
   stops: DiningSpot[];
+  /** Stays here that no trip in the story claims. */
+  stays: StaySpot[];
 }
 
 export interface TravelStory {
@@ -522,6 +556,10 @@ export interface TravelStory {
   tables: DiningSpot[];
   /** Pins with no story yet, by country, for the closing paragraph. */
   passedThrough: { country: string; pinIds: string[] }[];
+  /** Trip key -> where I stayed on that trip, told under the trip itself. */
+  staysByTrip: Record<string, StaySpot[]>;
+  /** Stays with no trip and no town on the map: a closing list. */
+  otherStays: StaySpot[];
 }
 
 /**
@@ -574,6 +612,7 @@ export function buildStory(
   trips: readonly JournalTrip[],
   dining: readonly DiningSpot[],
   countryName: (code: string) => string,
+  stays: readonly StaySpot[] = [],
 ): TravelStory {
   const byId = new Map(places.map((place) => [place.id, place]));
   const chapters = new Map<string, StoryChapter>();
@@ -601,6 +640,7 @@ export function buildStory(
         alsoIn: [],
         reviews: [],
         stops: [],
+        stays: [],
       };
       chapters.set(id, chapter);
       if (pinId) chapterOfPin[pinId] = id;
@@ -654,6 +694,25 @@ export function buildStory(
       chapter.stops.push(spot);
     }
   }
+  // A stay is told under its trip; failing that in its town's chapter (one of
+  // its own if need be); failing both, in a closing list.
+  const tripKeys = new Set(trips.map((trip) => trip.key));
+  const staysByTrip: Record<string, StaySpot[]> = {};
+  const otherStays: StaySpot[] = [];
+  for (const stay of stays) {
+    if (stay.tripKey && tripKeys.has(stay.tripKey)) {
+      (staysByTrip[stay.tripKey] ??= []).push(stay);
+    } else if (stay.pinId) {
+      const chapterId = chapterOfPin[stay.pinId];
+      const chapter = chapterId
+        ? chapters.get(chapterId)!
+        : chapterFor(stay.pinId, byId.get(stay.pinId)!.country);
+      chapter.stays.push(stay);
+    } else {
+      otherStays.push(stay);
+    }
+  }
+
   for (const pinId of Object.keys(chapterOfPin)) {
     // A review may have made a chapter for a pin a trip had folded elsewhere.
     if (chapters.has(`story-${pinId}`)) chapterOfPin[pinId] = `story-${pinId}`;
@@ -684,6 +743,8 @@ export function buildStory(
     chapters: ordered,
     chapterOfPin,
     cafes: cafes.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0) || a.name.localeCompare(b.name)),
+    staysByTrip,
+    otherStays,
     tables: tables.sort(
       (a, b) => (b.rating ?? 0) - (a.rating ?? 0) || a.name.localeCompare(b.name),
     ),

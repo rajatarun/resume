@@ -14,7 +14,7 @@ export default function TravellerPage() {
   // All at build time: read places.json and the journal the content API
   // serves without dates (scripts/sync-travel.mjs), merge, project. The
   // browser gets SVG paths, pins and trips, not a map library.
-  const { places, trips, dining, skipped } = loadTravelData();
+  const { places, trips, dining, stays, skipped } = loadTravelData();
   // eslint-disable-next-line no-console -- a build log line, so a dropped place is visible in Amplify
   for (const reason of skipped) console.warn(`[traveller] skipped ${reason}`);
   const views = buildMapViews(places);
@@ -56,6 +56,7 @@ export default function TravellerPage() {
             countryNames={countryNames}
             trips={trips}
             dining={dining}
+            stays={stays}
             defaultView={DEFAULT_COUNTRY}
           />
         </div>
