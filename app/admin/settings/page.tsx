@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/components/admin/ToastProvider";
 import { HomeDesignSettings } from "@/components/admin/HomeDesignSettings";
+import { KnowledgeUploadSettings } from "@/components/admin/KnowledgeUploadSettings";
 import { TravelDataSettings } from "@/components/admin/TravelDataSettings";
 
 type Settings = { defaultHashtags: string; voiceRules: string };
@@ -28,6 +29,7 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <HomeDesignSettings />
       <TravelDataSettings />
+      <KnowledgeUploadSettings />
       <form
         className="space-y-3"
         aria-label="Content defaults (saved in this browser only)"
