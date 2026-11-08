@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { publicEntity } from "@/lib/geo/publicEntity";
+import { PRODUCTION_BASE_URL, PUBLIC_SITEMAP_ROUTES } from "@/lib/geo/publicRoutes";
 
 const requiredEnv = ["GITHUB_USER", "LINKEDIN_USER"] as const;
 
@@ -8,38 +10,35 @@ for (const key of requiredEnv) {
   }
 }
 
-export const baseUrl = "https://tarunraja.info";
+export const baseUrl = PRODUCTION_BASE_URL;
 export const githubUrl = `https://github.com/${process.env.GITHUB_USER}`;
 export const linkedInUrl = `https://www.linkedin.com/in/${process.env.LINKEDIN_USER}`;
 
-export const seoRoutes = ["/", "/resume", "/portfolio", "/about", "/labs", "/blog", "/contact", "/publications", "/traveller"] as const;
+export const seoRoutes = PUBLIC_SITEMAP_ROUTES;
 
 const sharedImages = [{ url: "/profile-photo.PNG", width: 1200, height: 630, alt: "Tarun Raja" }];
 
 export const routeMetadata: Record<(typeof seoRoutes)[number], Metadata> = {
   "/": {
-    title: "Tarun Raja — Senior Software Engineer & Platform Architect",
-    description:
-      "10+ years in fintech engineering at JP Morgan Chase. Full-stack architecture, cloud-native platforms, and AI integration — from codebase to VP-level leadership.",
+    title: publicEntity.siteTitle,
+    description: publicEntity.profileHeadline,
     alternates: { canonical: "/" },
     openGraph: {
-      title: "Tarun Raja — Senior Software Engineer & Platform Architect",
-      description:
-        "10+ years in fintech engineering at JP Morgan Chase. Full-stack architecture, cloud-native platforms, and AI integration — from codebase to VP-level leadership.",
+      title: publicEntity.siteTitle,
+      description: publicEntity.profileHeadline,
       url: "/",
       images: sharedImages
     },
     twitter: {
       card: "summary_large_image",
-      title: "Tarun Raja — Senior Software Engineer & Platform Architect",
-      description:
-        "10+ years in fintech engineering at JP Morgan Chase. Full-stack architecture, cloud-native platforms, and AI integration — from codebase to VP-level leadership.",
+      title: publicEntity.siteTitle,
+      description: publicEntity.profileHeadline,
       images: ["/profile-photo.PNG"]
     }
   },
   "/resume": {
     title: "Tarun Raja — Resume",
-    description: "Professional resume of Tarun Raja covering AI architecture, cloud engineering, and technical leadership.",
+    description: publicEntity.profileHeadline,
     alternates: { canonical: "/resume" },
     openGraph: {
       title: "Tarun Raja — Resume",
@@ -170,6 +169,42 @@ export const routeMetadata: Record<(typeof seoRoutes)[number], Metadata> = {
       card: "summary_large_image",
       title: "Tarun Raja — Traveller",
       description: "Places Tarun Raja has travelled to, pinned on a map: cities and national parks across the United States, filterable by country.",
+      images: ["/profile-photo.PNG"]
+    }
+  },
+  "/website": {
+    title: "Tarun Raja — Website Architecture",
+    description:
+      "How tarunraja.info is built: static Next.js export, AWS Amplify, and serverless APIs documented on the public site.",
+    alternates: { canonical: "/website" },
+    openGraph: {
+      title: "Tarun Raja — Website Architecture",
+      description: "Public system design reference for tarunraja.info.",
+      url: "/website",
+      images: sharedImages
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Tarun Raja — Website Architecture",
+      description: "Public system design reference for tarunraja.info.",
+      images: ["/profile-photo.PNG"]
+    }
+  },
+  "/chat": {
+    title: "Tarun Raja — Résumé Chat",
+    description:
+      "Ask questions about Tarun Raja's published résumé and skills. Answers are grounded in public profile data.",
+    alternates: { canonical: "/chat" },
+    openGraph: {
+      title: "Tarun Raja — Résumé Chat",
+      description: "Conversational access to public résumé information on tarunraja.info.",
+      url: "/chat",
+      images: sharedImages
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Tarun Raja — Résumé Chat",
+      description: "Conversational access to public résumé information on tarunraja.info.",
       images: ["/profile-photo.PNG"]
     }
   }

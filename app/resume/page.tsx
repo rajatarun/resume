@@ -5,6 +5,7 @@ import { SkillDepthChart } from "@/components/SkillDepthChart";
 import { experienceArtifactKeys } from "@/lib/artifacts";
 import { recordProof } from "@/lib/proof";
 import { resume } from "@/lib/resume";
+import { ResumeGeoStructuredData } from "@/src/components/ResumeGeoStructuredData";
 import { routeMetadata } from "@/src/seo/seo.config";
 
 export const metadata: Metadata = routeMetadata["/resume"];
@@ -29,6 +30,7 @@ export default async function ResumePage() {
 
   return (
     <div className="space-y-8">
+      <ResumeGeoStructuredData />
       <section>
         <h1 className="text-3xl font-semibold">Tarun Raja — Resume</h1>
         <p className="mt-3 text-zinc-600 dark:text-zinc-300">{resume.profile.summary}</p>

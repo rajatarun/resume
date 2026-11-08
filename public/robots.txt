@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
 Disallow: /admin
+Disallow: /site-health-ea96ed
 Sitemap: https://tarunraja.info/sitemap.xml

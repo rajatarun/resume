@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { Web3Provider } from "@/components/web3/Web3Provider";
 import { SkipLink } from "@/components/SkipLink";
 import { StructuredData } from "@/src/components/StructuredData";
+import { publicEntity } from "@/lib/geo/publicEntity";
 import { baseUrl, githubUrl, linkedInUrl, routeMetadata } from "@/src/seo/seo.config";
 import { homeDesignBootScript, homeDesignCss } from "@/lib/homeDesignBoot";
 import { WebMcpRegistrar } from "@/components/webmcp/WebMcpRegistrar";
@@ -12,7 +13,7 @@ import { WebMcpRegistrar } from "@/components/webmcp/WebMcpRegistrar";
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: "Tarun Raja — AI Systems Architect & Social-Media Technologist",
+    default: publicEntity.siteTitle,
     template: "%s"
   },
   description: routeMetadata["/"].description,

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Card } from "@/components/Card";
 import { PageShell } from "@/components/PageShell";
 import { doiUrl, formatPublicationDate, publications } from "@/data/publications";
+import { PublicationsGeoStructuredData } from "@/src/components/PublicationsGeoStructuredData";
 import { routeMetadata } from "@/src/seo/seo.config";
 
 export const metadata: Metadata = routeMetadata["/publications"];
@@ -12,6 +13,7 @@ export default function PublicationsPage() {
       title="Publications"
       intro="Zenodo preprints by Tarun Raja. Each record below is a preprint, not a peer-reviewed article."
     >
+      <PublicationsGeoStructuredData />
       <ul className="space-y-4" aria-label="Publications">
         {publications.map((publication) => (
           <li key={publication.doi}>

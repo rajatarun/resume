@@ -1,42 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://main.d1082kyye5hmz4.amplifyapp.com/</loc>
+    <loc>https://tarunraja.info/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://main.d1082kyye5hmz4.amplifyapp.com/resume</loc>
+    <loc>https://tarunraja.info/resume</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://main.d1082kyye5hmz4.amplifyapp.com/portfolio</loc>
+    <loc>https://tarunraja.info/portfolio</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://main.d1082kyye5hmz4.amplifyapp.com/recruiter</loc>
+    <loc>https://tarunraja.info/about</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://main.d1082kyye5hmz4.amplifyapp.com/labs</loc>
+    <loc>https://tarunraja.info/labs</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://main.d1082kyye5hmz4.amplifyapp.com/blog</loc>
+    <loc>https://tarunraja.info/blog</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://main.d1082kyye5hmz4.amplifyapp.com/contact</loc>
+    <loc>https://tarunraja.info/contact</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://main.d1082kyye5hmz4.amplifyapp.com/publications</loc>
+    <loc>https://tarunraja.info/publications</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tarunraja.info/traveller</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tarunraja.info/website</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://tarunraja.info/chat</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>

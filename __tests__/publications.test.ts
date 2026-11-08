@@ -128,7 +128,8 @@ describe('publications are rendered and linked', () => {
   it('is linked from the Work menu and the public sitemaps', () => {
     expect(source('components/TopNav.tsx')).toContain('href: "/publications"');
     expect(source('src/seo/seo.config.ts')).toContain('"/publications"');
-    expect(source('scripts/generate-seo-files.mjs')).toContain('"/publications"');
+    expect(source('scripts/seo-routes.mjs')).toContain('"/publications"');
+    expect(source('scripts/seo-routes.mjs')).toContain('tarunraja.info');
     expect(source('public/sitemap.xml')).toContain('/publications');
   });
 });
