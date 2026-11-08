@@ -5,6 +5,7 @@ import { MidnightHome } from '@/components/home/midnight/MidnightHome';
 import { PrismHome } from '@/components/home/prism/PrismHome';
 import { TerracottaHome } from '@/components/home/terracotta/TerracottaHome';
 import { HOME_VARIANTS, type HomeVariant } from '@/lib/featureFlags';
+import { PublicEntitySummary } from '@/components/geo/PublicEntitySummary';
 import { routeMetadata } from '@/src/seo/seo.config';
 
 export const metadata: Metadata = routeMetadata['/'];
@@ -22,6 +23,7 @@ const homes: Record<HomeVariant, ComponentType> = {
 export default function HomePage() {
   return (
     <>
+      <PublicEntitySummary />
       <HomeDesignSync />
       {HOME_VARIANTS.map((name) => {
         const Home = homes[name];

@@ -3,16 +3,9 @@ import { PageShell } from "@/components/PageShell";
 import { Section } from "@/components/Section";
 import { StackGrid } from "@/components/website/StackGrid";
 import { websiteArchitectureSections, websiteArchitectureStack } from "@/src/data/websiteArchitecture";
+import { routeMetadata } from "@/src/seo/seo.config";
 
-export const metadata: Metadata = {
-  title: "Website Architecture",
-  description: "Authoritative architecture document for the static website, serverless APIs, and AI workflow modules.",
-  openGraph: {
-    title: "Website Architecture",
-    description: "System design, cloud services, data model, security, and roadmap for Tarun Raja's website.",
-    url: "/website"
-  }
-};
+export const metadata: Metadata = routeMetadata["/website"];
 
 export default function WebsitePage() {
   return (
