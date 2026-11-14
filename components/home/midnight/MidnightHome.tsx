@@ -1,6 +1,6 @@
 import { ProfilePhoto } from "@/components/ProfilePhoto";
 import Link from "next/link";
-import { githubUrl, linkedInUrl } from "@/src/seo/seo.config";
+import { aiweaveUrl, githubUrl, linkedInUrl, orcidProfileUrl } from "@/src/seo/seo.config";
 
 const expertise = [
   {
@@ -96,6 +96,12 @@ function HomeFooter() {
           </a>
           <a href={linkedInUrl} target="_blank" rel="noopener noreferrer" className="focus-ring text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
             LinkedIn – Tarun Raja
+          </a>
+          <a href={orcidProfileUrl} target="_blank" rel="noopener noreferrer" className="focus-ring text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
+            ORCID – Tarun Raja
+          </a>
+          <a href={aiweaveUrl} target="_blank" rel="noopener noreferrer" className="focus-ring text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
+            AIWeave – aiweave.org
           </a>
           <Link href="/contact" className="focus-ring text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white">
             Contact

@@ -9,7 +9,7 @@ import {
 import { publicEntity } from "@/lib/geo/publicEntity";
 import { PUBLIC_SITEMAP_ROUTES, PRODUCTION_BASE_URL, ROBOTS_DISALLOW_PREFIXES } from "@/lib/geo/publicRoutes";
 import { resume } from "@/lib/resume";
-import { routeMetadata } from "@/src/seo/seo.config";
+import { aiweaveUrl, routeMetadata } from "@/src/seo/seo.config";
 
 function source(relativePath: string): string {
   return readFileSync(resolve(relativePath), "utf8");
@@ -35,6 +35,7 @@ describe("structured data builders", () => {
     expect(person.jobTitle).toBe(publicEntity.currentTitle);
     const sameAs = person.sameAs as string[];
     expect(sameAs).toContain(publicEntity.orcidUrl);
+    expect(sameAs).toContain(aiweaveUrl);
     expect(person.worksFor).toMatchObject({ name: resume.experience[0]?.company });
     expect(person.description).toBe(resume.profile.summary);
   });

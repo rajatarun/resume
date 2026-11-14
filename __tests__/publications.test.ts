@@ -1,6 +1,6 @@
 /**
  * The publications catalogue is the only source the site renders.
- * These pins keep the page on the five Zenodo preprints: the right titles,
+ * These pins keep the page on the six Zenodo preprints: the right titles,
  * preprint status, author ORCID, DOI, and record links — and nothing else.
  */
 import { readFileSync } from 'node:fs';
@@ -19,6 +19,13 @@ const EXPECTED: Array<Pick<Publication, 'title' | 'doi' | 'recordUrl' | 'publish
       'Learning to Route Without Trusting the Model: Verified Rewards for Adaptive Retrieval Routers',
     doi: '10.5281/zenodo.22998238',
     recordUrl: 'https://zenodo.org/records/22998238',
+    published: '2026-09-27',
+  },
+  {
+    title:
+      'Catching Conflicts Before They Go Live: Solver-Verified Compilation of Natural-Language Smart-Home Policies',
+    doi: '10.5281/zenodo.22998281',
+    recordUrl: 'https://zenodo.org/records/22998281',
     published: '2026-09-27',
   },
   {
@@ -57,7 +64,7 @@ function source(relativePath: string): string {
 }
 
 describe('publications catalogue', () => {
-  it('lists exactly the five Zenodo preprints', () => {
+  it('lists exactly the six Zenodo preprints', () => {
     expect(publications).toHaveLength(EXPECTED.length);
     expect(publications.map((publication) => publication.title)).toEqual(
       EXPECTED.map((publication) => publication.title),

@@ -66,6 +66,20 @@ describe("public WebMCP handlers", () => {
     expect(out).toMatchObject({ project: { name: "TaskWeave" } });
   });
 
+  it("get_resume_project_details lists AIWeave before Jules in résumé data", () => {
+    const aiweave = executeGetResumeProjectDetails({ name: "AIWeave" });
+    expect(aiweave).toMatchObject({ project: { name: "AIWeave" } });
+    const jules = executeGetResumeProjectDetails({ name: "Jules" });
+    expect(jules).toMatchObject({ project: { name: "Jules" } });
+  });
+
+  it("search_public_resume surfaces Kafka and MCP skills", () => {
+    const kafka = executeSearchPublicResume({ query: "Kafka", limit: 5 });
+    expect(JSON.stringify(kafka)).toContain("Kafka");
+    const mcp = executeSearchPublicResume({ query: "Model Context Protocol", limit: 5 });
+    expect(JSON.stringify(mcp)).toMatch(/MCP|Model Context Protocol/);
+  });
+
   it("get_experience_entry filters by company", () => {
     const out = executeGetExperienceEntry({ company: "CHASE" });
     expect(out).toMatchObject({ experience: expect.any(Array) });

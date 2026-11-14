@@ -70,6 +70,16 @@ export const publications: readonly Publication[] = [
   },
   {
     title:
+      "Catching Conflicts Before They Go Live: Solver-Verified Compilation of Natural-Language Smart-Home Policies",
+    author: publicationAuthor,
+    status: "Preprint",
+    venue: "Zenodo",
+    doi: "10.5281/zenodo.22998281",
+    recordUrl: "https://zenodo.org/records/22998281",
+    published: "2026-09-27"
+  },
+  {
+    title:
       "Estimate Before You Deploy: Offline Evaluation as a Safety Gate for Changing Retrieval Routing Policies",
     author: publicationAuthor,
     status: "Preprint",

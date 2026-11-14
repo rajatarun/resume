@@ -1,6 +1,6 @@
 # TARUN RAJA
 
-> Senior Lead Software Engineer with over 10+ years of experience in the fintech sector, specializing in high-scale application architecture, fault-tolerant systems, and cross-functional team leadership. Proven track record of orchestrating global engineering teams under Kanban methodologies to deliver next-generation banking solutions. Expert in driving DevOps modernization, AI enablement, and SRE best practices while ensuring strict regulatory governance for international payment systems.
+> Senior Lead Software Engineer with 10+ years of experience in the fintech sector, specializing in high-scale application architecture, fault-tolerant systems, and cross-functional team leadership. Proven track record of orchestrating global engineering teams under Kanban methodologies to deliver next-generation banking solutions. Expert in driving DevOps modernization, AI enablement, and SRE best practices while ensuring strict regulatory governance for international payment systems.
 
 This file is an informal index for automated summarization tools. It is not a web standard and does not affect HTML metadata.
 
@@ -25,8 +25,9 @@ This file is an informal index for automated summarization tools. It is not a we
 ## Authoritative external profiles
 
 - GitHub: https://github.com/rajatarun
-- LinkedIn: https://www.linkedin.com/in/tarunraja
+- LinkedIn: https://www.linkedin.com/in/tarun-raja
 - ORCID: https://orcid.org/0009-0009-0842-8072
+- AIWeave: https://aiweave.org
 
 ## Grounding note
 

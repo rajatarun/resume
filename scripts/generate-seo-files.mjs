@@ -17,6 +17,7 @@ for (const key of requiredEnv) {
 const baseUrl = PRODUCTION_BASE_URL;
 const githubUrl = `https://github.com/${process.env.GITHUB_USER}`;
 const linkedInUrl = `https://www.linkedin.com/in/${process.env.LINKEDIN_USER}`;
+const aiweaveUrl = "https://aiweave.org";
 
 const urlTag = (route) =>
   `  <url>\n    <loc>${baseUrl}${route}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>${route === "/" ? "1.0" : "0.8"}</priority>\n  </url>`;
@@ -50,6 +51,7 @@ ${PUBLIC_SITEMAP_ROUTES.map((route) => `- ${baseUrl}${route === "/" ? "" : route
 - GitHub: ${githubUrl}
 - LinkedIn: ${linkedInUrl}
 ${orcid ? `- ORCID: https://orcid.org/${orcid}` : ""}
+- AIWeave: ${aiweaveUrl}
 
 ## Grounding note
 

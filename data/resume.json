@@ -9,7 +9,7 @@
     ]
   },
   "profile": {
-    "summary": "Senior Lead Software Engineer with over 10+ years of experience in the fintech sector, specializing in high-scale application architecture, fault-tolerant systems, and cross-functional team leadership. Proven track record of orchestrating global engineering teams under Kanban methodologies to deliver next-generation banking solutions. Expert in driving DevOps modernization, AI enablement, and SRE best practices while ensuring strict regulatory governance for international payment systems."
+    "summary": "Senior Lead Software Engineer with 10+ years of experience in the fintech sector, specializing in high-scale application architecture, fault-tolerant systems, and cross-functional team leadership. Proven track record of orchestrating global engineering teams under Kanban methodologies to deliver next-generation banking solutions. Expert in driving DevOps modernization, AI enablement, and SRE best practices while ensuring strict regulatory governance for international payment systems."
   },
   "skills": {
     "groups": [
@@ -18,7 +18,8 @@
         "yearsExp": 10,
         "items": [
           "Spring Boot",
-          "Java"
+          "Java",
+          "Kafka"
         ]
       },
       {
@@ -59,7 +60,12 @@
           "LangGraph",
           "OpenAI API",
           "Agentic Workflows",
-          "LLM Orchestration"
+          "LLM Orchestration",
+          "Model Context Protocol (MCP)",
+          "RAG",
+          "GraphRAG",
+          "Amazon Bedrock",
+          "Agent Evaluation"
         ]
       },
       {
@@ -176,6 +182,26 @@
     }
   ],
   "projects": [
+    {
+      "name": "AIWeave",
+      "subtitle": "Open-source AWS-native AI tools",
+      "highlights": [
+        {
+          "label": "Ecosystem",
+          "text": "AIWeave is an open-source ecosystem of 13 AWS-native AI tools, documented and shared at aiweave.org."
+        }
+      ]
+    },
+    {
+      "name": "Jules",
+      "subtitle": "Internal platform library",
+      "highlights": [
+        {
+          "label": "Tooling Development",
+          "text": "Architected and developed the \"Jules\" library, a custom solution designed to facilitate \"shift-left\" testing patterns and streamline Kubernetes deployments."
+        }
+      ]
+    },
     {
       "name": "TaskWeave",
       "subtitle": "Agentic AI Framework",
