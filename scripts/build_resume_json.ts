@@ -25,7 +25,7 @@ const resumeText = `TARUN RAJA
 Princeton, Texas, United States | 6465892266 | rajatarun12@gmail.com | LinkedIn
 
 PROFILE
-Senior Lead Software Engineer with over 10+ years of experience in the fintech sector, specializing in high-scale
+Senior Lead Software Engineer with 10+ years of experience in the fintech sector, specializing in high-scale
 application architecture, fault-tolerant systems, and cross-functional team leadership. Proven track record of
 orchestrating global engineering teams under Kanban methodologies to deliver next-generation banking solutions.
 Expert in driving DevOps modernization, AI enablement, and SRE best practices while ensuring strict regulatory
@@ -251,7 +251,7 @@ function parseResume(text: string): Resume {
     profile: { summary: profile },
     skills: {
       groups: [
-        { name: "Backend", items: ["Spring Boot", "Java"] },
+        { name: "Backend", items: ["Spring Boot", "Java", "Kafka"] },
         { name: "Frontend", items: ["JavaScript", "TypeScript", "React", "Angular"] },
         { name: "Runtime/Platform", items: ["Node.js", "Python"] },
         {
@@ -267,7 +267,18 @@ function parseResume(text: string): Resume {
         },
         {
           name: "AI/LLM",
-          items: ["LangChain", "LangGraph", "OpenAI API", "Agentic Workflows", "LLM Orchestration"]
+          items: [
+            "LangChain",
+            "LangGraph",
+            "OpenAI API",
+            "Agentic Workflows",
+            "LLM Orchestration",
+            "Model Context Protocol (MCP)",
+            "RAG",
+            "GraphRAG",
+            "Amazon Bedrock",
+            "Agent Evaluation"
+          ]
         },
         {
           name: "Practices",

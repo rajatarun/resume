@@ -13,6 +13,8 @@ for (const key of requiredEnv) {
 export const baseUrl = PRODUCTION_BASE_URL;
 export const githubUrl = `https://github.com/${process.env.GITHUB_USER}`;
 export const linkedInUrl = `https://www.linkedin.com/in/${process.env.LINKEDIN_USER}`;
+export const orcidProfileUrl = "https://orcid.org/0009-0009-0842-8072";
+export const aiweaveUrl = "https://aiweave.org";
 
 export const seoRoutes = PUBLIC_SITEMAP_ROUTES;
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { githubUrl, linkedInUrl } from "@/src/seo/seo.config";
+import { aiweaveUrl, githubUrl, linkedInUrl, orcidProfileUrl } from "@/src/seo/seo.config";
 
 export function SiteFooter() {
   return (
@@ -12,6 +12,12 @@ export function SiteFooter() {
           </a>
           <a href={linkedInUrl} className="focus-ring text-sky-700 hover:text-sky-800 dark:text-sky-400" target="_blank" rel="noopener noreferrer">
             LinkedIn – Tarun Raja
+          </a>
+          <a href={orcidProfileUrl} className="focus-ring text-sky-700 hover:text-sky-800 dark:text-sky-400" target="_blank" rel="noopener noreferrer">
+            ORCID – Tarun Raja
+          </a>
+          <a href={aiweaveUrl} className="focus-ring text-sky-700 hover:text-sky-800 dark:text-sky-400" target="_blank" rel="noopener noreferrer">
+            AIWeave – aiweave.org
           </a>
           <Link href="/appointment" className="focus-ring text-sky-700 hover:text-sky-800 dark:text-sky-400">
             Let&apos;s talk

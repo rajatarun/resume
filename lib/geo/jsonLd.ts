@@ -1,6 +1,6 @@
 import { publications } from "@/data/publications";
 import { resume } from "@/lib/resume";
-import { baseUrl, githubUrl, linkedInUrl } from "@/src/seo/seo.config";
+import { aiweaveUrl, baseUrl, githubUrl, linkedInUrl } from "@/src/seo/seo.config";
 import {
   alumniOfFromResume,
   credentialsFromResume,
@@ -21,7 +21,7 @@ export function buildPersonJsonLd() {
     name: publicEntity.name,
     jobTitle: publicEntity.currentTitle,
     url: baseUrl,
-    sameAs: [githubUrl, linkedInUrl, publicEntity.orcidUrl],
+    sameAs: [githubUrl, linkedInUrl, publicEntity.orcidUrl, aiweaveUrl],
     identifier: {
       "@type": "PropertyValue",
       propertyID: "ORCID",
@@ -61,7 +61,7 @@ export function buildWebSiteJsonLd() {
       "@id": PERSON_ID,
       name: publicEntity.name,
       url: baseUrl,
-      sameAs: [githubUrl, linkedInUrl, publicEntity.orcidUrl]
+      sameAs: [githubUrl, linkedInUrl, publicEntity.orcidUrl, aiweaveUrl]
     }
   };
 }

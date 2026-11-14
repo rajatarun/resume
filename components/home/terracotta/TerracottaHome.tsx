@@ -1,7 +1,7 @@
 import { ProfilePhoto } from "@/components/ProfilePhoto";
 import Link from "next/link";
 import { resume } from "@/lib/resume";
-import { githubUrl, linkedInUrl } from "@/src/seo/seo.config";
+import { aiweaveUrl, githubUrl, linkedInUrl, orcidProfileUrl } from "@/src/seo/seo.config";
 import { BarChart, HeroParallax, HeroVideo, Reveal } from "@/components/home/terracotta/Motion";
 
 import { editorialFontVariables } from "@/components/home/terracotta/fonts";
@@ -32,6 +32,17 @@ type Project = {
 };
 
 const projects: Project[] = [
+  {
+    name: "AIWeave",
+    kind: "Open-source AWS-native AI tools",
+    description:
+      "An open-source ecosystem of 13 AWS-native AI tools — agents, gateways, and platform utilities built for production AWS environments.",
+    tags: ["AWS", "Open source", "Agents", "Lambda", "MCP", "Platform"],
+    href: "https://aiweave.org",
+    external: true,
+    bars: [70, 58, 82, 66, 74, 48, 90],
+    highlight: 2
+  },
   {
     name: "TaskWeave",
     kind: "Agentic AI framework",
@@ -449,10 +460,16 @@ export function Contact({ idPrefix = "" }: SectionProps) {
               Book a chat →
             </Link>
             <a href={githubUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
-              GitHub ↗
+              GitHub – Tarun Raja
             </a>
             <a href={linkedInUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
-              LinkedIn ↗
+              LinkedIn – Tarun Raja
+            </a>
+            <a href={orcidProfileUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
+              ORCID – Tarun Raja
+            </a>
+            <a href={aiweaveUrl} target="_blank" rel="noopener noreferrer" className={linkClass}>
+              AIWeave – aiweave.org
             </a>
           </div>
         </Reveal>
