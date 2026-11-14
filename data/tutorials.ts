@@ -84,7 +84,7 @@ export const tutorialTopics: TutorialTopic[] = [
   {
     topic: "LLMOps",
     description:
-      "End-to-end LLMOps and AIOps tutorials covering observability, scoring, drift detection, cost optimisation, and production hardening using mcp-observatory as the reference implementation.",
+      "End-to-end LLMOps and AIOps tutorials covering observability, scoring, drift detection, cost optimisation, and production hardening for MCP tool calls in production.",
     tutorials: [
       {
         id: "tut-llmops-1",
@@ -100,7 +100,7 @@ export const tutorialTopics: TutorialTopic[] = [
         id: "tut-llmops-2",
         title: "Vol 2 — Scoring, Drift Detection & the Wrapper API",
         description:
-          "A deep dive into the quantitative machinery behind mcp-observatory. Covers the composite scoring engine (Jaccard instability, numeric variance, prompt drift), HMAC-SHA256 token security, dual-run shadow mode, and production Postgres schema design with analytical SQL for drift alerting.",
+          "A deep dive into quantitative scoring for tool-call observability. Covers composite scoring (Jaccard instability, numeric variance, prompt drift), HMAC-SHA256 token security, dual-run shadow mode, and production Postgres schema design with analytical SQL for drift alerting.",
         pdfUrl:
           "https://tarun-website-tutorials.s3.amazonaws.com/LLMOps/vol2%20intermediate%20llmops%20aiops.pdf",
         downloadName: "LLMOps Vol 2 Intermediate – Tarun Raja.pdf",

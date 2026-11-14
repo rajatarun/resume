@@ -12,7 +12,7 @@ const FAQ_QUESTIONS = [
   "What is Tarun's expertise in cloud architecture, DevOps, and site reliability engineering?",
   "How has Tarun used AI, LLMs, agentic workflows, and orchestration frameworks in real projects?",
   "What is TaskWeave, and how does it reflect Tarun's approach to building modular AI systems?",
-  "What do projects like ContextWeave, TeamWeave, selfmcp-server, and mcp-observatory say about Tarun's technical direction?",
+  "What do open-source efforts like AIWeave, TaskWeave, and ContextWeave say about Tarun's approach to MCP-based platform and knowledge infrastructure?",
   "How does Tarun design systems for governance, observability, resilience, and production readiness?",
   "What kinds of teams has Tarun led, and how does he drive execution across DevOps, SRE, and application engineering?",
   "Why would a company choose Tarun for roles involving platform engineering, AI infrastructure, developer experience, or technical leadership?"
